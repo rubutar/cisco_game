@@ -1,6 +1,8 @@
 // Stream A. Music and sound effects (Resources/Audio, made by Tools/audio/make_audio.py), on GameRoot.prefab.
 // Listens to the shared events only, so neither stream has to call it: the music follows the game state
 // (crossfading between tracks) and each gameplay event plays its sound. A missing clip is simply silent.
+// It also holds the game's one AudioListener: GameRoot lives across every scene, and the scene cameras
+// don't carry one (any a scene brings is removed, so there's never two).
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,6 +32,8 @@ namespace ByteWorld
                 return;
             }
             Instance = this;
+            if (GetComponent<AudioListener>() == null) gameObject.AddComponent<AudioListener>();
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
             music = new[] { NewSource(true), NewSource(true) };
             sfx = NewSource(false);
             sfx.volume = SfxVolume;
@@ -46,7 +50,16 @@ namespace ByteWorld
 
         void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            if (Instance != this) return;
+            Instance = null;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            var mine = GetComponent<AudioListener>();
+            foreach (var listener in FindObjectsByType<AudioListener>())
+                if (listener != mine) Destroy(listener);
         }
 
         void OnEnable()
