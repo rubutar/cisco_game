@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <!-- Stream B. Byte World WebGL page (PRD 6.8): full-screen landscape canvas, palette loading bar,
+         and a "turn your phone sideways" overlay in portrait. The overlay text comes from the game
+         (dialogue.json ui.rotatePhone via ByteWorldPage.jslib), so no game text lives here. -->
+    <style>
+      /* Colours mirror ByteWorld.Palette (PRD 6.6): Ink, ByteCream, NeonCyan, SignalBlue. */
+      :root { --ink: #1D1B33; --cream: #FFF4D6; --cyan: #47E6FF; --blue: #4A5FC1; }
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--ink); }
+      body { display: flex; align-items: center; justify-content: center; touch-action: none; -webkit-user-select: none; user-select: none; }
+      /* Largest 16:9 box that fits the window. */
+      #unity-canvas {
+        display: block; background: var(--ink);
+        width: min(100vw, calc(100vh * 16 / 9)); height: min(100vh, calc(100vw * 9 / 16));
+        image-rendering: pixelated; outline: none;
+      }
+      #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+      #loading-bar { width: min(60vw, 480px); height: 20px; border: 4px solid var(--cream); background: var(--ink); }
+      #loading-fill { width: 0%; height: 100%; background: var(--cyan); }
+      #rotate { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+                gap: 28px; background: var(--ink); color: var(--cream); font: bold 22px/1.3 system-ui, sans-serif;
+                text-align: center; padding: 24px; box-sizing: border-box; z-index: 10; }
+      #rotate-phone { width: 56px; height: 96px; border: 6px solid var(--cream); border-radius: 10px; box-sizing: border-box;
+                      background: var(--blue); animation: tip 1.6s ease-in-out infinite; }
+      @keyframes tip { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+      /* Phones and tablets held upright: ask to rotate (the game is landscape only). */
+      @media (orientation: portrait) and (pointer: coarse) { #rotate { display: flex; } }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" width="{{{ WIDTH }}}" height="{{{ HEIGHT }}}" tabindex="-1"></canvas>
+    <div id="loading"><div id="loading-bar"><div id="loading-fill"></div></div></div>
+    <div id="rotate"><div id="rotate-phone"></div><div id="rotate-text"></div></div>
+    <script src="Build/{{{ LOADER_FILENAME }}}"></script>
+    <script>
+      window.byteWorldSetRotateText = function (text) { document.getElementById("rotate-text").textContent = text; };
+
+      // When the player goes full screen (itch.io's button), try to lock landscape (Android Chrome supports it).
+      document.addEventListener("fullscreenchange", function () {
+        if (document.fullscreenElement && screen.orientation && screen.orientation.lock)
+          screen.orientation.lock("landscape").catch(function () {});
+      });
+
+      var canvas = document.querySelector("#unity-canvas");
+      createUnityInstance(canvas, {
+        arguments: [],
+#if PROGRESSIVE_ASSET_LOADING
+        primaryDataUrls: {{{ JSON.stringify(PRIMARY_DATA_FILES) }}},
+        secondaryDataUrls: {{{ JSON.stringify(SECONDARY_DATA_FILES) }}},
+#else
+        dataUrl: "Build/{{{ DATA_FILENAME }}}",
+#endif
+        frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_WASM
+        codeUrl: "Build/{{{ CODE_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+        symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
+#endif
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+        productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+        productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+      }, function (progress) {
+        document.getElementById("loading-fill").style.width = Math.round(progress * 100) + "%";
+      }).then(function () {
+        document.getElementById("loading").style.display = "none";
+      }).catch(function (message) {
+        alert(message);
+      });
+    </script>
+  </body>
+</html>
