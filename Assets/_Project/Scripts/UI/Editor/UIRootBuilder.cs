@@ -23,6 +23,7 @@ namespace ByteWorld.EditorTools
             {
                 BuildCanvas(root);
                 BuildEventSystem(root.transform);
+                BuildTitleScreen(root.transform);
                 var safe = NewRect("SafeArea", root.transform);
                 Stretch(safe);
                 safe.gameObject.AddComponent<SafeArea>();
@@ -60,6 +61,62 @@ namespace ByteWorld.EditorTools
             var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             go.transform.SetParent(parent, false);
             go.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
+        }
+
+        // ---------- Title screen ----------
+
+        static void BuildTitleScreen(Transform parent)
+        {
+            var host = NewRect("TitleScreen", parent);
+            Stretch(host);
+            var title = host.gameObject.AddComponent<TitleScreen>();
+
+            // Full-screen backdrop: covers the whole screen (not just the safe area) and blocks world taps.
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            AddImage(screen.gameObject, Palette.Ink, true);
+
+            // Blue copy offset behind the title: a chunky pixel drop shadow (uGUI Shadow doesn't affect TMP).
+            var logoShadow = NewText("LogoShadow", screen, 180, Palette.SignalBlue, TextAlignmentOptions.Center);
+            logoShadow.rectTransform.anchorMin = logoShadow.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            logoShadow.rectTransform.anchoredPosition = new Vector2(12, 158);
+            logoShadow.rectTransform.sizeDelta = new Vector2(1600, 240);
+            logoShadow.fontStyle = FontStyles.Bold;
+
+            var logo = NewText("Logo", screen, 180, Palette.ByteCream, TextAlignmentOptions.Center);
+            logo.rectTransform.anchorMin = logo.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            logo.rectTransform.anchoredPosition = new Vector2(0, 170);
+            logo.rectTransform.sizeDelta = new Vector2(1600, 240);
+            logo.fontStyle = FontStyles.Bold;
+            logo.raycastTarget = true; // tappable for the 5-tap debug menu
+            logo.gameObject.AddComponent<SecretTaps>();
+
+            var tagline = NewText("Tagline", screen, 52, Palette.NeonCyan, TextAlignmentOptions.Center);
+            tagline.rectTransform.anchorMin = tagline.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            tagline.rectTransform.anchoredPosition = new Vector2(0, 20);
+            tagline.rectTransform.sizeDelta = new Vector2(1600, 80);
+
+            var play = NewRect("PlayButton", screen);
+            play.anchorMin = play.anchorMax = new Vector2(0.5f, 0.5f);
+            play.anchoredPosition = new Vector2(0, -190);
+            play.sizeDelta = new Vector2(440, 130);
+            var playImage = AddImage(play.gameObject, Palette.AlertPink, true);
+            var playOutline = play.gameObject.AddComponent<Outline>();
+            playOutline.effectColor = Palette.ByteCream;
+            playOutline.effectDistance = new Vector2(8, -8);
+            var button = play.gameObject.AddComponent<Button>();
+            button.targetGraphic = playImage;
+            var playLabel = NewText("Label", play, 64, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(playLabel.rectTransform);
+
+            var so = new SerializedObject(title);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("titleText").objectReferenceValue = logo;
+            so.FindProperty("titleShadow").objectReferenceValue = logoShadow;
+            so.FindProperty("taglineText").objectReferenceValue = tagline;
+            so.FindProperty("playButton").objectReferenceValue = button;
+            so.FindProperty("playLabel").objectReferenceValue = playLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // ---------- Top bar ----------
