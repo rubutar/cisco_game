@@ -24,6 +24,7 @@ namespace ByteWorld.EditorTools
                 BuildCanvas(root);
                 BuildEventSystem(root.transform);
                 BuildTitleScreen(root.transform);
+                BuildIntroScreen(root.transform);
                 var safe = NewRect("SafeArea", root.transform);
                 Stretch(safe);
                 safe.gameObject.AddComponent<SafeArea>();
@@ -330,6 +331,74 @@ namespace ByteWorld.EditorTools
             so.FindProperty("lineText").objectReferenceValue = line;
             so.FindProperty("button").objectReferenceValue = button;
             so.FindProperty("buttonLabel").objectReferenceValue = label;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Intro panels ----------
+
+        static void BuildIntroScreen(Transform parent)
+        {
+            var host = NewRect("IntroScreen", parent);
+            Stretch(host);
+            var intro = host.gameObject.AddComponent<IntroScreen>();
+
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            AddImage(screen.gameObject, Palette.Ink, true);
+
+            var text = NewText("PanelText", screen, 76, Palette.ByteCream, TextAlignmentOptions.Center);
+            text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            text.rectTransform.anchoredPosition = new Vector2(0, 60);
+            text.rectTransform.sizeDelta = new Vector2(1500, 500);
+            text.textWrappingMode = TextWrappingModes.Normal;
+
+            var dots = NewRect("Dots", screen);
+            dots.anchorMin = dots.anchorMax = new Vector2(0.5f, 0);
+            dots.pivot = new Vector2(0.5f, 0);
+            dots.anchoredPosition = new Vector2(0, 120);
+            dots.sizeDelta = new Vector2(600, 40);
+            var dotsLayout = dots.gameObject.AddComponent<HorizontalLayoutGroup>();
+            dotsLayout.spacing = 24;
+            dotsLayout.childAlignment = TextAnchor.MiddleCenter;
+            dotsLayout.childControlWidth = false;
+            dotsLayout.childControlHeight = false;
+            dotsLayout.childForceExpandWidth = false;
+            dotsLayout.childForceExpandHeight = false;
+
+            var next = NewRect("NextButton", screen);
+            next.anchorMin = next.anchorMax = new Vector2(1, 0);
+            next.pivot = new Vector2(1, 0);
+            next.anchoredPosition = new Vector2(-96, 80);
+            next.sizeDelta = new Vector2(360, 120);
+            var nextImage = AddImage(next.gameObject, Palette.AlertPink, true);
+            var nextOutline = next.gameObject.AddComponent<Outline>();
+            nextOutline.effectColor = Palette.ByteCream;
+            nextOutline.effectDistance = new Vector2(6, -6);
+            var nextButton = next.gameObject.AddComponent<Button>();
+            nextButton.targetGraphic = nextImage;
+            var nextLabel = NewText("Label", next, 52, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(nextLabel.rectTransform);
+
+            // Skip: a quiet text button in the corner (still a big tap area for phones).
+            var skip = NewRect("SkipButton", screen);
+            skip.anchorMin = skip.anchorMax = new Vector2(1, 1);
+            skip.pivot = new Vector2(1, 1);
+            skip.anchoredPosition = new Vector2(-64, -48);
+            skip.sizeDelta = new Vector2(240, 96);
+            var skipImage = AddImage(skip.gameObject, new Color(0, 0, 0, 0), true);
+            var skipButton = skip.gameObject.AddComponent<Button>();
+            skipButton.targetGraphic = skipImage;
+            var skipLabel = NewText("Label", skip, 40, Palette.NeonCyan, TextAlignmentOptions.Center);
+            Stretch(skipLabel.rectTransform);
+
+            var so = new SerializedObject(intro);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("panelText").objectReferenceValue = text;
+            so.FindProperty("dots").objectReferenceValue = dots;
+            so.FindProperty("nextButton").objectReferenceValue = nextButton;
+            so.FindProperty("nextLabel").objectReferenceValue = nextLabel;
+            so.FindProperty("skipButton").objectReferenceValue = skipButton;
+            so.FindProperty("skipLabel").objectReferenceValue = skipLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

@@ -25,6 +25,12 @@ namespace ByteWorld.EditorTools
             PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
             PlayerSettings.stripEngineCode = true;
             PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.WebGL, ManagedStrippingLevel.Medium);
+
+            // B-09b: landscape page template (Assets/WebGLTemplates/ByteWorld) at a 16:9 default size.
+            PlayerSettings.WebGL.template = "PROJECT:ByteWorld";
+            PlayerSettings.defaultWebScreenWidth = 960;
+            PlayerSettings.defaultWebScreenHeight = 540;
+            PlayerSettings.productName = "Byte World"; // browser tab title
             AssetDatabase.SaveAssets();
             Debug.Log("[WebGLBuilder] Applied PRD 6.8 WebGL settings.");
         }
