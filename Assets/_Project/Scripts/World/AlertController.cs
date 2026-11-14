@@ -36,6 +36,7 @@ namespace ByteWorld
 
         void Update()
         {
+            UpdatePatience();
             var flow = Services.Flow;
             // FinalAttack is the fallback Day 3: the same groups, from DataLoader's fallback day.
             if (flow.State != GameState.WorldPeace && flow.State != GameState.FinalAttack) return;
@@ -44,6 +45,23 @@ namespace ByteWorld
             if (startedDay != flow.Day) BeginDay(flow.Day);
 
             if (!groupActive && nextAlertAt >= 0f && Time.time >= nextAlertAt) RaiseNextGroup();
+        }
+
+        /// <summary>
+        /// Day 2 patience bars (A-15): in a group of two or more, each waiting Byte's bar shows how much of its
+        /// shift timer is left after the wait penalty, from full down to the maxWaitPenalty cap.
+        /// </summary>
+        void UpdatePatience()
+        {
+            if (!groupActive || dayData == null || dayData.maxWaitPenalty <= 0f || (groups[groupIndex].jobs?.Length ?? 1) < 2) return;
+            foreach (var job in waitingSince.Keys)
+            {
+                var shift = DataLoader.Instance?.GetShift(startedDay, job);
+                var timer = shift != null && shift.timerSeconds > 0f ? shift.timerSeconds : 45f;
+                var maxPenalty = timer * dayData.maxWaitPenalty;
+                var penalty = Mathf.Min(WaitedSeconds(job) * dayData.waitPenaltyPerSecond, maxPenalty);
+                WorldMap.Instance?.GetJobByte(job)?.SetPatience(1f - penalty / maxPenalty);
+            }
         }
 
         void BeginDay(int day)
