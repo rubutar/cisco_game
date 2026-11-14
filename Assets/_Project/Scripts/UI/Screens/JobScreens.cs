@@ -12,7 +12,10 @@ namespace ByteWorld
 {
     public class JobScreens : MonoBehaviour
     {
-        const float LateArrivalSeconds = 0.5f; // Day 2: the Byte only complains if the player actually kept it waiting
+        // Day 2 double alerts: a Byte only complains about waiting if the player helped another Byte from the
+        // same alert first (every Byte waits a moment after its alert, so time alone isn't enough).
+        int alertGroup = -1;
+        int jobsEnteredInGroup;
 
         [Header("Job intro")]
         [SerializeField] GameObject placeBanner;
@@ -45,6 +48,8 @@ namespace ByteWorld
             GameEvents.JobEntered += OnJobEntered;
             GameEvents.ShiftSucceeded += OnShiftSucceeded;
             GameEvents.Snatched += OnSnatched;
+            GameEvents.AlertRaised += OnAlertRaised;
+            GameEvents.DayStarted += OnDayStarted;
         }
 
         void OnDisable()
@@ -53,7 +58,19 @@ namespace ByteWorld
             GameEvents.JobEntered -= OnJobEntered;
             GameEvents.ShiftSucceeded -= OnShiftSucceeded;
             GameEvents.Snatched -= OnSnatched;
+            GameEvents.AlertRaised -= OnAlertRaised;
+            GameEvents.DayStarted -= OnDayStarted;
         }
+
+        // AlertController raises the same group again for the Bytes still waiting; only a new group resets.
+        void OnAlertRaised(AlertInfo info)
+        {
+            if (info.groupIndex == alertGroup) return;
+            alertGroup = info.groupIndex;
+            jobsEnteredInGroup = 0;
+        }
+
+        void OnDayStarted(int day, DayMode mode) => alertGroup = -1;
 
         // ---------- Job intro ----------
 
@@ -61,6 +78,8 @@ namespace ByteWorld
         void OnJobEntered(JobContext ctx)
         {
             currentJob = ctx.job;
+            var keptWaiting = jobsEnteredInGroup > 0;
+            jobsEnteredInGroup++;
             if (Services.Flow.State != GameState.JobIntro) return;
 
             var job = UiStrings.Job(ctx.job);
@@ -69,7 +88,7 @@ namespace ByteWorld
             placeBanner.SetActive(!string.IsNullOrEmpty(placeText.text));
 
             var say = new System.Collections.Generic.List<string>();
-            if (ctx.waitedSeconds > LateArrivalSeconds && !string.IsNullOrEmpty(lines?.waitingLine)) say.Add(lines.waitingLine);
+            if (keptWaiting && !string.IsNullOrEmpty(lines?.waitingLine)) say.Add(lines.waitingLine);
             if (lines?.introLines != null) say.AddRange(lines.introLines);
 
             Services.Dialogue.SayLines(ctx.job.ToKey(), say, () => GameEvents.RaiseUiAction(UiAction.JobIntroDone));
