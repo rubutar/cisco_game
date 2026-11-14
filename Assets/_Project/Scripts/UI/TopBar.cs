@@ -11,6 +11,7 @@ namespace ByteWorld
     {
         [SerializeField] GameObject bar;
         [SerializeField] TMP_Text dayLabel;
+        [SerializeField] TMP_Text goalText; // Day 3: the puzzle's goal line, in the middle of the bar
         [SerializeField] TMP_Text backupsLabel;
         [SerializeField] RectTransform backupPips;
         [SerializeField] GameObject complaintsGroup;
@@ -22,6 +23,7 @@ namespace ByteWorld
         readonly List<Image> backupImages = new();
         readonly List<Image> complaintImages = new();
         int day = 1;
+        int complaintMax;
 
         void OnEnable()
         {
@@ -70,7 +72,13 @@ namespace ByteWorld
             if (bar != null) bar.SetActive(visible);
         }
 
-        void OnStateChanged(GameState from, GameState to) => SetBarVisible(IsInGame(to));
+        void OnStateChanged(GameState from, GameState to)
+        {
+            SetBarVisible(IsInGame(to));
+            if (goalText != null && to != GameState.Build && to != GameState.TestRun) goalText.text = "";
+            // Every test run starts with a clean complaints meter.
+            if (to == GameState.TestRun) ShowComplaints(0, complaintMax);
+        }
 
         void OnDayStarted(int newDay, DayMode mode)
         {
@@ -86,6 +94,7 @@ namespace ByteWorld
         {
             dayLabel.text = UiStrings.Format(UiStrings.Ui.dayPuzzleFormat, day, index, count);
             ShowComplaints(0, ComplaintRules.Limit(FindPuzzleLimit(puzzleId)));
+            if (goalText != null) goalText.text = FindPuzzle(puzzleId)?.goal ?? "";
         }
 
         void OnJobEntered(JobContext ctx) =>
@@ -103,6 +112,7 @@ namespace ByteWorld
         /// <summary>max 0 hides the meter (Day 1, or a shift with complaints off).</summary>
         void ShowComplaints(int count, int max)
         {
+            complaintMax = max;
             if (complaintsGroup != null) complaintsGroup.SetActive(max > 0);
             if (max <= 0) return;
             EnsurePips(complaintPips, complaintImages, max);
@@ -146,13 +156,15 @@ namespace ByteWorld
             return 0;
         }
 
-        static int FindPuzzleLimit(int puzzleId)
+        static int FindPuzzleLimit(int puzzleId) => FindPuzzle(puzzleId)?.pass?.maxWrongBlocks ?? 0;
+
+        static ByteWorld.Data.PuzzleData FindPuzzle(int puzzleId)
         {
             var puzzles = Services.Data?.Build?.puzzles;
-            if (puzzles == null) return 0;
+            if (puzzles == null) return null;
             foreach (var p in puzzles)
-                if (p != null && p.id == puzzleId) return p.pass?.maxWrongBlocks ?? 0;
-            return 0;
+                if (p != null && p.id == puzzleId) return p;
+            return null;
         }
     }
 }
