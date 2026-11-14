@@ -697,11 +697,11 @@ PlayerSettings:
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
   enableDirectStorage: 0
-  cloudProjectId: 0521cd7a-b7d8-407a-ad44-0557e5c22725
+  cloudProjectId: a5441c61-5fdf-4959-8adb-bebaa96eb353
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: cisco_game
-  organizationId: rubutar
+  projectName: cisco_game (1)
+  organizationId: unity_5bbabbed5b9223e94f0b
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
