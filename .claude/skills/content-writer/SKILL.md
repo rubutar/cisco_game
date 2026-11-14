@@ -1,24 +1,23 @@
 ---
 name: content-writer
-description: Byte World content rules for person C (also pasted into DeepSeek prompts) — voice, the no-jargon rule, difficulty per day, JSON schemas for days.json, dialogue.json, roaming.json and build.json. Use when writing or checking any game text or item data.
+description: Byte World v2 content rules for Person A — voice, real Cisco terms, the Cisco marketing rules (PRD-v2 4.11), item counts per quest, and the JSON schemas for days.json, dialogue.json, hunt.json, build.json, flags.json and checkpoints.json. Use when writing or checking any game text, item data, Field Card, check question or checkpoint materials.
 ---
 
-# content-writer (Content C)
+# content-writer (Person A owns all JSON)
 
-**Voice:** Bytes speak in first person about their job, like a shopkeeper. Teen-friendly, short, playful. Max ~110 characters per line (one bubble); reveal cards max ~140.
+**Voice:** Bytes speak in the first person about their job, friendly and short. Pax is mostly silent. One bubble ≤ ~110 characters; cards ≤ 140 a line; checkpoint lines ≤ 110, without/with ≤ 40 each, materials lines ≤ 60.
 
-**Never use security or networking jargon on Days 1 and 2**: no "phishing", "firewall", "2FA", "malware", "port", "update" as a lecture. Day 3 reveal cards are the only place real terms appear (router, switch, port, socket, firewall); traffic labels stay plain ("Luca's photo", "to door 8080").
+**Real terms are allowed everywhere** (v2 replaces the v1 no-jargon rule). Explain each term once, on its Field Card (term, plain line ≤ 140, Cisco tool, general concept, career role).
 
-**Every success line names the trick in plain words** ("the name had a zero in it").
+**Cisco rules (PRD-v2 4.11):** full product name where the player acts ("Cisco Secure Firewall", not "the firewall"; Splunk and Webex as is); without/with is always the same piece of town; concrete outcomes, never adjectives; **only true claims** from cisco.com: no invented stats, customers, prices or awards; "In the real world" says how organisations use it in one line; every materials panel and the Learner Card point to Cisco Networking Academy; no logos; Splunk is "part of Cisco since 2024".
 
-**Difficulty (PRD 4.7):** Day 1 is a tutorial, 3–4 items per shift, one obvious attack, and every attack item has a `hint`. Day 2: 7–9 items, sneaky tricks mixed in one shift, mixed signals (suspicious-looking but safe), `maxWrongBlocks: 3`, a `waitingLine` and `complaintLine` per job. Day 2 tricks must match things teens really meet.
+**Items (PRD-v2 5):** Quest 1 Scout 6 (2 attacks, 1 odd-but-safe; fields From, Reply-To, Sender check, Link), Gigi 6 (2 attacks, 1 odd-but-safe; rules 443 Everyone, 8080 Friends only, 23 Closed; mid-quest change via `rulesChangeAtItem`/`rulesChangeLine`); Quest 2 Twins 5 (wrong code, expired code, push bombing via `pushCount`; 1 odd-but-safe), Patch 5 (`signature` invalid, look-alike sender; 1 odd-but-safe). Quest 1 attacks carry a `hint`. Every attack has an `attacker`. All domains, IPs and CVEs fictional; IPs only from 192.0.2.x, 198.51.100.x, 203.0.113.x.
 
-**JSON (schemas are the C# classes in `Assets/_Project/Scripts/Core/Data/`):**
-- Valid JSON, unique `id` on every item, `attacker` on every attack item, `kind` is `safe` or `attack`.
-- `alertGroups` are objects: `[{ "jobs": ["scout", "gigi"] }]` (JsonUtility can't read nested arrays).
-- Button labels and HUD formats live in `dialogue.json` → `ui`.
-- **Patch:** a real crate is `"kind": "safe"` (the right call is Fit now); give it `"worm": true`, `"wormSpeed"` (world units per second, 0.5 ≈ 20 s to the wall) and `"attacker": "worm"` when a Worm heads for its crack. A fake crate is `"type": "fakeCrate", "kind": "attack"` (the right call is Later). A crack to repair directly is `"type": "crack", "kind": "safe"` (Fit now fixes it). `alertGroups` are always objects, also in `fallbackDay3`: `[{ "jobs": ["scout"] }]`, never `[["scout"]]`. Twins value words: `valueLabels` = [right, wrong, expired, not asked], in that order.
-- Every build puzzle must have at least one correct solution: solve it on paper first.
-- Check: in Unity, **Byte World > Validate Data** reports "All data valid" (it reads the files with the real C# classes, checks ids, attackers, hints and line lengths).
-
-**Must not:** edit code. Deliver through `c/*` branches.
+**JSON (classes in `Assets/_Project/Scripts/Core/Data/` are the schema):**
+- JsonUtility: public fields, no dictionaries, **no nested arrays** — `alertGroups` are `[{ "jobs": ["scout", "gigi"] }]`, never `[["scout"]]`.
+- `checkpoints.json`: `plaza`, `checkpoints[] {id, quest, station, character, job (scout|gigi|twins|patch|hunt|build|siege), tool, x, y, path[], requires[], line, without, with, materials {what, withoutLines[3], withLines[3], realWorld, learnMoreLabel, learnMoreUrl}}` in 480 × 270 map pixels.
+- `dialogue.json`: `briefs[]`, `jobs[].days[].fieldCard`, `checks[] {quest, question, options[4], answer, explanation}`, `props[]`, `learnerCard`, `incident`, UI labels in `ui`.
+- `hunt.json`, `build.json` (lanes, testPacket, rules, siege), `flags.json` (`quest4Mode`, `heroMode`, `heroSpeed`).
+- **Patch:** a real crate is `"kind": "safe"` (Fit now); fake updates are `"type": "fakeCrate", "kind": "attack"` (Later); `"type": "crack"` is a crack to repair.
+- Check questions: 4 options, one correct, a one-line explanation, never a trick.
+- Check: **Byte World > Validate Data** says "All data valid". Read every item before merging: a wrong answer key is worse than a missing item.

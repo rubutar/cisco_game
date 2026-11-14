@@ -1,23 +1,25 @@
 ---
 name: game-dev
-description: Stream A (game core) rules for Byte World — GameManager, DayManager, AlertController, BackupNest, DataLoader, JobShift and the four job scripts, roaming Bytes, fallback final attack, debug tools. Use for any work in Scripts/Core (non-contract), World/, Jobs/, Debug/ or the World and Job scenes.
+description: Person A (game core, quests, hero, Splunk Trace) rules for Byte World v2 — GameManager, DayManager, AlertController, CheckpointManager, HeroController, BackupNest, DataLoader, JobShift and the job scripts, the Hunt module, debug tools and the two v2 contract PRs. Use for any work in Scripts/Core (non-contract), World/, Jobs/, Debug/, UI/Hunt/ or the World and Job scenes.
 ---
 
-# game-dev (Stream A)
+# game-dev (Person A)
 
-Stack: Unity 6000.6.9f1, C#, URP 2D, uGUI, WebGL (no threads, no file system, low allocations). Tap input via the uGUI EventSystem only (`IPointerClickHandler`; `Physics2DRaycaster` on the camera for world sprites).
+Spec: `PRD-v2.md` (v2.1). Stack: Unity 6000.6.9f1, C#, URP 2D, uGUI, WebGL (no threads, no file system, low allocations). Taps via the uGUI EventSystem (`IPointerClickHandler`, `Physics2DRaycaster` for world sprites); the **hero alone** also reads the keyboard through the Input System action map `Hero` (Move, Interact, Materials, Back).
 
-**How it fits together**
-- `GameManager` (on `Resources/Core/GameRoot.prefab`) implements `IGameFlow`, owns the `GameState` machine from PRD 6.4, and loads scenes: World, job scenes additively, Build on Day 3. It reacts to `GameEvents.UiActionRequested` and `RestartDayRequested`.
-- `DayManager` walks `days.json` → `alertGroups`; `AlertController` flashes every Byte in the group, tracks each one's wait time and passes `waitedSeconds` into `JobContext`.
-- `JobShift` (base class) does everything shared: spawn items on a timer, open `Services.Inspect`, apply the two actions, timer, `ShiftProgress`, `ItemResolved`, success or fail. Tutorial flag (Day 1): first mistake → `Services.Dialogue.ShowHint(item.hint)` and the item comes back; never a backup. Complaints (Day 2+): `GameEvents.RaiseComplaint`, fail with `ComplaintRules.ShiftFailed`. Wait penalty: `timer -= min(waited * waitPenaltyPerSecond, timer * maxWaitPenalty)`. Job scripts only override presentation and special rules (Patch fit/later, Gigi rule change, Twins code timer).
-- Every failure goes through `Services.Backups.ReportSnatch(...)`. `BackupNest` implements `IBackupNest` and is the only raiser of `Snatched`, `BackupsChanged` and `Collapsed`.
-- Fallback final attack: `flags.json` `day3Mode = "fallback"` → Day 3 runs `fallbackDay3` as one alert group of four. Data only.
-- Debug: `?day=2`, `?day=3&puzzle=3` from `Application.absoluteURL`; debug menu opens on `GameEvents.DebugMenuRequested` (B's title logo, tapped five times) or the backquote key in the Editor. Namespace `ByteWorld.DebugTools`.
+**What A builds (PRD-v2 6.3)**
+- **Quests on the day machinery:** Quest 1 = Day 1 alert group {scout, gigi}; Quest 2 = Day 2 {twins, patch}, then the Splunk Trace; Quest 3 = build puzzles 1–2; Quest 4 = build puzzle 3 with `siege: true` (B builds the siege).
+- **CheckpointManager** wraps AlertController (never replaces it): maps alerts to stations from `checkpoints.json`, owns `CheckpointState` (Locked/Alert/Done) and `requires`, implements `ICheckpointService`, raises `CheckpointStatesChanged` and `StationFinished`, and handles the UI actions `walk:<id>` and `goin:<id>` (Go in starts the job, `Services.Hunt.Begin`, build or siege).
+- **HeroController:** Pax on the map, keyboard walking (river and edges block), tap-to-walk along the station `path` via the plaza, turning mid-walk, proximity 26 map px → `HeroArrived` / `HeroLeft`, `heroMode: teleport` fallback, `heroSpeed` from flags.json.
+- **JobShift** raises `ItemResolved` with a Splunk-style `logLine` for every decision. Tutorial (Quest 1): hint and retry, never a backup. Complaints through `ComplaintRules`; every failure through `Services.Backups.ReportSnatch`.
+- **Splunk Trace** (`UI/Hunt/`, `Editor/HuntBuilder.cs`, `Resources/UI/Hunt.prefab`): chips build the query in order, results table, pin the target row, extra rows from the session's mistakes, Field Card.
+- **Debug:** URL `?quest=1..4`, `?hunt=1`, `?at=<checkpointId>`; flags `quest4Mode`, `heroMode`.
 
 **Rules**
-- All text and item lists come from JSON through `Services.Data`. Never hard-code game text.
-- Show UI only through `Services.Dialogue` and `Services.Inspect`, and tell UI about everything else with events. Never reference UI types.
-- Read the Unity Console through MCP after every compile.
+- All text and data from JSON through `Services.Data`; never hard-code game text.
+- Show UI only through the service interfaces and events; never reference B's UI types.
+- Contract changes only as the two planned PRs (`contract/quests-v2`, `contract/hero`) straight to `v2dev`, stubs updated.
+- Scenes are filled in code (`SceneSpawner`); never hand-edit `.unity` or `.prefab` YAML.
+- After every compile, read the Unity Console (MCP) and fix new errors; run Validate Data after any JSON change.
 
-**Must not:** edit UI prefabs or `Scripts/UI`/`Scripts/Build`, `Boot.unity`, `Build.unity`, C's JSON content (`days.json`, `dialogue.json`, `roaming.json`, `build.json`), or shared contracts outside a contract-change PR.
+**Must not:** edit `UIRootBuilder.cs`, `UIRoot.prefab`, `Scripts/Build/` or any `Scripts/UI/` file outside `UI/Hunt/`.

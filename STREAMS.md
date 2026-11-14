@@ -1,128 +1,96 @@
-# Byte World: two workstreams
+# Byte World v2: two people, one go each
 
-Two people build Byte World in parallel, each with their own Claude Pro account running Claude Code in VS Code with the official Unity MCP. Person C feeds both streams with content, art and sound. Everything meets on `main` at fixed merge windows. Rules for agents are in `CLAUDE.md`; the task board is `TASKS.md` and the GitHub milestones.
+The spec is `PRD-v2.md` (v2.1, Four Quests, Cisco edition). Two people, each with Claude Code and the Unity MCP, work in one go through their task list until the Sunday 10:00 freeze. Person A also makes all the art and owns all the content (there is no Content C in v2). Rules for agents are in `CLAUDE.md`.
 
 ## The split
 
-| | Stream A: Game core | Stream B: Screens, flow & Day 3 build | Content (C) |
-|---|---|---|---|
-| Person | A, Claude account 1 | B, Claude account 2 | C, no Claude Code stream |
-| Branch | `stream/a-game-core` | `stream/b-screens-build` | `c/*` straight to `main` |
-| Feature branches | `a/scout-shift`, `a/backup-nest` | `b/dialogue-bubble`, `b/day-cards` | `c/data-day2`, `c/sprites-bytes` |
-| Milestone | [Stream A: Game core](https://github.com/rubutar/cisco_game/milestone/1) | [Stream B: Screens, flow & Day 3 build](https://github.com/rubutar/cisco_game/milestone/2) | [Content (C)](https://github.com/rubutar/cisco_game/milestone/3) |
-| Start here | [#63](https://github.com/rubutar/cisco_game/issues/63) | [#64](https://github.com/rubutar/cisco_game/issues/64) | the milestone, top to bottom |
-| Skill | game-dev | ui-screens | pixel-art, content-writer, pm |
+| | Person A: game core, content, hero, art | Person B: screens, checkpoint UI, build, siege |
+|---|---|---|
+| Who | Rudi (`rubutar`) | Syed (`Syed0903`) |
+| Branch | `stream/a-quests` (from `v2dev`) | `stream/b-screens` (from `v2dev`) |
+| Task list | [#83](https://github.com/rubutar/cisco_game/issues/83) (pinned) | [#84](https://github.com/rubutar/cisco_game/issues/84) (pinned) |
+| Skills | game-dev, content-writer, pixel-art | ui-screens |
+| Must hours | 15h15 | 12h30 |
 
-## Ownership
+QA (`citruswhale`) tests `v2dev` builds after each merge window and files bugs with the `bug` and `v2` labels.
 
-| Owner | Scenes | Prefabs | Code and data |
-|---|---|---|---|
-| **A** | `World.unity`, `Job_Scout.unity`, `Job_Gigi.unity`, `Job_Twins.unity`, `Job_Patch.unity` | `Resources/Core/GameRoot.prefab`, world and job prefabs, debug menu | `Scripts/Core/` GameManager, DayManager, BackupNest, DataLoader; `Scripts/World/`, `Scripts/Jobs/`, `Scripts/Debug/`; `Resources/Data/flags.json` (the Day 3 fallback switch) |
-| **B** | `Boot.unity`, `Build.unity` | `Resources/UI/UIRoot.prefab` and every UI prefab (bubble, inspect panel, top bar, screens, day cards, reveal card) | `Scripts/UI/`, `Scripts/Build/`; WebGL template, WebGL player settings, itch.io |
-| **C** | none | none | `days.json`, `dialogue.json`, `roaming.json`, `build.json`; `Art/`, `Audio/`, `Tools/sprites/` |
-| **Shared** | none | none | Contract files in `Scripts/Core/`: `GameState.cs`, `Events.cs`, `Services.cs`, `Palette.cs`, `Bootstrap.cs`, `Contracts/`, `Data/`, `Stubs/`. Changed only by the contract-change rule. |
+## Ownership (PRD-v2 6.2)
 
-**Moved from the PRD** (by scene and file ownership):
-- B-08 advancing the day → A-14. B keeps the day cards.
-- B-09 restart-day logic → new A-17. B keeps the collapse screen.
-- C-13 crowd reactions → A-18, because it's RoamingByte code in `World.unity`.
-- ALL-07 audio hooks → B-15. Pause menu → B-16.
-- Day cards, collapse and peace screens live in B's UIRoot, not in `World.unity`.
-- A-01, A-02, B-01, B-02 and ALL-02b were done in foundation.
+| Owner | Files |
+|---|---|
+| **A** | All `Resources/Data/*.json` (days, dialogue, roaming, build, flags, hunt, checkpoints); `Scripts/Core/` (non-contract); `World/` incl. `HeroController`, `CheckpointManager`; `Jobs/`; `Debug/`; `GameRoot.prefab`; `World.unity`; `Job_*.unity`; the Splunk Trace (`Scripts/UI/Hunt/`, `Editor/HuntBuilder.cs`, `Resources/UI/Hunt.prefab`); all art (`Tools/sprites/`, `Resources/Sprites/`, `Art/Sprites/`); the contract files (two planned PRs only) |
+| **B** | `Scripts/UI/` (everything except `UI/Hunt/`, incl. `Checkpoints/`), `UIRootBuilder.cs`, `UIRoot.prefab`, `Scripts/Build/`, `Boot.unity`, `Build.unity`, the WebGL template, `Art/Fonts/` |
+
+B never edits JSON: ask A. A never edits B's UI files.
 
 ## How the streams stay unblocked
 
-Neither stream waits for the other: every cross-stream dependency has a stub in `Scripts/Core/Stubs/`, and **Byte World > Fake Event Panel** fires any event with sample data.
+- **Contracts first.** A lands `contract/quests-v2` (Sat 21:00) and `contract/hero` (Sat 23:30) straight into `v2dev`, each with stubs. B builds against the stubs until then: the checkpoint stub returns `checkpoints.json` with the first two stations on Alert.
+- **Fake Event Panel** fires any event (`HeroArrived`, `StationFinished`, `DayEnded` …) so B can test every screen without A's hero.
+- **Fallbacks** keep the video safe: `flags.json` `heroMode: teleport` and `quest4Mode: scripted`, decided at Sunday 08:00.
 
-| Waits on | Stub until the real one merges |
-|---|---|
-| A's shifts need B's inspect panel and bubble | IMGUI `StubInspectPanel` and `StubDialogueService`: A can play a whole shift |
-| B's screens need A's events | Fake Event Panel |
-| B's top bar and Day 3 leaks need BackupNest | `StubBackupNest` follows the contract exactly |
-| B's day cards (B-08, Sat 16–19) need DayManager (A-14, Sat 19–22) | Fake DayEnded / DayStarted; real integration after the 22:00 merge |
-| B's collapse "Start again" needs restart logic (A-17) | B raises `RestartDayRequested`; A-17 handles it |
-| A's Day 3 hand-off and `?day=3&puzzle=3` need build mode | `StubBuildMode` passes every puzzle at once |
-| A's debug menu needs the 5-tap on B's title logo | `DebugMenuRequested`, plus the backquote key in the Editor |
-| Both need C's content and art | Stub JSON; palette-coloured placeholder shapes |
+## Merge windows into `v2dev` (PRD-v2 10.2)
 
-## Merge windows and order
+Sat **22:00** · Sat **23:30** (`contract/hero`) · Sun **08:00** (cut-off: set `quest4Mode` and `heroMode`) · **08:30** · **10:00** feature freeze (tag `freeze`, then `v2dev` → `main`) · **10:30** final WebGL build from `main` (tag `demo`).
 
-Saturday **13:00, 16:00, 19:00** (tag `playable-sat`: Day 1 playable on a phone), **22:00**. Sunday **08:00** Day 3 cut-off, **08:30**, **10:00** feature freeze (tag `freeze`), **10:30**, then the final build tagged `demo`.
+At each window: merge `v2dev` into your stream branch, compile, read the Console, run Validate Data, open a PR into `v2dev`. **A merges first, then B.** Merge commits, not squash.
 
-At every window:
-1. Each stream merges its finished feature branches into its stream branch.
-2. Each stream merges `main` into its stream branch, compiles, reads the Unity Console through MCP, and runs the reviewer subagent.
-3. **A** opens a PR `stream/a-game-core` → `main`, and it's merged.
-4. **B** merges `main` again (now with A's work), re-checks the Console, then opens its PR, and it's merged.
-5. **C**'s `c/*` PRs are merged.
-6. One person makes a WebGL build of `main` and checks it on a phone; the pm updates `TASKS.md`.
+## Kickoff prompt: Person A
 
-Use **merge commits, not squash**, for stream PRs, so the stream branches don't re-conflict at the next window. No big merge at the end: anything not merged by 10:30 Sunday doesn't ship.
-
-**Contract changes** happen any time, outside the windows: open an issue labelled `contract-change`, make the change in a small PR from `contract/<name>` straight to `main`, then the other stream merges `main` before continuing. Never change contracts inside a feature branch.
-
-## Kickoff prompt: Stream A
-
-Paste into a fresh Claude Code session on person A's account, with Unity open on this repo and the Unity MCP connected (issue #1 done).
+Paste into a fresh Claude Code session, with Unity open on this repo, on branch `stream/a-quests`, and the Unity MCP connected.
 
 ```
-You are the Stream A (game core) builder for Byte World, a Unity 6000.6.9f1 game (URP 2D, uGUI,
-TextMeshPro, WebGL target, landscape, tap input only). Read CLAUDE.md and STREAMS.md first, and use
-the game-dev skill.
+You are Person A for Byte World v2 (Unity 6000.6.9f1, URP 2D, uGUI, TMP, WebGL, landscape; taps,
+plus the hero's keyboard action map). Read PRD-v2.md, CLAUDE.md and STREAMS.md first, and use the
+game-dev, content-writer and pixel-art skills.
 
-Branch: work on stream/a-game-core. For each issue, create a feature branch off it named a/<short-name>
-(for example a/game-manager), and merge it back into stream/a-game-core when its "Done when" check passes.
-Milestone: "Stream A: Game core". Your issue order is in pinned issue #63.
-Start with these three, in order:
-  #4 A-03 Pixel Perfect Camera in World
-  #5 A-04 GameManager and state machine
-  #6 A-05 DataLoader and BackupNest
+Branch: stream/a-quests (from v2dev). Your full task list is GitHub issue #83, in PRD-v2 section 8
+order. Work through it IN ONE GO, top to bottom, without waiting for me between tasks:
+- A-01 and A-13 are the only contract changes: each is one PR straight into v2dev, compiling, stubs
+  updated, merged before you continue.
+- For each task: implement, compile, read the Unity Console through the MCP and fix every new
+  error, run Byte World > Validate Data after JSON changes, play it (URL shortcuts or Fake Event
+  Panel), commit "area: what changed", tick it in issue #83 and TASKS.md, move on.
+- At each merge window (Sat 22:00, 23:30, Sun 08:00, 08:30, 10:00), merge v2dev into your branch and
+  open a PR into v2dev. Stop and ask me only if you're blocked, or at the Sunday 08:00 cut-off
+  (heroMode, quest4Mode).
 
-Never touch: Boot.unity, Build.unity, Scripts/UI/, Scripts/Build/, Resources/UI/UIRoot.prefab or any UI
-prefab, C's JSON (days.json, dialogue.json, roaming.json, build.json), and the shared contract files
-(Scripts/Core: GameState.cs, Events.cs, Services.cs, Palette.cs, Bootstrap.cs, Contracts/, Data/, Stubs/)
-except through the contract-change rule in CLAUDE.md. Never hand-edit .unity or .prefab YAML: use the
-Unity MCP, and only in World.unity, the Job_*.unity scenes and your own prefabs.
-
-After every compile, read the Unity Console through the Unity MCP and fix every new error before
-continuing. Save the scene and commit after each working MCP change. Commit messages: "area: what changed".
-Show UI only through Services.Dialogue and Services.Inspect; the stubs work until Stream B's prefabs land.
-
-For each issue: plan briefly, implement, run its "Done when" check, then tell me what you verified and
-wait for me before closing the issue and moving on.
+You own: every Resources/Data/*.json, Scripts/Core (non-contract), World/ (incl. HeroController and
+CheckpointManager), Jobs/, Debug/, GameRoot.prefab, World.unity, Job_*.unity, the Hunt module
+(Scripts/UI/Hunt/, Editor/HuntBuilder.cs, Resources/UI/Hunt.prefab), all art (Tools/sprites,
+Resources/Sprites, Art/Sprites) and the contract files. Never touch UIRootBuilder.cs, UIRoot.prefab,
+Scripts/Build/ or any other Scripts/UI file.
+Content: follow PRD-v2 section 5 and 4.11; lines under 110 characters (cards under 140), fictional
+domains and documentation-range IPs only, every Cisco product line checked against cisco.com.
+Art: grids through Tools/sprites/make_sprites.py, look at the --preview sheet before committing.
+Never hand-edit .unity or .prefab YAML.
 ```
 
-## Kickoff prompt: Stream B
+## Kickoff prompt: Person B
 
-Paste into a fresh Claude Code session on person B's account, with Unity open on this repo and the Unity MCP connected (issue #20 done).
+Paste into a fresh Claude Code session, with Unity open on this repo, on branch `stream/b-screens`, and the Unity MCP connected.
 
 ```
-You are the Stream B (screens, flow and Day 3 build) builder for Byte World, a Unity 6000.6.9f1 game
-(URP 2D, uGUI, TextMeshPro, WebGL target, landscape, tap input only). Read CLAUDE.md and STREAMS.md
-first, and use the ui-screens skill.
+You are Person B for Byte World v2 (Unity 6000.6.9f1, URP 2D, uGUI, TMP, WebGL, landscape, tap only).
+Read PRD-v2.md, CLAUDE.md and STREAMS.md first, and use the ui-screens skill.
 
-Branch: work on stream/b-screens-build. For each issue, create a feature branch off it named
-b/<short-name> (for example b/dialogue-bubble), and merge it back into stream/b-screens-build when its
-"Done when" check passes.
-Milestone: "Stream B: Screens, flow & Day 3 build". Your issue order is in pinned issue #64.
-Start with these three, in order:
-  #23 B-03 WebGL test build and itch.io
-  #24 B-04 UIRoot, dialogue bubble, top bar
-  #25 B-05 Title screen
+Branch: stream/b-screens (from v2dev). Your full task list is GitHub issue #84, in PRD-v2 section 8
+order (Musts first, then Shoulds). Work through it IN ONE GO, top to bottom, without waiting for me
+between tasks:
+- Start B-01 to B-03 now. Before B-14, merge v2dev to pick up A's contract/hero PR; until it lands,
+  build B-14 against the checkpoint stub. Build Quest 4 in scripted mode first (quest4Mode).
+- For each task: implement, compile, read the Unity Console through the MCP and fix every new
+  error, test it with the Fake Event Panel, commit "area: what changed", tick it in issue #84 and
+  TASKS.md, move on.
+- At each merge window (Sat 22:00, 23:30, Sun 08:00, 08:30, 10:00), merge v2dev into your branch and
+  open a PR into v2dev after A's. Stop and ask me only if you're blocked.
 
-Never touch: World.unity, the Job_*.unity scenes, Scripts/Jobs/, Scripts/World/, Scripts/Debug/,
-GameManager / DayManager / BackupNest / DataLoader, Resources/Core/GameRoot.prefab, flags.json, C's JSON
-(days.json, dialogue.json, roaming.json, build.json), and the shared contract files (Scripts/Core:
-GameState.cs, Events.cs, Services.cs, Palette.cs, Bootstrap.cs, Contracts/, Data/, Stubs/) except through
-the contract-change rule in CLAUDE.md. Never hand-edit .unity or .prefab YAML: use the Unity MCP, and only
-in Boot.unity, Build.unity and your own prefabs.
-
-After every compile, read the Unity Console through the Unity MCP and fix every new error before
-continuing. Save the scene and commit after each working MCP change. Commit messages: "area: what changed".
-Screens listen to GameEvents and answer with GameEvents.RaiseUiAction; test them with
-Byte World > Fake Event Panel until Stream A's events are real. Project Settings changes for WebGL are
-agreed with the team first.
-
-For each issue: plan briefly, implement, run its "Done when" check, then tell me what you verified and
-wait for me before closing the issue and moving on.
+You own: Scripts/UI (except Scripts/UI/Hunt/), UIRootBuilder.cs, UIRoot.prefab, Scripts/Build/,
+Boot.unity, Build.unity, the WebGL template and Art/Fonts/. You never edit JSON: ask Person A.
+Style: every size and colour in UI/UiStyle.cs from Palette constants only. Main buttons Packet
+Yellow with ink text, secondary buttons white with an ink border, Alert Pink only for danger and
+alert states, no text under 34 at 1920x1080. Visual reference for the popup, card, materials panel
+and toolkit: https://claude.ai/artifact/Rt5KF4SqTzdRjUDNtrUdXc
+Change UI only by editing UIRootBuilder.cs and re-running Byte World > UI > Build UIRoot Prefab.
+Never hand-edit prefab YAML.
 ```
