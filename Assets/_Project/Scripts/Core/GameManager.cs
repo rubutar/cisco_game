@@ -36,7 +36,7 @@ namespace ByteWorld
             { GameState.Boot, new[] { GameState.Title, GameState.WorldPeace, GameState.BuildIntro, GameState.Build } },
             { GameState.Title, new[] { GameState.Intro, GameState.WorldPeace, GameState.BuildIntro, GameState.FinalAttack } },
             { GameState.Intro, new[] { GameState.WorldPeace } },
-            { GameState.WorldPeace, new[] { GameState.Alert, GameState.DayEnd, GameState.JobIntro } },
+            { GameState.WorldPeace, new[] { GameState.Alert, GameState.DayEnd, GameState.JobIntro, GameState.Peace } },
             { GameState.Alert, new[] { GameState.JobIntro, GameState.FinalAttack } },
             { GameState.JobIntro, new[] { GameState.JobShift } },
             { GameState.JobShift, new[] { GameState.JobSuccess, GameState.Snatched, GameState.Collapse } },
@@ -49,7 +49,7 @@ namespace ByteWorld
             { GameState.Build, new[] { GameState.TestRun } },
             { GameState.TestRun, new[] { GameState.Build, GameState.Reveal, GameState.Collapse } },
             { GameState.Reveal, new[] { GameState.Build, GameState.Peace } },
-            { GameState.FinalAttack, new[] { GameState.JobIntro, GameState.Peace, GameState.Collapse } },
+            { GameState.FinalAttack, new[] { GameState.Alert, GameState.JobIntro, GameState.Peace, GameState.Collapse } },
             { GameState.Peace, new[] { GameState.Title } },
         };
 
@@ -141,6 +141,13 @@ namespace ByteWorld
             GameEvents.RaiseJobEntered(context);
         }
 
+        /// <summary>The fallback final attack's last group is done: Byte World is at peace (PRD 4.7).</summary>
+        public void FinishFinalAttack()
+        {
+            SetState(GameState.Peace);
+            GameEvents.RaisePeaceReached();
+        }
+
         /// <summary>Restart the current day with three backups (PRD 4.5). A-17 owns refining this.</summary>
         public void RestartDay()
         {
@@ -204,7 +211,7 @@ namespace ByteWorld
 
         void OnAlertRaised(AlertInfo info)
         {
-            if (State == GameState.WorldPeace) SetState(GameState.Alert);
+            if (State == GameState.WorldPeace || State == GameState.FinalAttack) SetState(GameState.Alert);
         }
 
         void OnShiftSucceeded(JobId job)
