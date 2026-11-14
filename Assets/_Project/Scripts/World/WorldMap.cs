@@ -134,7 +134,11 @@ namespace ByteWorld
             return false;
         }
 
-        void Start() => WorldSetup.EnsureRaycaster();
+        void Start()
+        {
+            WorldSetup.EnsureRaycaster();
+            WorldSetup.FitCameraToWindow();
+        }
 
         void OnEnable()
         {
