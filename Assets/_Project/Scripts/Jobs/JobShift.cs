@@ -53,6 +53,17 @@ namespace ByteWorld
         /// <summary>Called each time the shift starts or restarts (after ClearItems).</summary>
         protected virtual void OnShiftStarted() { }
 
+        /// <summary>False while the job can't take another item (Patch is busy fitting parts).</summary>
+        protected virtual bool CanInspect(ItemData item) => true;
+
+        /// <summary>
+        /// True when blocking this safe item lets an attacker in instead of costing a complaint
+        /// (Patch: leaving a real crate for later lets the Worm through its crack).
+        /// </summary>
+        protected virtual bool BlockingLetsAttackerIn(ItemData item) => false;
+
+        protected bool IsTutorial => Context.isTutorial;
+
         // ---------- Lifecycle ----------
 
         protected virtual void Start()
@@ -134,7 +145,7 @@ namespace ByteWorld
 
         protected void OpenInspect(ItemData item)
         {
-            if (!running || queue.IsDone(item)) return;
+            if (!running || queue.IsDone(item) || !CanInspect(item)) return;
             var data = new InspectData
             {
                 title = item.title,
@@ -180,6 +191,12 @@ namespace ByteWorld
                 return;
             }
 
+            if (BlockingLetsAttackerIn(item))
+            {
+                Fail(string.IsNullOrEmpty(item.attacker) ? "worm" : item.attacker);
+                return;
+            }
+
             // A safe item blocked: it's gone, and it costs a complaint.
             queue.MarkDone(item);
             OnItemResolved(item, false);
@@ -211,7 +228,8 @@ namespace ByteWorld
             GameEvents.RaiseShiftSucceeded(Job);
         }
 
-        void Fail(string attacker)
+        /// <summary>The shift fails: an attacker got in (or the complaints meter filled).</summary>
+        protected void Fail(string attacker)
         {
             running = false;
             Services.Inspect.Hide();
