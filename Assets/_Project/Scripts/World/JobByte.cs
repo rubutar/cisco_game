@@ -11,6 +11,8 @@ namespace ByteWorld
         public bool Alerting { get; private set; }
 
         SpriteRenderer[] bodies;
+        Sprite[] normals;
+        Sprite[] alerts;
         Vector3[] basePositions;
         SpriteRenderer mark;
         SpriteRenderer patienceBack;
@@ -27,17 +29,22 @@ namespace ByteWorld
             alert = PixelArt.GridSprite(PixelArt.Byte, Palette.GridAlert, $"{job} alert");
 
             bodies = new SpriteRenderer[spots.Length];
+            normals = new Sprite[spots.Length];
+            alerts = new Sprite[spots.Length];
             basePositions = new Vector3[spots.Length];
             for (var i = 0; i < spots.Length; i++)
             {
                 // Spots are the sprite's top-left in map pixels; the sprite's pivot is its bottom centre.
                 basePositions[i] = PixelArt.MapToWorld(spots[i].x + 6, spots[i].y + 12);
-                bodies[i] = PixelArt.AddSprite(transform, normal, $"Body {i + 1}", 10);
+                var look = SpriteName(job, i);
+                normals[i] = PixelArt.Load($"Characters/map_{look}", () => normal);
+                alerts[i] = PixelArt.Load($"Characters/map_{look}_alert", () => alert);
+                bodies[i] = PixelArt.AddSprite(transform, normals[i], $"Body {i + 1}", 10);
                 bodies[i].transform.localPosition = basePositions[i];
                 Tappable.Add(bodies[i].gameObject, bodies[i]).Tapped += OnTapped;
             }
 
-            mark = PixelArt.AddSprite(transform, PixelArt.GridSprite(PixelArt.AlertMark, Palette.GridNormal, "Alert mark"), "Alert mark", 20);
+            mark = PixelArt.AddSprite(transform, PixelArt.Load("Characters/alert_mark", () => PixelArt.GridSprite(PixelArt.AlertMark, Palette.GridNormal, "Alert mark")), "Alert mark", 20);
             mark.transform.localPosition = basePositions[0] + new Vector3(0.5f, 0.9f, 0f);
             mark.enabled = false;
 
@@ -66,9 +73,18 @@ namespace ByteWorld
         {
             Alerting = on;
             if (!on) SetPatience(-1f);
-            foreach (var body in bodies) body.sprite = on ? alert : normal;
+            for (var i = 0; i < bodies.Length; i++) bodies[i].sprite = on ? alerts[i] : normals[i];
             mark.enabled = on;
         }
+
+        /// <summary>Sprite file per job Byte: scout, gigi, uno and due (the Twins), patch.</summary>
+        public static string SpriteName(JobId job, int index = 0) => job switch
+        {
+            JobId.Scout => "scout",
+            JobId.Gigi => "gigi",
+            JobId.Twins => index == 0 ? "uno" : "due",
+            _ => "patch"
+        };
 
         void Update()
         {

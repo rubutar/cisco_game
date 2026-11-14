@@ -1,0 +1,8 @@
+# folder: Characters
+# moods: normal
+..11..
+.1451.
+145551
+155551
+.1551.
+..11..

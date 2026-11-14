@@ -52,19 +52,19 @@ namespace ByteWorld
             PixelArt.AddSprite(root, c.ToSprite("Vault", new Vector2(0.5f, 0.5f)), "Vault", SortBase);
 
             var byteSprite = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Twin");
-            var uno = PixelArt.AddSprite(root, byteSprite, "Uno", SortBase + 50);
+            var uno = PixelArt.AddSprite(root, PixelArt.Load("Characters/uno", () => byteSprite), "Uno", SortBase + 50);
             uno.transform.localPosition = PixelArt.MapToWorld(150, 120);
-            uno.transform.localScale = new Vector3(2f, 2f, 1f);
-            var due = PixelArt.AddSprite(root, byteSprite, "Due", SortBase + 50);
+            uno.transform.localScale = PixelArt.CharacterScale(uno.sprite);
+            var due = PixelArt.AddSprite(root, PixelArt.Load("Characters/due", () => byteSprite), "Due", SortBase + 50);
             due.transform.localPosition = PixelArt.MapToWorld(150, 210);
-            due.transform.localScale = new Vector3(2f, 2f, 1f);
+            due.transform.localScale = PixelArt.CharacterScale(due.sprite);
 
             // Due's phone: shows the owner's code for the visitor being checked.
-            var handset = PixelArt.AddSprite(root, PixelArt.Block(44, 18, Palette.Ink, Palette.Ink, "Phone"), "Phone", SortBase + 60);
+            var handset = PixelArt.AddSprite(root, PixelArt.Load("Props/phone", () => PixelArt.Block(44, 18, Palette.Ink, Palette.Ink, "Phone")), "Phone", SortBase + 60);
             handset.transform.localPosition = PixelArt.MapToWorld(100, 190);
             phone = JobVisuals.Label(handset.transform, "", Vector3.zero, 2.8f, Palette.NeonCyan, SortBase + 61, 3f);
 
-            visitorSprite = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Visitor");
+            visitorSprite = PixelArt.Load("Characters/visitor", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Visitor"));
         }
 
         protected override void OnShiftStarted() => phone.text = "";

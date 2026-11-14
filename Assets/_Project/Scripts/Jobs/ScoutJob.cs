@@ -15,7 +15,7 @@ namespace ByteWorld
         // Waiting spots for boats in map pixels (x, waterline y), filled in arrival order.
         static readonly Vector2Int[] Moorings =
         {
-            new(300, 190), new(390, 190), new(300, 222), new(390, 222), new(300, 254), new(390, 254),
+            new(290, 205), new(380, 205), new(450, 205), new(290, 262), new(380, 262), new(450, 262),
         };
 
         readonly Dictionary<string, Boat> boats = new();
@@ -49,12 +49,12 @@ namespace ByteWorld
             PixelArt.AddSprite(root, c.ToSprite("Harbour", new Vector2(0.5f, 0.5f)), "Harbour", SortBase);
 
             // Scout stands on the dock, drawn twice as big so the player sees who they're helping.
-            var scout = PixelArt.AddSprite(root, PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Scout"), "Scout", SortBase + 50);
+            var scout = PixelArt.AddSprite(root, PixelArt.Load("Characters/scout", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Scout")), "Scout", SortBase + 50);
             scout.transform.localPosition = PixelArt.MapToWorld(70, 140);
-            scout.transform.localScale = new Vector3(2f, 2f, 1f);
+            scout.transform.localScale = PixelArt.CharacterScale(scout.sprite);
 
-            hull = BoatSprite(Palette.SignalBlue);
-            hullOdd = BoatSprite(Palette.SignalBlue); // Fakes look the same: the player has to read the name.
+            hull = PixelArt.Load("Characters/boat", () => BoatSprite(Palette.SignalBlue));
+            hullOdd = hull; // Fakes look the same: the player has to read the name.
         }
 
         protected override void SpawnItem(ItemData item)
