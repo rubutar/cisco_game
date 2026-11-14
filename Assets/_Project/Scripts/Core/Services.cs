@@ -21,6 +21,7 @@ namespace ByteWorld
             { typeof(IDialogueService), () => StubBehaviour.Create<StubDialogueService>("Stub Dialogue") },
             { typeof(IInspectPanel), () => StubBehaviour.Create<StubInspectPanel>("Stub Inspect Panel") },
             { typeof(IBuildMode), () => new StubBuildMode() },
+            { typeof(IHuntScreen), () => new StubHuntScreen() },
         };
 
         public static IBackupNest Backups => Get<IBackupNest>();
@@ -29,6 +30,7 @@ namespace ByteWorld
         public static IDialogueService Dialogue => Get<IDialogueService>();
         public static IInspectPanel Inspect => Get<IInspectPanel>();
         public static IBuildMode BuildMode => Get<IBuildMode>();
+        public static IHuntScreen Hunt => Get<IHuntScreen>();
 
         public static void Register<T>(T implementation) where T : class
         {

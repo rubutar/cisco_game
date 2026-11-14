@@ -33,6 +33,16 @@ namespace ByteWorld
         RoamingFile Roaming { get; }
         BuildFile Build { get; }
         FlagsFile Flags { get; }
+        HuntFile Hunt { get; }
+    }
+
+    /// <summary>
+    /// The Splunk Trace screen (PRD-v2 4.6). Implemented by Person A (UI/Hunt). Begin shows it; onPinned
+    /// receives the pinned row as "srcIp:destPort" (e.g. "203.0.113.7:8080") when the player pins the target.
+    /// </summary>
+    public interface IHuntScreen
+    {
+        void Begin(Action<string> onPinned);
     }
 
     /// <summary>Game flow, read by UI and debug tools. Implemented by Stream A (GameManager).</summary>

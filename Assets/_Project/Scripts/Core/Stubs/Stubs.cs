@@ -57,6 +57,7 @@ namespace ByteWorld.Stubs
         public RoamingFile Roaming { get; } = Load<RoamingFile>("roaming");
         public BuildFile Build { get; } = Load<BuildFile>("build");
         public FlagsFile Flags { get; } = Load<FlagsFile>("flags");
+        public HuntFile Hunt { get; } = Load<HuntFile>("hunt");
 
         public static T Load<T>(string name) where T : new()
         {
@@ -94,6 +95,20 @@ namespace ByteWorld.Stubs
             var previous = State;
             State = next;
             GameEvents.RaiseStateChanged(previous, next);
+        }
+    }
+
+    /// <summary>Stand-in for Person A's Splunk Trace: pins the target row at once.</summary>
+    public class StubHuntScreen : IHuntScreen, IStub
+    {
+        public void Begin(Action<string> onPinned)
+        {
+            var rows = Services.Data.Hunt?.rows;
+            var pinned = "203.0.113.7:8080";
+            if (rows != null)
+                foreach (var row in rows)
+                    if (row.target) pinned = $"{row.srcIp}:{row.destPort}";
+            onPinned?.Invoke(pinned);
         }
     }
 
