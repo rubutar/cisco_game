@@ -32,6 +32,7 @@ namespace ByteWorld.EditorTools
                 BuildDialogueBubble(safe);
                 BuildJobScreens(root.transform);
                 BuildDayCards(root.transform);
+                BuildCollapseScreen(root.transform);
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out var ok);
                 if (ok) Debug.Log($"[UIRootBuilder] Saved {PrefabPath}");
@@ -275,6 +276,57 @@ namespace ByteWorld.EditorTools
             so.FindProperty("titleText").objectReferenceValue = title;
             so.FindProperty("speakerTag").objectReferenceValue = tag.gameObject;
             so.FindProperty("speakerText").objectReferenceValue = speaker;
+            so.FindProperty("lineText").objectReferenceValue = line;
+            so.FindProperty("button").objectReferenceValue = button;
+            so.FindProperty("buttonLabel").objectReferenceValue = label;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Collapse ----------
+
+        static void BuildCollapseScreen(Transform parent)
+        {
+            var host = NewRect("CollapseScreen", parent);
+            Stretch(host);
+            var collapse = host.gameObject.AddComponent<CollapseScreen>();
+
+            // Dim mood (PRD 6.6): the whole town greys out.
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            AddImage(screen.gameObject, Palette.GridDim[1], true);
+
+            var content = NewRect("Content", screen);
+            content.anchorMin = content.anchorMax = new Vector2(0.5f, 0.5f);
+            content.pivot = new Vector2(0.5f, 0.5f);
+            content.sizeDelta = new Vector2(1400, 0);
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 64;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var line = NewText("Line", content, 64, Palette.GridDim[4], TextAlignmentOptions.Center);
+            line.textWrappingMode = TextWrappingModes.Normal;
+            line.gameObject.AddComponent<LayoutElement>().preferredWidth = 1400;
+
+            var buttonRow = NewRect("ButtonRow", content);
+            var rowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var button = NewButton("Button", buttonRow, Palette.AlertPink, out var label);
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 520;
+            element.preferredWidth = 520;
+            element.preferredHeight = 120;
+            label.fontSize = 48;
+
+            var so = new SerializedObject(collapse);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
             so.FindProperty("lineText").objectReferenceValue = line;
             so.FindProperty("button").objectReferenceValue = button;
             so.FindProperty("buttonLabel").objectReferenceValue = label;
