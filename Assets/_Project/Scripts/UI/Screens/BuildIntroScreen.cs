@@ -47,7 +47,11 @@ namespace ByteWorld
 
             var build = Services.Data?.Dialogue?.build;
             buttonLabel.text = UiStrings.Ui.letsBuild ?? "";
-            // v2: Quest 3's Webex brief from Gigi when there is one, else the v1 build intro.
+            // v2: the brief of the quest about to start (the puzzle GameManager is opening; read only), else the
+            // station the player went into, else the v1 build intro.
+            var puzzles = Services.Data?.Build?.puzzles;
+            var next = GameManager.Instance != null ? GameManager.Instance.CurrentPuzzle : 0;
+            if (puzzles != null && next >= 1 && next <= puzzles.Length) quest = QuestCheck.QuestOf(puzzles[next - 1]);
             var brief = TownSpace.BriefFor(quest);
             if (brief != null && brief.Length > 0) Services.Dialogue.SayLines(TownSpace.BriefSpeaker, brief, ShowButton);
             else Services.Dialogue.SayLines(build?.speaker ?? "", build?.intro, ShowButton);

@@ -166,7 +166,9 @@ namespace ByteWorld
             rootCause = FindRootCause(callFrom);
             BuildHealth();
             ShowOverlay(true);
-            while (stage == Stage.Overlay) yield return null; // OnCableTapped moves on
+            // OnCableTapped moves on; with no root-cause cable on the board there's nothing to tap, so don't wait.
+            if (rootCause.a == null) stage = Stage.WaitPriority;
+            while (stage == Stage.Overlay) yield return null;
 
             // The fix: the call moves to the green switch.
             var green = GreenSwitch(callFrom);
