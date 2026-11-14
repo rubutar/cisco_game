@@ -41,15 +41,27 @@ namespace ByteWorld
             c.Fill(196, 40, 88, 170, Palette.Ink);
             c.Fill(199, 43, 82, 164, Palette.ByteCream);
             c.Fill(199, 43, 82, 10, Palette.SignalBlue);
-            c.Disc(240, 125, 22, Palette.Ink);
-            c.Disc(240, 125, 19, Palette.ByteCream);
-            c.Fill(239, 107, 2, 36, Palette.Ink);
-            c.Fill(222, 124, 36, 2, Palette.Ink);
-            c.Disc(240, 125, 4, Palette.AlertPink);
+            // Without the vault PNG, draw the dial into the background.
+            var vaultArt = PixelArt.HasSprite("Props/vault");
+            if (!vaultArt)
+            {
+                c.Disc(240, 125, 22, Palette.Ink);
+                c.Disc(240, 125, 19, Palette.ByteCream);
+                c.Fill(239, 107, 2, 36, Palette.Ink);
+                c.Fill(222, 124, 36, 2, Palette.Ink);
+                c.Disc(240, 125, 4, Palette.AlertPink);
+            }
             // Floor in front of the vault.
             c.Fill(0, 210, c.Width, 60, Palette.RoadEdge);
             c.Fill(0, 212, c.Width, 58, Palette.RoadLight);
             PixelArt.AddSprite(root, c.ToSprite("Vault", new Vector2(0.5f, 0.5f)), "Vault", SortBase);
+            if (vaultArt)
+            {
+                // The round vault door, drawn at exactly twice its pixels to fill the housing.
+                var door = PixelArt.AddSprite(root, PixelArt.Load("Props/vault", () => null), "Vault door", SortBase + 5);
+                door.transform.localPosition = PixelArt.MapToWorld(240, 125);
+                door.transform.localScale = new Vector3(2f, 2f, 1f);
+            }
 
             var byteSprite = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Twin");
             var uno = PixelArt.AddSprite(root, PixelArt.Load("Characters/uno", () => byteSprite), "Uno", SortBase + 50);
