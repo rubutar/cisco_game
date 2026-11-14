@@ -1,5 +1,7 @@
 // Stream A. An ordinary Byte walking a cable road back and forth (A-07, PRD 4.2). Every third one carries a
 // glowing data orb. Tap one for a line from roaming.json. Moves in whole pixels so it stays crisp.
+// Crowd reactions (A-18): stops to look while an alert is on, hops at the end of the day, and vanishes on
+// collapse, one Byte after another.
 using UnityEngine;
 
 namespace ByteWorld
@@ -25,6 +27,8 @@ namespace ByteWorld
         float bobTimer;
         bool bobUp;
         int lineIndex;
+        bool cheering;
+        float vanishAt = -1f;
 
         public void Init(Vector2Int[] mapPath, float startFraction, float unitsPerSecond, bool carriesOrb, int seed)
         {
@@ -50,22 +54,55 @@ namespace ByteWorld
             Place();
         }
 
+        void OnEnable()
+        {
+            GameEvents.DayEnded += OnDayEnded;
+            GameEvents.DayStarted += OnDayStarted;
+            GameEvents.Collapsed += OnCollapsed;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.DayEnded -= OnDayEnded;
+            GameEvents.DayStarted -= OnDayStarted;
+            GameEvents.Collapsed -= OnCollapsed;
+        }
+
+        void OnDayEnded(int day) => cheering = true;
+
+        void OnDayStarted(int day, DayMode mode) => cheering = false;
+
+        // Each Byte leaves a moment after the one before it.
+        void OnCollapsed(int day) => vanishAt = Time.time + 0.3f * (lineIndex % 12);
+
         void Update()
         {
             if (path == null) return;
-            var total = cumulative[cumulative.Length - 1];
-            distance += direction * speed * Time.deltaTime;
-            if (distance > total || distance < 0f)
+            if (vanishAt >= 0f)
             {
-                direction = -direction;
-                distance = Mathf.Clamp(distance, 0f, total);
+                if (Time.time >= vanishAt) gameObject.SetActive(false);
+                return;
+            }
+
+            // Everyone stops and looks while an alert is on; otherwise they walk.
+            var state = Services.Flow.State;
+            var watching = state == GameState.Alert;
+            if (!watching && !cheering)
+            {
+                var total = cumulative[cumulative.Length - 1];
+                distance += direction * speed * Time.deltaTime;
+                if (distance > total || distance < 0f)
+                {
+                    direction = -direction;
+                    distance = Mathf.Clamp(distance, 0f, total);
+                }
             }
 
             bobTimer -= Time.deltaTime;
             if (bobTimer <= 0f)
             {
                 bobUp = !bobUp;
-                bobTimer = 0.15f;
+                bobTimer = cheering ? 0.1f : watching ? 0.6f : 0.15f;
             }
             Place();
         }
@@ -78,7 +115,8 @@ namespace ByteWorld
             var t = segment > 0f ? (distance - cumulative[i - 1]) / segment : 0f;
             var p = PixelArt.Snap(Vector2.Lerp(path[i - 1], path[i], t));
             transform.localPosition = p;
-            body.transform.localPosition = bobUp ? new Vector3(0f, PixelArt.Pixel, 0f) : Vector3.zero;
+            // A cheer is a two-pixel hop; walking and watching bob by one pixel.
+            body.transform.localPosition = bobUp ? new Vector3(0f, (cheering ? 2 : 1) * PixelArt.Pixel, 0f) : Vector3.zero;
             // Lower on screen draws in front; job Bytes (order 10) stay on top of the crowd.
             body.sortingOrder = Mathf.Clamp(-Mathf.RoundToInt(p.y / PixelArt.Pixel), -200, 9) - 200;
             foreach (var child in body.GetComponentsInChildren<SpriteRenderer>())

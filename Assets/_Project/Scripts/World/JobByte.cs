@@ -13,6 +13,8 @@ namespace ByteWorld
         SpriteRenderer[] bodies;
         Vector3[] basePositions;
         SpriteRenderer mark;
+        SpriteRenderer patienceBack;
+        SpriteRenderer patienceFill;
         Sprite normal;
         Sprite alert;
         float timer;
@@ -38,11 +40,32 @@ namespace ByteWorld
             mark = PixelArt.AddSprite(transform, PixelArt.GridSprite(PixelArt.AlertMark, Palette.GridNormal, "Alert mark"), "Alert mark", 20);
             mark.transform.localPosition = basePositions[0] + new Vector3(0.5f, 0.9f, 0f);
             mark.enabled = false;
+
+            // Day 2 patience bar (A-15): drains while this Byte waits for help.
+            var back = new PixelCanvas(16, 4);
+            back.Fill(0, 0, 16, 4, Palette.Ink);
+            patienceBack = PixelArt.AddSprite(transform, back.ToSprite("Patience back", new Vector2(0f, 0.5f)), "Patience", 21);
+            patienceBack.transform.localPosition = basePositions[0] + new Vector3(-8 * PixelArt.Pixel, 15 * PixelArt.Pixel, 0f);
+            var fill = new PixelCanvas(1, 2);
+            fill.Fill(0, 0, 1, 2, Palette.AlertPink);
+            patienceFill = PixelArt.AddSprite(patienceBack.transform, fill.ToSprite("Patience fill", new Vector2(0f, 0.5f)), "Fill", 22);
+            patienceFill.transform.localPosition = new Vector3(PixelArt.Pixel, 0f, 0f);
+            SetPatience(-1f);
+        }
+
+        /// <summary>Shows the patience bar at 0..1 full; a negative value hides it.</summary>
+        public void SetPatience(float fraction)
+        {
+            var show = fraction >= 0f;
+            patienceBack.enabled = show;
+            patienceFill.enabled = show;
+            if (show) patienceFill.transform.localScale = new Vector3(Mathf.Round(14f * Mathf.Clamp01(fraction)), 1f, 1f);
         }
 
         public void SetAlerting(bool on)
         {
             Alerting = on;
+            if (!on) SetPatience(-1f);
             foreach (var body in bodies) body.sprite = on ? alert : normal;
             mark.enabled = on;
         }
