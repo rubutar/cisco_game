@@ -153,6 +153,26 @@ namespace ByteWorld
             GameEvents.RaiseCheckpointStatesChanged();
         }
 
+        /// <summary>
+        /// Filming and debug shortcut: mark every station of the quests before this one done, quietly
+        /// (no toolkit toasts), and forget everything from this quest on.
+        /// </summary>
+        public void SkipTo(int quest)
+        {
+            done.Clear();
+            foreach (var c in All)
+                if (c.quest < quest) done.Add(c.id);
+            pendingDayEnd = -1;
+            GameEvents.RaiseCheckpointStatesChanged();
+        }
+
+        /// <summary>Quietly mark stations done (shortcuts), without toasts.</summary>
+        public void SetDone(params string[] ids)
+        {
+            foreach (var id in ids) done.Add(id);
+            GameEvents.RaiseCheckpointStatesChanged();
+        }
+
         public void MarkDone(string id)
         {
             if (string.IsNullOrEmpty(id) || !done.Add(id)) return;

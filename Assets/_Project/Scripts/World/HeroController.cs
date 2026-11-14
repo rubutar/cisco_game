@@ -103,6 +103,17 @@ namespace ByteWorld
             route.Enqueue(door);
         }
 
+        /// <summary>Place Pax at a station's door at once (shortcuts, teleport mode).</summary>
+        public void TeleportTo(string checkpointId)
+        {
+            var c = Services.Checkpoints.Get(checkpointId);
+            if (c == null) return;
+            route.Clear();
+            position = new Vector2(c.x, c.y);
+            Place();
+            CheckArrival();
+        }
+
         void Update()
         {
             var state = Services.Flow.State;
