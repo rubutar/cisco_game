@@ -1,7 +1,8 @@
-// Stream A. The world map (PRD 4.2, screen 03): a placeholder techy town drawn in code with the palette and
-// the screen-flow layout (router plaza, cable roads, data river, the four workplaces), and the four job Bytes.
-// Person C's 480 x 270 background replaces the drawing later; job positions stay the same.
-// Hidden while a job scene is open so its taps don't reach the map.
+// Person A. The learning map (PRD-v2 4.2, 6.6): Router Plaza in the middle, roads out to the seven Cisco
+// stations from checkpoints.json (lit with a cyan line once a station is open, grey while locked), station
+// buildings (greyed while locked), the station Bytes beside their buildings, roaming Bytes on lit roads
+// only, and Pax. Redraws when station states change. Hidden while a station world is open so its taps
+// don't reach the map.
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,23 +12,7 @@ namespace ByteWorld
     {
         public static WorldMap Instance { get; private set; }
 
-        // Job Byte positions in map pixels (top-left of the 12 x 12 sprite), from the screen-flow reference.
-        static readonly (JobId job, Vector2Int[] at)[] JobSpots =
-        {
-            (JobId.Scout, new[] { new Vector2Int(344, 182) }),
-            (JobId.Gigi, new[] { new Vector2Int(56, 226) }),
-            (JobId.Twins, new[] { new Vector2Int(66, 76), new Vector2Int(90, 76) }),
-            (JobId.Patch, new[] { new Vector2Int(178, 210) }),
-        };
 
-        static readonly Vector2Int[][] Roads =
-        {
-            new[] { new Vector2Int(226, 132), new Vector2Int(226, 90), new Vector2Int(140, 90), new Vector2Int(140, 74), new Vector2Int(104, 74) },
-            new[] { new Vector2Int(226, 132), new Vector2Int(300, 132), new Vector2Int(440, 132) },
-            new[] { new Vector2Int(226, 132), new Vector2Int(226, 160), new Vector2Int(300, 160), new Vector2Int(300, 200), new Vector2Int(340, 200) },
-            new[] { new Vector2Int(226, 132), new Vector2Int(190, 132), new Vector2Int(190, 206), new Vector2Int(176, 206) },
-            new[] { new Vector2Int(190, 172), new Vector2Int(110, 172), new Vector2Int(110, 222), new Vector2Int(60, 222), new Vector2Int(60, 242) },
-        };
 
         static readonly Vector2Int[] River =
         {
@@ -44,7 +29,10 @@ namespace ByteWorld
         };
 
         readonly Dictionary<JobId, JobByte> jobBytes = new();
+        readonly Dictionary<string, SpriteRenderer> buildings = new();
+        readonly List<GameObject> roamers = new();
         GameObject content;
+        SpriteRenderer town;
 
         public JobByte GetJobByte(JobId job) => jobBytes.TryGetValue(job, out var b) ? b : null;
 
@@ -53,32 +41,47 @@ namespace ByteWorld
             Instance = this;
             content = new GameObject("Content");
             content.transform.SetParent(transform, false);
-            PixelArt.AddSprite(content.transform, DrawTown(), "Town", -1000);
+            town = PixelArt.AddSprite(content.transform, DrawTown(), "Town", -1000);
 
-            // Ordinary Bytes walking the cable roads (A-07); every third carries a data orb.
-            const int roamingCount = 12;
-            for (var i = 0; i < roamingCount; i++)
+            foreach (var c in Services.Checkpoints.All)
             {
-                var go = new GameObject($"Roaming Byte {i + 1}");
-                go.transform.SetParent(content.transform, false);
-                go.AddComponent<RoamingByte>().Init(Roads[i % Roads.Length], (i * 0.31f) % 1f, 0.9f + (i % 4) * 0.25f, i % 3 == 0, i);
-            }
+                var building = PixelArt.AddSprite(content.transform, null, $"Station {c.id}", 5);
+                // Station art is 64 x 48 with the door at the bottom centre.
+                building.transform.localPosition = PixelArt.MapToWorld(c.x, c.y - 24);
+                buildings[c.id] = building;
 
-            foreach (var (job, spots) in JobSpots)
-            {
+                // The four job stations keep their Byte beside the building (it flashes on alert).
+                if (!JobIds.TryParse(c.job, out var job) || jobBytes.ContainsKey(job)) continue;
+                var spots = job == JobId.Twins
+                    ? new[] { new Vector2Int(c.x + 34, c.y - 14), new Vector2Int(c.x + 48, c.y - 14) }
+                    : new[] { new Vector2Int(c.x + 34, c.y - 14) };
                 var go = new GameObject($"{job} Byte");
                 go.transform.SetParent(content.transform, false);
                 var jobByte = go.AddComponent<JobByte>();
                 jobByte.Init(job, spots);
                 jobBytes[job] = jobByte;
             }
+
+            var hero = new GameObject("Pax");
+            hero.transform.SetParent(content.transform, false);
+            hero.AddComponent<HeroController>();
+
+            Refresh();
         }
 
         void Start() => WorldSetup.EnsureRaycaster();
 
-        void OnEnable() => GameEvents.StateChanged += OnStateChanged;
+        void OnEnable()
+        {
+            GameEvents.StateChanged += OnStateChanged;
+            GameEvents.CheckpointStatesChanged += Refresh;
+        }
 
-        void OnDisable() => GameEvents.StateChanged -= OnStateChanged;
+        void OnDisable()
+        {
+            GameEvents.StateChanged -= OnStateChanged;
+            GameEvents.CheckpointStatesChanged -= Refresh;
+        }
 
         void OnDestroy()
         {
@@ -91,10 +94,38 @@ namespace ByteWorld
             content.SetActive(!inJob);
         }
 
+        /// <summary>Redraw roads and buildings for the current station states, and put roamers on lit roads.</summary>
+        void Refresh()
+        {
+            if (town == null) return;
+            town.sprite = DrawTown();
+            foreach (var (id, building) in buildings)
+            {
+                var locked = Services.Checkpoints.StateOf(id) == CheckpointState.Locked;
+                building.sprite = PixelArt.Load($"Props/station_{id}{(locked ? "_dim" : "")}", () => PixelArt.Block(64, 48, locked ? Palette.CliffLight : Palette.ByteCream, Palette.Ink, id));
+            }
+
+            foreach (var r in roamers) if (r != null) Destroy(r);
+            roamers.Clear();
+            var lit = new List<Vector2Int[]>();
+            foreach (var c in Services.Checkpoints.All)
+                if (Services.Checkpoints.StateOf(c.id) != CheckpointState.Locked && c.path != null && c.path.Length > 1)
+                    lit.Add(System.Array.ConvertAll(c.path, p => new Vector2Int(p.x, p.y)));
+            for (var i = 0; i < lit.Count * 3; i++)
+            {
+                var go = new GameObject($"Roaming Byte {i + 1}");
+                go.transform.SetParent(content.transform, false);
+                go.AddComponent<RoamingByte>().Init(lit[i % lit.Count], (i * 0.37f) % 1f, 0.9f + (i % 4) * 0.25f, i % 3 == 0, i);
+                roamers.Add(go);
+            }
+        }
+
         static Sprite DrawTown()
         {
             var c = new PixelCanvas(PixelArt.MapWidth, PixelArt.MapHeight);
             var random = new System.Random(11);
+            var stations = Services.Checkpoints.All;
+            var plaza = Services.Data.Checkpoints?.plaza ?? new Data.MapPoint { x = 240, y = 140 };
 
             c.Fill(0, 0, c.Width, c.Height, Palette.GrassLight);
             for (var i = 0; i < 900; i++) c.Fill(random.Next(c.Width), random.Next(c.Height), random.Next(2) + 1, 1, Palette.GrassDark);
@@ -108,76 +139,80 @@ namespace ByteWorld
             c.Disc(410, 60, 22, Palette.WaterDeep);
             foreach (var p in River) c.Disc(p.x - 3, p.y, 7, Palette.WaterLight);
 
+            // Trees, kept clear of the roads and the stations.
             foreach (var t in Trees)
             {
+                if (NearRoadOrStation(t, stations, plaza)) continue;
                 c.Disc(t.x, t.y, 12, Palette.LeavesDark);
                 c.Disc(t.x - 2, t.y - 2, 9, Palette.LeavesLight);
             }
 
-            // Cable roads with cyan centre dashes, and the router plaza.
-            foreach (var road in Roads) c.Path(road, 13, Palette.RoadEdge);
-            foreach (var road in Roads) c.Path(road, 11, Palette.RoadLight);
-            foreach (var road in Roads)
-                for (var i = 0; i < road.Length - 1; i++)
+            // Roads to every station: sandy with a cyan line when open, grey when locked.
+            foreach (var s in stations)
+            {
+                if (s.path == null || s.path.Length < 2) continue;
+                var points = System.Array.ConvertAll(s.path, p => new Vector2Int(p.x, p.y));
+                var open = Services.Checkpoints.StateOf(s.id) != CheckpointState.Locked;
+                c.Path(points, 13, open ? Palette.RoadEdge : Palette.CliffDark);
+                c.Path(points, 11, open ? Palette.RoadLight : Palette.CliffLight);
+                if (!open) continue;
+                for (var i = 0; i < points.Length - 1; i++)
                 {
-                    var a = road[i];
-                    var b = road[i + 1];
+                    var a = points[i];
+                    var b = points[i + 1];
                     var length = Mathf.Abs(b.x - a.x) + Mathf.Abs(b.y - a.y);
-                    for (var s = 0; s < length; s += 6)
+                    for (var step = 0; step < length; step += 6)
                     {
-                        var x = Mathf.RoundToInt(Mathf.Lerp(a.x, b.x, (float)s / length));
-                        var y = Mathf.RoundToInt(Mathf.Lerp(a.y, b.y, (float)s / length));
-                        if (Vector2.Distance(new Vector2(x, y), new Vector2(226, 132)) > 26)
+                        var x = Mathf.RoundToInt(Mathf.Lerp(a.x, b.x, (float)step / length));
+                        var y = Mathf.RoundToInt(Mathf.Lerp(a.y, b.y, (float)step / length));
+                        if (Vector2.Distance(new Vector2(x, y), new Vector2(plaza.x, plaza.y)) > 26)
                             c.Fill(x, y, a.x == b.x ? 1 : 3, a.x == b.x ? 3 : 1, Palette.NeonCyan);
                     }
                 }
-            c.Disc(226, 132, 26, Palette.RoadEdge);
-            c.Disc(226, 132, 25, Palette.RoadLight);
-            c.Fill(212, 118, 28, 22, Palette.Ink);
-            c.Fill(214, 120, 24, 18, Palette.ByteCream);
-            c.Fill(214, 132, 24, 6, Palette.SignalBlue);
+            }
 
-            // Bridge over the river and Scout's radar dock.
+            // Bridge over the river.
             c.Fill(354, 124, 52, 17, Palette.Ink);
             c.Fill(356, 126, 48, 13, Palette.Wood);
-            c.Fill(336, 194, 34, 11, Palette.Ink);
-            c.Fill(338, 196, 30, 7, Palette.Wood);
-            c.Fill(330, 178, 8, 22, Palette.Ink);
-            c.Fill(331, 179, 6, 20, Palette.ByteCream);
+            for (var x = 358; x < 404; x += 5) c.Fill(x, 126, 1, 13, Palette.WoodDark);
 
-            // The Twins' vault (top left).
-            c.Fill(62, 40, 44, 34, Palette.Ink);
-            c.Fill(64, 42, 40, 30, Palette.ByteCream);
-            c.Fill(64, 42, 40, 6, Palette.SignalBlue);
-            c.Disc(84, 60, 8, Palette.Ink);
-            c.Disc(84, 60, 6, Palette.ByteCream);
-            c.Disc(84, 60, 2, Palette.AlertPink);
-
-            // Patch's workshop (bottom centre) with its striped awning and crates.
-            c.Fill(130, 190, 44, 30, Palette.Ink);
-            c.Fill(132, 192, 40, 26, Palette.SignalBlue);
-            for (var x = 128; x < 178; x += 6)
+            // Router Plaza: the router with its LEDs in the middle of a round plaza.
+            c.Disc(plaza.x, plaza.y, 26, Palette.RoadEdge);
+            c.Disc(plaza.x, plaza.y, 25, Palette.RoadLight);
+            for (var a = 0; a < 24; a++)
             {
-                c.Fill(x, 184, 3, 8, Palette.AlertPink);
-                c.Fill(x + 3, 184, 3, 8, Palette.ByteCream);
+                var t = a / 24f * Mathf.PI * 2f;
+                c.Fill(plaza.x + Mathf.RoundToInt(Mathf.Cos(t) * 21), plaza.y + Mathf.RoundToInt(Mathf.Sin(t) * 21), 2, 2, Palette.NeonCyan);
             }
-            c.Fill(145, 198, 14, 14, Palette.ByteCream);
-            foreach (var (x, y) in new[] { (120, 206), (120, 214), (114, 212) })
-            {
-                c.Fill(x, y, 8, 7, Palette.Ink);
-                c.Fill(x + 1, y + 1, 6, 5, Palette.PodOrange);
-            }
+            c.Fill(plaza.x - 14, plaza.y - 14, 28, 22, Palette.Ink);
+            c.Fill(plaza.x - 12, plaza.y - 12, 24, 18, Palette.ByteCream);
+            c.Fill(plaza.x - 12, plaza.y, 24, 6, Palette.SignalBlue);
+            for (var i = 0; i < 5; i++) c.Fill(plaza.x - 10 + i * 4, plaza.y + 2, 2, 2, i % 2 == 0 ? Palette.PacketYellow : Palette.NeonCyan);
+            c.Fill(plaza.x - 10, plaza.y - 28, 2, 14, Palette.Ink);
+            c.Fill(plaza.x + 8, plaza.y - 28, 2, 14, Palette.Ink);
+            c.Fill(plaza.x - 11, plaza.y - 30, 4, 3, Palette.AlertPink);
+            c.Fill(plaza.x + 7, plaza.y - 30, 4, 3, Palette.AlertPink);
 
-            // Gigi's wall (bottom left) with doors 80, 443, 23 (shut, pink) and 8080.
-            c.Fill(0, 244, 124, 14, Palette.Ink);
-            c.Fill(0, 246, 122, 10, Palette.CliffLight);
-            foreach (var (x, shut) in new[] { (10, false), (30, false), (52, true), (74, false) })
-            {
-                c.Fill(x, 238, 18, 20, Palette.Ink);
-                c.Fill(x + 1, 239, 16, 18, shut ? Palette.AlertPink : Palette.SignalBlue);
-            }
+            return c.ToSprite("Learning Map", new Vector2(0.5f, 0.5f));
+        }
 
-            return c.ToSprite("Techy Town", new Vector2(0.5f, 0.5f));
+        static bool NearRoadOrStation(Vector2Int t, Data.CheckpointData[] stations, Data.MapPoint plaza)
+        {
+            if (Vector2.Distance(t, new Vector2(plaza.x, plaza.y)) < 40) return true;
+            foreach (var s in stations)
+            {
+                if (Mathf.Abs(t.x - s.x) < 46 && t.y > s.y - 60 && t.y < s.y + 14) return true;
+                if (s.path == null) continue;
+                for (var i = 0; i < s.path.Length - 1; i++)
+                {
+                    var a = new Vector2(s.path[i].x, s.path[i].y);
+                    var b = new Vector2(s.path[i + 1].x, s.path[i + 1].y);
+                    var ab = b - a;
+                    var u = ab.sqrMagnitude > 0 ? Mathf.Clamp01(Vector2.Dot((Vector2)t - a, ab) / ab.sqrMagnitude) : 0f;
+                    if (Vector2.Distance(t, a + ab * u) < 18) return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -21,6 +21,7 @@ namespace ByteWorld.EditorTools
             typeof(DataLoader),
             typeof(BackupNest),
             typeof(GameManager),
+            typeof(CheckpointManager),
             typeof(DebugTools.DebugMenu),
         };
 

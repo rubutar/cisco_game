@@ -116,3 +116,4 @@ InitTestScene*.unity*
 /[Ww]eb[Gg][Ll]/
 .venv/
 .DS_Store
+__pycache__/
