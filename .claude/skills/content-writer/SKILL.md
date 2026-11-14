@@ -17,6 +17,7 @@ description: Byte World content rules for person C (also pasted into DeepSeek pr
 - Valid JSON, unique `id` on every item, `attacker` on every attack item, `kind` is `safe` or `attack`.
 - `alertGroups` are objects: `[{ "jobs": ["scout", "gigi"] }]` (JsonUtility can't read nested arrays).
 - Button labels and HUD formats live in `dialogue.json` → `ui`.
+- **Patch:** a real crate is `"kind": "safe"` (the right call is Fit now); give it `"worm": true`, `"wormSpeed"` (world units per second, 0.5 ≈ 20 s to the wall) and `"attacker": "worm"` when a Worm heads for its crack. A fake crate is `"type": "fakeCrate", "kind": "attack"` (the right call is Later). Twins value words: `valueLabels` = [right, wrong, expired, not asked], in that order.
 - Every build puzzle must have at least one correct solution: solve it on paper first.
 - Check: in Unity, **Byte World > Validate Data** reports "All data valid" (it reads the files with the real C# classes, checks ids, attackers, hints and line lengths).
 

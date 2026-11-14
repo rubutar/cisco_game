@@ -27,6 +27,9 @@ namespace ByteWorld
 
         protected bool Running => running;
 
+        /// <summary>Seconds since the shift (re)started.</summary>
+        protected float Elapsed { get; private set; }
+
         // ---------- What a job script provides ----------
 
         /// <summary>Draw the workplace once, when the job scene loads.</summary>
@@ -46,6 +49,20 @@ namespace ByteWorld
 
         /// <summary>The inspect panel's fields for an item.</summary>
         protected abstract InspectField[] InspectFields(ItemData item);
+
+        /// <summary>Called each time the shift starts or restarts (after ClearItems).</summary>
+        protected virtual void OnShiftStarted() { }
+
+        /// <summary>False while the job can't take another item (Patch is busy fitting parts).</summary>
+        protected virtual bool CanInspect(ItemData item) => true;
+
+        /// <summary>
+        /// True when blocking this safe item lets an attacker in instead of costing a complaint
+        /// (Patch: leaving a real crate for later lets the Worm through its crack).
+        /// </summary>
+        protected virtual bool BlockingLetsAttackerIn(ItemData item) => false;
+
+        protected bool IsTutorial => Context.isTutorial;
 
         // ---------- Lifecycle ----------
 
@@ -90,7 +107,9 @@ namespace ByteWorld
             timeLeft = Context.timerSeconds > 0f ? Context.timerSeconds : 45f;
             spawnTimer = 0f;
             progressTimer = 0f;
+            Elapsed = 0f;
             running = true;
+            OnShiftStarted();
             Debug.Log($"[{Job}] Shift start: day {Context.day}, {queue.Total} item(s), {(Context.isTutorial ? "tutorial, no timer" : $"{timeLeft:0}s")}");
             RaiseProgress();
         }
@@ -99,6 +118,7 @@ namespace ByteWorld
         {
             if (!running) return;
 
+            Elapsed += Time.deltaTime;
             spawnTimer -= Time.deltaTime;
             if (spawnTimer <= 0f && queue.HasPending)
             {
@@ -125,7 +145,7 @@ namespace ByteWorld
 
         protected void OpenInspect(ItemData item)
         {
-            if (!running || queue.IsDone(item)) return;
+            if (!running || queue.IsDone(item) || !CanInspect(item)) return;
             var data = new InspectData
             {
                 title = item.title,
@@ -171,6 +191,12 @@ namespace ByteWorld
                 return;
             }
 
+            if (BlockingLetsAttackerIn(item))
+            {
+                Fail(string.IsNullOrEmpty(item.attacker) ? "worm" : item.attacker);
+                return;
+            }
+
             // A safe item blocked: it's gone, and it costs a complaint.
             queue.MarkDone(item);
             OnItemResolved(item, false);
@@ -202,7 +228,8 @@ namespace ByteWorld
             GameEvents.RaiseShiftSucceeded(Job);
         }
 
-        void Fail(string attacker)
+        /// <summary>The shift fails: an attacker got in (or the complaints meter filled).</summary>
+        protected void Fail(string attacker)
         {
             running = false;
             Services.Inspect.Hide();

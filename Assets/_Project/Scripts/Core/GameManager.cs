@@ -11,9 +11,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using UnityEngine.InputSystem;
-#endif
 
 namespace ByteWorld
 {
@@ -352,10 +350,11 @@ namespace ByteWorld
             GameEvents.RaiseStateChanged(previous, next);
         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // Debug: F2 forces the next state in the enum (no scene loading), F3 logs the current state.
+        // Debug (Editor and development builds only): F2 forces the next state in the enum (no scene loading),
+        // F3 logs the current state.
         void Update()
         {
+            if (!Debug.isDebugBuild) return;
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
             if (keyboard.f2Key.wasPressedThisFrame)
@@ -367,6 +366,5 @@ namespace ByteWorld
             if (keyboard.f3Key.wasPressedThisFrame)
                 Debug.Log($"[GameManager] State {State}, day {Day} ({Mode}), job {CurrentJob?.ToString() ?? "none"}, puzzle {CurrentPuzzle}");
         }
-#endif
     }
 }

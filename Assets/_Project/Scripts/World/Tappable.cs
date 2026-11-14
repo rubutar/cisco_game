@@ -20,7 +20,10 @@ namespace ByteWorld
             {
                 var bounds = sizeFrom.sprite.bounds;
                 box.size = (Vector2)bounds.size + Vector2.one * slack;
-                box.offset = (Vector2)sizeFrom.transform.localPosition + (Vector2)bounds.center;
+                // The collider sits on the target itself, so only the sprite's own centre matters.
+                box.offset = sizeFrom.transform == target.transform
+                    ? (Vector2)bounds.center
+                    : (Vector2)sizeFrom.transform.localPosition + (Vector2)bounds.center;
             }
             return tappable;
         }
