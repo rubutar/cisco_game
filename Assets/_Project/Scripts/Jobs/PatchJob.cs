@@ -238,9 +238,15 @@ namespace ByteWorld
             nextSpot = 0;
         }
 
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"workshop file={item.title} from={item.from} sig={(string.IsNullOrEmpty(item.signature) ? "-" : item.signature)} action={(allowed ? "install" : "reject")}";
+
+        // v2 (PRD-v2 4.6): From, Signature and the speed of the Worm heading for this crate's crack.
         protected override InspectField[] InspectFields(ItemData item) => new[]
         {
             new InspectField(FieldLabel(0, "From"), item.from),
+            new InspectField(FieldLabel(1, "Signature"), string.IsNullOrEmpty(item.signature) ? "-" : item.signature),
+            new InspectField(FieldLabel(2, "Worm speed"), item.worm ? item.wormSpeed.ToString("0.0") : "-"),
         };
 
         static Sprite CrateSprite()

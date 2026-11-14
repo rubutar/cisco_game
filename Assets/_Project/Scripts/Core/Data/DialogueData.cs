@@ -174,5 +174,6 @@ namespace ByteWorld.Data
         public string toolkitCountFormat;   // "Cisco toolkit {0}/{1}"
         public string toolkitToastFormat;   // "{0} added to your Cisco toolkit"
         public string keyHint;              // "Enter: go in · M: materials · Esc: close"
+        public string lockFormat;           // "Opens after Quest {0}" (ICheckpointService.LockReason)
     }
 }

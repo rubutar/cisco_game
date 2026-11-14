@@ -83,6 +83,15 @@ namespace ByteWorld
         public static event Action<JobId> ShiftSucceeded;
         public static event Action PeaceReached;
 
+        // Hero and stations (PRD-v2 4.2a, 6.4): raised by Person A, shown by Person B
+        public static event Action CheckpointStatesChanged;  // re-read Services.Checkpoints
+        public static event Action<string> HeroArrived;      // checkpoint id: show the popup
+        public static event Action<string> HeroLeft;         // checkpoint id: hide the popup
+        public static event Action<string> StationFinished;  // checkpoint id: toolkit toast, next brief
+
+        // UI -> core text commands: "walk:<id>", "goin:<id>" (Person A) and "materials:<id>" (UI only)
+        public static event Action<string> UiCommandRequested;
+
         // World props (raised by Person A's map, shown by Person B's prop card)
         public static event Action<string> PropTapped;
 
@@ -115,6 +124,13 @@ namespace ByteWorld
         public static void RaiseShiftSucceeded(JobId job) => ShiftSucceeded?.Invoke(job);
         public static void RaisePeaceReached() => PeaceReached?.Invoke();
         public static void RaisePropTapped(string propId) => PropTapped?.Invoke(propId);
+        public static void RaiseCheckpointStatesChanged() => CheckpointStatesChanged?.Invoke();
+        public static void RaiseHeroArrived(string checkpointId) => HeroArrived?.Invoke(checkpointId);
+        public static void RaiseHeroLeft(string checkpointId) => HeroLeft?.Invoke(checkpointId);
+        public static void RaiseStationFinished(string checkpointId) => StationFinished?.Invoke(checkpointId);
+
+        /// <summary>Text command from the UI: "walk:harbour", "goin:harbour", "materials:harbour".</summary>
+        public static void RaiseUiAction(string command) => UiCommandRequested?.Invoke(command);
         public static void RaiseComplaint(ComplaintInfo info) => Complaint?.Invoke(info);
         public static void RaiseSnatched(SnatchInfo info) => Snatched?.Invoke(info);
         public static void RaiseBackupsChanged(int left, int max) => BackupsChanged?.Invoke(left, max);
@@ -133,7 +149,9 @@ namespace ByteWorld
         {
             StateChanged = null; DayStarted = null; DayEnded = null; AlertRaised = null;
             JobEntered = null; ShiftProgress = null; ItemResolved = null; ShiftSucceeded = null;
-            PeaceReached = null; PropTapped = null; Complaint = null; Snatched = null; BackupsChanged = null;
+            PeaceReached = null; PropTapped = null; Complaint = null;
+            CheckpointStatesChanged = null; HeroArrived = null; HeroLeft = null; StationFinished = null;
+            UiCommandRequested = null; Snatched = null; BackupsChanged = null;
             Collapsed = null; PuzzleStarted = null; TestRunFinished = null; PuzzlePassed = null;
             RevealClosed = null; UiActionRequested = null; RestartDayRequested = null;
             DebugMenuRequested = null;

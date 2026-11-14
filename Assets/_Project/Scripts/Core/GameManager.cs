@@ -36,7 +36,7 @@ namespace ByteWorld
             { GameState.Boot, new[] { GameState.Title, GameState.WorldPeace, GameState.BuildIntro, GameState.Build } },
             { GameState.Title, new[] { GameState.Intro, GameState.WorldPeace, GameState.BuildIntro, GameState.FinalAttack } },
             { GameState.Intro, new[] { GameState.WorldPeace } },
-            { GameState.WorldPeace, new[] { GameState.Alert, GameState.DayEnd, GameState.JobIntro, GameState.Peace } },
+            { GameState.WorldPeace, new[] { GameState.Alert, GameState.DayEnd, GameState.JobIntro, GameState.Peace, GameState.BuildIntro } },
             { GameState.Alert, new[] { GameState.JobIntro, GameState.FinalAttack } },
             { GameState.JobIntro, new[] { GameState.JobShift } },
             { GameState.JobShift, new[] { GameState.JobSuccess, GameState.Snatched, GameState.Collapse } },
@@ -48,7 +48,7 @@ namespace ByteWorld
             { GameState.BuildIntro, new[] { GameState.Build } },
             { GameState.Build, new[] { GameState.TestRun } },
             { GameState.TestRun, new[] { GameState.Build, GameState.Reveal, GameState.Collapse } },
-            { GameState.Reveal, new[] { GameState.Build, GameState.Peace } },
+            { GameState.Reveal, new[] { GameState.Build, GameState.Peace, GameState.WorldPeace } },
             { GameState.FinalAttack, new[] { GameState.Alert, GameState.JobIntro, GameState.Peace, GameState.Collapse } },
             { GameState.Peace, new[] { GameState.Title } },
         };
@@ -125,6 +125,20 @@ namespace ByteWorld
             CurrentPuzzle = Mathf.Max(1, puzzle);
             Services.Backups.Refill();
             BeginDay(Mathf.Clamp(day, 1, 3), loadScene: true);
+            // Shortcut straight into a later build puzzle (?day=3&puzzle=3).
+            if (day >= 3 && puzzle > 1 && Mode == DayMode.Build && !UseFallback()) EnterBuild(puzzle);
+        }
+
+        /// <summary>
+        /// v2: Go in at the Switch Yard (puzzle 1) or the Signal Tower (the last puzzle) opens build mode.
+        /// Day 3 itself starts on the map.
+        /// </summary>
+        public void EnterBuild(int puzzle)
+        {
+            CurrentPuzzle = Mathf.Max(1, puzzle);
+            UnloadJobScene();
+            SceneManager.LoadScene(SceneNames.Build);
+            SetState(GameState.BuildIntro);
         }
 
         // ---------- Called by other Stream A systems ----------
@@ -256,6 +270,14 @@ namespace ByteWorld
                 SetState(GameState.Peace);
                 GameEvents.RaisePeaceReached();
             }
+            else if (puzzleId == 2)
+            {
+                // v2: the Switch Yard (puzzles 1-2) is done; back to the map for the Signal Tower.
+                Services.BuildMode.End();
+                CurrentPuzzle = puzzleId + 1;
+                SceneManager.LoadScene(SceneNames.World);
+                SetState(GameState.WorldPeace);
+            }
             else
             {
                 CurrentPuzzle = puzzleId + 1;
@@ -272,16 +294,9 @@ namespace ByteWorld
             UnloadJobScene();
             CurrentJob = null;
 
-            if (Mode == DayMode.Build && !UseFallback())
-            {
-                if (loadScene) SceneManager.LoadScene(SceneNames.Build);
-                SetState(GameState.BuildIntro);
-            }
-            else
-            {
-                if (loadScene) SceneManager.LoadScene(SceneNames.World);
-                SetState(Mode == DayMode.Build ? GameState.FinalAttack : GameState.WorldPeace);
-            }
+            // v2: every day starts on the map; build mode opens from the Switch Yard and the Signal Tower.
+            if (loadScene) SceneManager.LoadScene(SceneNames.World);
+            SetState(Mode == DayMode.Build && UseFallback() ? GameState.FinalAttack : GameState.WorldPeace);
             GameEvents.RaiseDayStarted(Day, Mode);
         }
 
@@ -294,18 +309,7 @@ namespace ByteWorld
             GameEvents.RaiseDayStarted(Day, Mode);
         }
 
-        void EnterDay()
-        {
-            if (Mode == DayMode.Build && !UseFallback())
-            {
-                SceneManager.LoadScene(SceneNames.Build);
-                SetState(GameState.BuildIntro);
-            }
-            else
-            {
-                SetState(Mode == DayMode.Build ? GameState.FinalAttack : GameState.WorldPeace);
-            }
-        }
+        void EnterDay() => SetState(Mode == DayMode.Build && UseFallback() ? GameState.FinalAttack : GameState.WorldPeace);
 
         void BeginBuild()
         {

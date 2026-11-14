@@ -34,6 +34,22 @@ namespace ByteWorld
         BuildFile Build { get; }
         FlagsFile Flags { get; }
         HuntFile Hunt { get; }
+        CheckpointsFile Checkpoints { get; }
+    }
+
+    /// <summary>
+    /// The seven stations (PRD-v2 4.2a, 6.4). Implemented by Person A (CheckpointManager). UI re-reads it on
+    /// GameEvents.CheckpointStatesChanged.
+    /// </summary>
+    public interface ICheckpointService
+    {
+        CheckpointData[] All { get; }
+        CheckpointData Get(string id);
+        CheckpointState StateOf(string id);
+        /// <summary>"" when open; otherwise the lock line, e.g. "Opens after Quest 1".</summary>
+        string LockReason(string id);
+        int ToolsCollected { get; }
+        int ToolsTotal { get; }
     }
 
     /// <summary>

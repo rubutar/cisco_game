@@ -88,6 +88,14 @@ namespace ByteWorld
         Resume
     }
 
+    /// <summary>A station on the map (PRD-v2 4.2): greyed out, alerting (available), or done.</summary>
+    public enum CheckpointState
+    {
+        Locked,
+        Alert,
+        Done
+    }
+
     public static class JobIds
     {
         public static string ToKey(this JobId job) => job switch

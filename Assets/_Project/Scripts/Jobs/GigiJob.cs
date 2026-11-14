@@ -91,13 +91,23 @@ namespace ByteWorld
         {
             base.Update();
             var change = Shift.ruleChange;
-            if (!Running || ruleChangeDone || change == null || change.atSeconds <= 0f || Elapsed < change.atSeconds) return;
+            // v2 triggers the change when a given item arrives (rulesChangeAtItem, see SpawnItem); v1 by time.
+            if (!Running || ruleChangeDone || change == null || Shift.rulesChangeAtItem > 0 || change.atSeconds <= 0f || Elapsed < change.atSeconds) return;
+            ApplyRuleChange();
+        }
+
+        void ApplyRuleChange()
+        {
+            var change = Shift.ruleChange;
+            if (ruleChangeDone || change == null) return;
 
             ruleChangeDone = true;
             foreach (var d in change.close ?? new int[0]) { open.Remove(d); closed.Add(d); }
             foreach (var d in change.open ?? new int[0]) { closed.Remove(d); open.Add(d); }
             Refresh();
-            if (!string.IsNullOrEmpty(change.announce)) Services.Dialogue.Say(Job.ToKey(), change.announce);
+            // The Webex post: the v2 line if there is one, else the v1 announcement.
+            var line = !string.IsNullOrEmpty(Shift.rulesChangeLine) ? Shift.rulesChangeLine : change.announce;
+            if (!string.IsNullOrEmpty(line)) Services.Dialogue.Say(Job.ToKey(), line);
         }
 
         void Refresh()
@@ -149,6 +159,7 @@ namespace ByteWorld
         {
             var spot = QueueSpots[nextSpot % QueueSpots.Length];
             nextSpot++;
+            if (Shift.rulesChangeAtItem > 0 && nextSpot == Shift.rulesChangeAtItem) ApplyRuleChange();
             var go = new GameObject($"Visitor {item.id}");
             go.transform.SetParent(root, false);
             go.transform.localPosition = PixelArt.MapToWorld(500, spot.y);
@@ -186,5 +197,8 @@ namespace ByteWorld
             new InspectField(FieldLabel(0, "Door"), item.door.ToString()),
             new InspectField(FieldLabel(1, "Says"), item.says),
         };
+
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"gate src={item.title} door={item.door} action={(allowed ? "allow" : "deny")}";
     }
 }
