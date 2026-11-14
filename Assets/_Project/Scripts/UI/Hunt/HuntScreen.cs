@@ -2,6 +2,8 @@
 // Splunk Observatory calls Begin. The player taps the query chips in order to build the search, the results
 // table drops in (with extra rows for this session's mistakes), and tapping the target row pins it. The
 // Field Card from hunt.json follows; Back to Byte World closes the screen and reports the pinned row.
+// Hints (A-12): a wrong chip makes the right next chip pulse, and after two misses the search bar shows the
+// next piece faintly; two wrong rows make the target row pulse. Hints use the chips' own labels only.
 // The UI is built in code (no prefab to keep in sync). Text comes from hunt.json, checkpoints.json and
 // dialogue.json; the search syntax and column names are Splunk's own.
 using System;
@@ -29,6 +31,10 @@ namespace ByteWorld
         HuntFile hunt;
         int nextOrder;
         string pinned;
+        int chipMisses;
+        int rowMisses;
+        readonly Dictionary<int, RectTransform> chipsByOrder = new();
+        Image targetRow;
 
         void Awake()
         {
@@ -71,6 +77,11 @@ namespace ByteWorld
             if (canvas != null) Destroy(canvas.gameObject);
             nextOrder = 1;
             pinned = null;
+            chipMisses = 0;
+            built = "";
+            rowMisses = 0;
+            chipsByOrder.Clear();
+            targetRow = null;
 
             var go = new GameObject("Splunk Trace", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             go.transform.SetParent(transform, false);
@@ -133,6 +144,7 @@ namespace ByteWorld
             Stretch(text.rectTransform);
             var button = chip.gameObject.AddComponent<Button>();
             button.onClick.AddListener(() => OnChip(chip, label, order));
+            if (order > 0) chipsByOrder[order] = chip;
         }
 
         void OnChip(RectTransform chip, string label, int order)
@@ -140,12 +152,31 @@ namespace ByteWorld
             if (order != nextOrder)
             {
                 StartCoroutine(Flash(chip.GetComponent<Image>(), Palette.AlertPink, Palette.ByteCream));
+                chipMisses++;
+                if (chipsByOrder.TryGetValue(nextOrder, out var next)) StartCoroutine(Pulse(next.GetComponent<Image>(), Palette.ByteCream));
+                if (chipMisses >= 2) ShowQuery(NextLabel());
                 return;
             }
-            query.text = string.IsNullOrEmpty(query.text) ? label : $"{query.text} {label}";
+            built = string.IsNullOrEmpty(built) ? label : $"{built} {label}";
+            ShowQuery(null);
             chip.gameObject.SetActive(false);
             nextOrder++;
             if (nextOrder > hunt.chips.Length) StartCoroutine(ShowResults());
+        }
+
+        string built = "";
+
+        /// <summary>The query so far, plus the next piece faintly when the player needs a hint.</summary>
+        void ShowQuery(string ghost)
+        {
+            query.text = string.IsNullOrEmpty(ghost) ? built
+                : string.IsNullOrEmpty(built) ? $"<alpha=#55>{ghost}" : $"{built} <alpha=#55>{ghost}";
+        }
+
+        string NextLabel()
+        {
+            foreach (var c in hunt.chips) if (c.order == nextOrder) return c.label;
+            return "";
         }
 
         IEnumerator ShowResults()
@@ -163,11 +194,12 @@ namespace ByteWorld
             {
                 yield return new WaitForSecondsRealtime(0.18f);
                 var r = row;
-                Row(new[] { r.srcIp, r.destPort.ToString(), r.count.ToString() }, Palette.ByteCream, Palette.Ink, img => OnRow(img, r));
+                var image = Row(new[] { r.srcIp, r.destPort.ToString(), r.count.ToString() }, Palette.ByteCream, Palette.Ink, img => OnRow(img, r));
+                if (r.target) targetRow = image;
             }
         }
 
-        void Row(string[] cells, Color fill, Color ink, Action<Image> onTap)
+        Image Row(string[] cells, Color fill, Color ink, Action<Image> onTap)
         {
             var row = Panel(table, "Row", fill, 1f);
             row.sizeDelta = new Vector2(1200, 70);
@@ -180,9 +212,10 @@ namespace ByteWorld
                 var text = Text(row, cell, 36, ink, FontStyles.Normal);
                 text.alignment = TextAlignmentOptions.MidlineLeft;
             }
-            if (onTap == null) return;
             var image = row.GetComponent<Image>();
+            if (onTap == null) return image;
             row.gameObject.AddComponent<Button>().onClick.AddListener(() => onTap(image));
+            return image;
         }
 
         void OnRow(Image image, HuntRow row)
@@ -191,6 +224,7 @@ namespace ByteWorld
             if (!row.target)
             {
                 StartCoroutine(Flash(image, Palette.AlertPink, Palette.ByteCream));
+                if (++rowMisses >= 2 && targetRow != null) StartCoroutine(Pulse(targetRow, Palette.ByteCream));
                 return;
             }
             pinned = $"{row.srcIp}:{row.destPort}";
@@ -272,6 +306,19 @@ namespace ByteWorld
             rect.pivot = new Vector2(pivotX, pivotY);
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
+        }
+
+        /// <summary>Three yellow blinks: "this one".</summary>
+        IEnumerator Pulse(Image image, Color back)
+        {
+            for (var i = 0; i < 3 && image != null; i++)
+            {
+                image.color = Palette.PacketYellow;
+                yield return new WaitForSecondsRealtime(0.22f);
+                if (image == null || pinned != null) yield break;
+                image.color = back;
+                yield return new WaitForSecondsRealtime(0.18f);
+            }
         }
 
         static IEnumerator Flash(Image image, Color flash, Color back)

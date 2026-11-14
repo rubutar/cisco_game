@@ -6,22 +6,22 @@ PRD-v2.md section 8. Tick tasks here and in the pinned issues: Person A [#83](ht
 
 | ID | Task | Est. | Tier | Merge by | Status |
 |---|---|---|---|---|---|
-| A-01 | Contract PR `contract/quests-v2` (6.4, 6.5), stubs updated | 45m | Must | Sat 21:00 | To do |
-| A-02 | Quest 1 content: 12 items, Webex brief, Field Cards, hints. Day 1 alert group {scout, gigi} | 1h15 | Must | Sat 22:00 | To do |
-| A-03 | JobShift raises ItemResolved with a log line. Scout shows Reply-To, Sender check and Link. Gigi’s mid-quest rule change | 1h | Must | Sat 22:00 | To do |
-| A-04 | Quest 2 content plus all remaining text: Twins and Patch items, Field Cards, hunt.json, checks, props, Learner Card, incident cards | 1h15 | Must | Sat 22:00 | To do |
-| A-13 | **(v2.1)** Contract PR `contract/hero` (6.4) with stubs; `checkpoints.json` for all 7 stations, materials text checked against cisco.com (4.11) | 1h | Must | Sat 23:30 | To do |
-| A-14 | **(v2.1)** Map relayout in `World.unity`: plaza hub, 7 station buildings, roads from `checkpoints.json`, lit and locked roads, greyscale locked buildings, roaming Bytes on lit roads only | 1h15 | Must | Sun 08:00 | To do |
-| A-16 | **(v2.1)** Pax art: 32 × 32 map sheet (idle down and side, walk side 4 frames; Should: walk up and down, interact, cheer, worried) and 48 × 48 portraits (neutral, happy; Should: surprised, worried, determined). Bytes redrawn at 16 × 16 with faces | 2h | Must (Must frames only) | Sun 08:00 | To do |
-| A-15 | **(v2.1)** `HeroController`: Pax sprite (32 × 32 sheet from A-16, placeholder until then), keyboard movement through the `Hero` action map (river and edge blocking), tap-to-walk along road waypoints via the plaza, turn mid-walk, proximity check (26 px) raising `HeroArrived` / `HeroLeft`, `Interact`/`Materials`/`Back` raising UI actions, `heroMode: teleport`. `CheckpointManager`: states, unlocks (`requires`), `walk` and `goin` actions start the right job, hunt, build or siege; `StationFinished` | 1h30 | Must | Sun 08:00 | To do |
-| A-05 | Twins push count and Patch signature fields. Day 2 alert group {twins, patch}. Check each scene copes with 5–6 items | 45m | Must | Sun 08:00 | To do |
-| A-06 | Splunk Trace: chips build the query in order, the results table animates in, tap a row to pin it, extra rows for the player’s mistakes, Field Card. **(v2.1)** Started by Go in at the Observatory | 2h | Must | Sun 08:00 | To do |
-| A-07 | build.json data for Quest 3 (lanes, test packet, rules) and Quest 4 (siege), agreed with B | 45m | Must | Sun 08:00 | To do |
-| A-08 | Filming shortcuts: `?quest=1..4`, `?hunt=1` and **(v2.1)** `?at=<checkpointId>` (Pax starts at that station with the card open) URL parameters, plus flags.json `quest4Mode` | 30m | Must | Sun 08:00 | To do |
-| A-09 | QR code PNG to NetAcad for the Learner Card (Python qrcode), handed to B | 15m | Must | Sun 08:00 | To do |
+| A-01 | Contract PR `contract/quests-v2` (6.4, 6.5), stubs updated | 45m | Must | Sat 21:00 | Done |
+| A-02 | Quest 1 content: 12 items, Webex brief, Field Cards, hints. Day 1 alert group {scout, gigi} | 1h15 | Must | Sat 22:00 | Done |
+| A-03 | JobShift raises ItemResolved with a log line. Scout shows Reply-To, Sender check and Link. Gigi’s mid-quest rule change | 1h | Must | Sat 22:00 | Done |
+| A-04 | Quest 2 content plus all remaining text: Twins and Patch items, Field Cards, hunt.json, checks, props, Learner Card, incident cards | 1h15 | Must | Sat 22:00 | Done |
+| A-13 | **(v2.1)** Contract PR `contract/hero` (6.4) with stubs; `checkpoints.json` for all 7 stations, materials text checked against cisco.com (4.11) | 1h | Must | Sat 23:30 | Done |
+| A-14 | **(v2.1)** Map relayout in `World.unity`: plaza hub, 7 station buildings, roads from `checkpoints.json`, lit and locked roads, greyscale locked buildings, roaming Bytes on lit roads only | 1h15 | Must | Sun 08:00 | Done |
+| A-16 | **(v2.1)** Pax art: 32 × 32 map sheet (idle down and side, walk side 4 frames; Should: walk up and down, interact, cheer, worried) and 48 × 48 portraits (neutral, happy; Should: surprised, worried, determined). Bytes redrawn at 16 × 16 with faces | 2h | Must (Must frames only) | Sun 08:00 | Done |
+| A-15 | **(v2.1)** `HeroController`: Pax sprite (32 × 32 sheet from A-16, placeholder until then), keyboard movement through the `Hero` action map (river and edge blocking), tap-to-walk along road waypoints via the plaza, turn mid-walk, proximity check (26 px) raising `HeroArrived` / `HeroLeft`, `Interact`/`Materials`/`Back` raising UI actions, `heroMode: teleport`. `CheckpointManager`: states, unlocks (`requires`), `walk` and `goin` actions start the right job, hunt, build or siege; `StationFinished` | 1h30 | Must | Sun 08:00 | Done |
+| A-05 | Twins push count and Patch signature fields. Day 2 alert group {twins, patch}. Check each scene copes with 5–6 items | 45m | Must | Sun 08:00 | Done |
+| A-06 | Splunk Trace: chips build the query in order, the results table animates in, tap a row to pin it, extra rows for the player’s mistakes, Field Card. **(v2.1)** Started by Go in at the Observatory | 2h | Must | Sun 08:00 | Done |
+| A-07 | build.json data for Quest 3 (lanes, test packet, rules) and Quest 4 (siege), agreed with B | 45m | Must | Sun 08:00 | Done |
+| A-08 | Filming shortcuts: `?quest=1..4`, `?hunt=1` and **(v2.1)** `?at=<checkpointId>` (Pax starts at that station with the card open) URL parameters, plus flags.json `quest4Mode` | 30m | Must | Sun 08:00 | Done |
+| A-09 | QR code PNG to NetAcad for the Learner Card (Python qrcode), handed to B | 15m | Must | Sun 08:00 | Done |
 | A-10 | Phone playthrough, fix blockers, capture clean footage (11) | 1h | Must | Sun 10:00 | To do |
-| A-11 | Props: Rusted Door 23 and Conduit Bridges on the map raise PropTapped | 45m | Stretch |  | To do |
-| A-12 | Hunt stretch: wrong chips give hints, a distractor chip | 30m | Stretch |  | To do |
+| A-11 | Props: Rusted Door 23 and Conduit Bridges on the map raise PropTapped | 45m | Stretch |  | Done |
+| A-12 | Hunt stretch: wrong chips give hints, a distractor chip | 30m | Stretch |  | Done |
 
 Must: 15h15.
 
