@@ -33,6 +33,9 @@ namespace ByteWorld
         public int PuzzleIndex { get; private set; } // 1-based
         public int PuzzleCount => Services.Data?.Build?.puzzles?.Length ?? 0;
 
+        /// <summary>Build mode was closed (End): anything playing on the board should stop.</summary>
+        public event System.Action Ended;
+
         void Awake()
         {
             Services.Register<IBuildMode>(this);
@@ -56,6 +59,7 @@ namespace ByteWorld
 
         public void End()
         {
+            Ended?.Invoke();
             ClearBoard();
             view.SetActive(false);
         }
@@ -120,26 +124,42 @@ namespace ByteWorld
 
         // ---------- Taps ----------
 
+        // The board only changes while building, not during a test run or a reveal.
+        bool CanEdit => Tool != null && Services.Flow.State == GameState.Build;
+
         public void OnSlotTapped(string id)
         {
-            if (Tool == null) return;
+            if (!CanEdit) return;
             if (Tool.TapSlot(id) == TapOutcome.Rejected) slots[id].Flash();
             Refresh();
         }
 
         public void OnCableTapped(Cable cable)
         {
-            if (Tool == null) return;
+            if (!CanEdit) return;
             Tool.TapCable(cable);
             Refresh();
         }
 
         public void OnTrayTapped(string piece)
         {
-            if (Tool == null) return;
+            if (!CanEdit) return;
             Tool.TapTray(piece);
             Refresh();
         }
+
+        public void ClearSelection()
+        {
+            Tool?.ClearSelection();
+            Refresh();
+        }
+
+        public void FlashSlot(string id)
+        {
+            if (slots.TryGetValue(id, out var slot)) slot.Flash();
+        }
+
+        public Vector2 BoardSize => board.rect.size;
 
         // ---------- Path check ----------
 
@@ -197,7 +217,8 @@ namespace ByteWorld
             }
         }
 
-        Vector2 AnchorOf(string id)
+        /// <summary>Where a slot sits on the board, in anchor space (0..1, origin bottom left).</summary>
+        public Vector2 AnchorOf(string id)
         {
             var s = slotData[id];
             return new Vector2(s.x / MapWidth, 1f - s.y / MapHeight);
