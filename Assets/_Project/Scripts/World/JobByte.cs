@@ -45,14 +45,16 @@ namespace ByteWorld
             }
 
             mark = PixelArt.AddSprite(transform, PixelArt.Load("Characters/alert_mark", () => PixelArt.GridSprite(PixelArt.AlertMark, Palette.GridNormal, "Alert mark")), "Alert mark", 20);
-            mark.transform.localPosition = basePositions[0] + new Vector3(0.5f, 0.9f, 0f);
+            // Above the head: the map sprites are 16 px tall (the in-code fallback 12 px).
+            var head = normals[0] != null ? normals[0].rect.height : 12f;
+            mark.transform.localPosition = basePositions[0] + new Vector3(0.5f, (head + 3) * PixelArt.Pixel, 0f);
             mark.enabled = false;
 
             // Day 2 patience bar (A-15): drains while this Byte waits for help.
             var back = new PixelCanvas(16, 4);
             back.Fill(0, 0, 16, 4, Palette.Ink);
             patienceBack = PixelArt.AddSprite(transform, back.ToSprite("Patience back", new Vector2(0f, 0.5f)), "Patience", 21);
-            patienceBack.transform.localPosition = basePositions[0] + new Vector3(-8 * PixelArt.Pixel, 15 * PixelArt.Pixel, 0f);
+            patienceBack.transform.localPosition = basePositions[0] + new Vector3(-8 * PixelArt.Pixel, (head + 14) * PixelArt.Pixel, 0f); // above the "!" mark
             var fill = new PixelCanvas(1, 2);
             fill.Fill(0, 0, 1, 2, Palette.AlertPink);
             patienceFill = PixelArt.AddSprite(patienceBack.transform, fill.ToSprite("Patience fill", new Vector2(0f, 0.5f)), "Fill", 22);
