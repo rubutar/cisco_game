@@ -44,11 +44,11 @@ namespace ByteWorld
             speed = unitsPerSecond;
             lineIndex = seed;
 
-            body = PixelArt.AddSprite(transform, PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Roaming Byte"), "Body", 0);
+            body = PixelArt.AddSprite(transform, PixelArt.Load("Characters/map_byte", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Roaming Byte")), "Body", 0);
             Tappable.Add(body.gameObject, body, 0.3f).Tapped += Talk;
             if (carriesOrb)
             {
-                var orb = PixelArt.AddSprite(body.transform, PixelArt.GridSprite(OrbGrid, Palette.GridNormal, "Orb"), "Orb", 0);
+                var orb = PixelArt.AddSprite(body.transform, PixelArt.Load("Characters/orb", () => PixelArt.GridSprite(OrbGrid, Palette.GridNormal, "Orb")), "Orb", 0);
                 orb.transform.localPosition = new Vector3(7 * PixelArt.Pixel, 2 * PixelArt.Pixel, 0f);
             }
             Place();

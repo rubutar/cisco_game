@@ -86,13 +86,13 @@ namespace ByteWorld
             c.Fill(90, 94, 110, 2, Palette.Ink);
             PixelArt.AddSprite(root, c.ToSprite("Workshop", new Vector2(0.5f, 0.5f)), "Workshop", SortBase);
 
-            var patch = PixelArt.AddSprite(root, PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Patch"), "Patch", SortBase + 50);
+            var patch = PixelArt.AddSprite(root, PixelArt.Load("Characters/patch", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Patch")), "Patch", SortBase + 50);
             patch.transform.localPosition = PixelArt.MapToWorld(50, 170);
-            patch.transform.localScale = new Vector3(2f, 2f, 1f);
+            patch.transform.localScale = PixelArt.CharacterScale(patch.sprite);
 
-            crateSprite = CrateSprite();
-            crackSprite = CrackSprite();
-            wormSprite = PixelArt.GridSprite(WormGrid, Palette.GridNormal, "Worm");
+            crateSprite = PixelArt.Load("Props/crate", CrateSprite);
+            crackSprite = PixelArt.Load("Props/crack", CrackSprite);
+            wormSprite = PixelArt.Load("Characters/worm", () => PixelArt.GridSprite(WormGrid, Palette.GridNormal, "Worm"));
         }
 
         protected override void OnShiftStarted()
@@ -107,6 +107,11 @@ namespace ByteWorld
 
         protected override void SpawnItem(ItemData item)
         {
+            if (item.type == "crack")
+            {
+                SpawnWallCrack(item);
+                return;
+            }
             var spot = CrateSpots[nextSpot % CrateSpots.Length];
             nextSpot++;
             var crate = new GameObject($"Crate {item.id}");
@@ -119,6 +124,21 @@ namespace ByteWorld
             crates[item.id] = crate;
 
             if (item.worm) OpenCrack(item);
+        }
+
+        /// <summary>A crack to repair (type "crack"): tap it on the wall; Fit now fixes it.</summary>
+        void SpawnWallCrack(ItemData item)
+        {
+            var row = CrackRows[nextCrack % CrackRows.Length];
+            nextCrack++;
+            var go = new GameObject($"Wall crack {item.id}");
+            go.transform.SetParent(root, false);
+            go.transform.localPosition = PixelArt.MapToWorld((WallLeft + WallRight) / 2, row);
+            var mark = PixelArt.AddSprite(go.transform, crackSprite, "Mark", SortBase + 30);
+            mark.transform.localScale = new Vector3(2f, 2f, 1f);
+            Tappable.Add(mark.gameObject, mark, 0.6f).Tapped += () => OpenInspect(item);
+            JobVisuals.Label(go.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 31, 4f);
+            crates[item.id] = go;
         }
 
         void OpenCrack(ItemData item)
@@ -174,6 +194,13 @@ namespace ByteWorld
 
         protected override void OnItemResolved(ItemData item, bool allowed)
         {
+            if (item.type == "crack" && crates.TryGetValue(item.id, out var wallCrack))
+            {
+                crates.Remove(item.id);
+                Destroy(wallCrack);
+                if (allowed) busyUntil = Time.time + FitSeconds;
+                return;
+            }
             if (crates.TryGetValue(item.id, out var crate))
             {
                 crates.Remove(item.id);
@@ -182,11 +209,9 @@ namespace ByteWorld
                 var target = allowed ? new Vector2(PixelArt.MapToWorld(WallLeft, 0).x, p.y) : new Vector2(p.x, PixelArt.MapToWorld(0, -30).y);
                 crate.GetComponent<Mover>().MoveTo(target, 8f, destroyWhenThere: true);
             }
-            if (allowed)
-            {
-                busyUntil = Time.time + FitSeconds;
-                RepairCrack(item);
-            }
+            if (allowed) busyUntil = Time.time + FitSeconds;
+            // Any right call clears the crack: a fitted crate repairs it, a refused fake crate never opens it.
+            RepairCrack(item);
         }
 
         void RepairCrack(ItemData item)

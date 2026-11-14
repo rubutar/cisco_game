@@ -56,6 +56,31 @@ namespace ByteWorld
             ".111.",
         };
 
+        static readonly System.Collections.Generic.Dictionary<string, Sprite> Loaded = new();
+
+        /// <summary>
+        /// A sprite from Resources/Sprites (PNGs written by Tools/sprites/make_sprites.py), e.g. "Characters/scout".
+        /// Falls back to the in-code drawing when the PNG doesn't exist, so a missing file never breaks the game.
+        /// </summary>
+        public static Sprite Load(string path, System.Func<Sprite> fallback)
+        {
+            if (Loaded.TryGetValue(path, out var cached) && cached != null) return cached;
+            var sprite = Resources.Load<Sprite>("Sprites/" + path);
+            if (sprite == null) sprite = fallback();
+            Loaded[path] = sprite;
+            return sprite;
+        }
+
+        /// <summary>
+        /// Scale for a character standing in a job scene: the 32 x 32 art at its true size, the small
+        /// 12 x 12 fallback drawn twice as big.
+        /// </summary>
+        public static Vector3 CharacterScale(Sprite sprite) =>
+            sprite != null && sprite.rect.height >= 24 ? Vector3.one : new Vector3(2f, 2f, 1f);
+
+        /// <summary>True when the PNG for a path exists (used where a PNG replaces a tint).</summary>
+        public static bool HasSprite(string path) => Resources.Load<Sprite>("Sprites/" + path) != null;
+
         /// <summary>Map pixel (origin top-left) to world position (origin at the centre of the 480 x 270 view).</summary>
         public static Vector2 MapToWorld(float x, float y) =>
             new((x - MapWidth / 2f) * Pixel, (MapHeight / 2f - y) * Pixel);

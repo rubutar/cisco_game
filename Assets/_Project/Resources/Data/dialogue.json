@@ -6,7 +6,7 @@
       "primaryAction": "Let it dock", "secondaryAction": "Send away", "fieldLabels": ["From", "Cargo"],
       "days": [
         { "day": 1, "alertLine": "So many boats today!", "introLines": ["I check each boat's name and flag before it docks.", "I can't keep up… will you help?"], "successLine": "That one said it was from the bank, but the name had a zero in it!", "snatchLine": "But it looked just like a post boat…", "backupLine": "I'll take the lookout. Show me how!" },
-        { "day": 2, "alertLine": "Boats coming in!", "introLines": ["Busy dock again.", "Some of these look almost right. Read carefully!"], "successLine": "The name was right, but the sender wasn't. Sneaky!", "snatchLine": "But it looked just like Coach…", "backupLine": "I'll take the lookout. Show me how!", "waitingLine": "Finally! The boats piled up while you were at the gate!", "complaintLine": "Hey, that was Mum!", "complaintFailLine": "Nobody trusts the lookout any more, so the attackers walked right in." }
+        { "day": 2, "alertLine": "Boats coming in!", "introLines": ["Busy dock again, and some boats look almost right.", "Check who sent it, not just the name on the side!"], "successLine": "That boat said Coach, but it came from c1ub-news. Always read who really sent it!", "snatchLine": "But it looked just like Coach…", "backupLine": "I'll take the lookout. Show me how!", "waitingLine": "Finally! The boats piled up while you were at the gate!", "complaintLine": "Hey, that was Mum!", "complaintFailLine": "Nobody trusts the lookout any more, so the attackers walked right in." }
       ]
     },
     {
@@ -15,7 +15,7 @@
       "primaryAction": "Let in", "secondaryAction": "Turn away", "fieldLabels": ["Door", "Says"],
       "days": [
         { "day": 1, "alertLine": "Visitors at the gate!", "introLines": ["Everyone needs the right door, and the list says who's welcome.", "Help me check them?"], "successLine": "Door 23 has been shut for years. Nobody honest asks for it.", "snatchLine": "They walked right through the old door…", "backupLine": "I'll keep the gate. Show me the list!" },
-        { "day": 2, "alertLine": "Visitors at the gate, hurry!", "introLines": ["The queue is long today.", "If they're not on my list, they don't come in."], "successLine": "Saying 'Gigi knows me' doesn't put you on my list!", "snatchLine": "They sounded so friendly…", "backupLine": "I'll keep the gate. Show me the list!", "waitingLine": "There you are! The queue went all the way to the bridge.", "complaintLine": "That was Luca! He's on the list.", "complaintFailLine": "Friends stopped coming, and the gate got careless." }
+        { "day": 2, "alertLine": "Visitors at the gate, hurry!", "introLines": ["The queue is long today, and my list can change mid-shift.", "Not on my list, or the door is shut? Then they wait outside."], "successLine": "Saying 'Gigi knows me' doesn't put you on my list!", "snatchLine": "They sounded so friendly…", "backupLine": "I'll keep the gate. Show me the list!", "waitingLine": "There you are! The queue went all the way to the bridge.", "complaintLine": "That was Luca! He's on the list.", "complaintFailLine": "Friends stopped coming, and the gate got careless." }
       ]
     },
     {
@@ -24,7 +24,8 @@
       "primaryAction": "Open vault", "secondaryAction": "Keep it shut", "fieldLabels": ["Password", "Phone code", "Visitor's code"],
       "valueLabels": ["right", "wrong", "expired", "not asked"],
       "days": [
-        { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" }
+        { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" },
+        { "day": 2, "alertLine": "The vault queue is long today!", "introLines": ["Uno: Some passwords will be right.", "Due: So my code must match, be fresh, and be asked for!"], "successLine": "Right password, but an old code nobody asked for. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the owner never asked for that code!", "backupLine": "I'll stand by the vault. Two checks, got it!", "waitingLine": "Uno: Finally! Due: The vault queue reached the bridge!", "complaintLine": "Uno: That was really Mum! Due: Both checks were fine.", "complaintFailLine": "Owners got locked out so often they stopped checking. The Rams loved that." }
       ]
     },
     {
@@ -32,7 +33,8 @@
       "jobLine": "When the builders send new parts, I fit them before the old cracks get bigger.",
       "primaryAction": "Fit now", "secondaryAction": "Later", "fieldLabels": ["From"],
       "days": [
-        { "day": 1, "alertLine": "New parts arrived!", "introLines": ["The builders sent new bricks.", "Fit them now, or later?"], "successLine": "Fixed before they found it. That's why I never say 'later'.", "snatchLine": "The Worm found the crack first…", "backupLine": "I'll fix the wall. Pass me the bricks!" }
+        { "day": 1, "alertLine": "New parts arrived!", "introLines": ["The builders sent new bricks.", "Fit them now, or later?"], "successLine": "Fixed before they found it. That's why I never say 'later'.", "snatchLine": "The Worm found the crack first…", "backupLine": "I'll fix the wall. Pass me the bricks!" },
+        { "day": 2, "alertLine": "Crates everywhere, and the Worms are back!", "introLines": ["Real parts first, before the Worms find a crack.", "And check who sent them. Not every crate is from the builders."], "successLine": "That crate said b1lders, not builders. Real parts only, and never later!", "snatchLine": "I waited too long, and the Worm got in…", "backupLine": "I'll fix the wall. Pass me the bricks!", "waitingLine": "There you are! The Worms are halfway up the wall!", "complaintLine": "Hey, those were real bricks from the builders!", "complaintFailLine": "Too many good crates sent back. The wall fell apart and the Worms walked in." }
       ]
     }
   ],
@@ -54,11 +56,11 @@
   "build": {
     "speaker": "patch",
     "intro": ["They learned all our tricks.", "Today we rebuild the town's network ourselves, and this time we build it right."],
-    "failNoPath": "That house isn't connected. The message got lost!",
+    "failNoPath": "That house has no cable to the router. The message got lost on the way!",
     "failWrongHouse": "That message went to the wrong house.",
-    "failLeak": "An attacker got through!",
+    "failLeak": "An attacker walked through a door we left open. Let's fix the rules!",
     "failBlocked": "Hey, that was a friend!",
-    "success": "Everything arrived where it should!"
+    "success": "Every message arrived where it should, and nobody sneaked in!"
   },
   "ui": {
     "gameTitle": "BYTE WORLD",
