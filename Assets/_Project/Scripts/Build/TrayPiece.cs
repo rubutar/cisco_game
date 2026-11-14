@@ -36,7 +36,7 @@ namespace ByteWorld
             text.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             text.rectTransform.sizeDelta = new Vector2(56, 56);
             text.fontSize = 36;
-            text.fontStyle = FontStyles.Bold;
+            UiStyle.Apply(text, UiFont.Title);
             text.alignment = TextAlignmentOptions.Center;
             text.color = Palette.Ink;
             text.raycastTarget = false;
