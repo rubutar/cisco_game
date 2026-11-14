@@ -86,13 +86,13 @@ namespace ByteWorld
             c.Fill(90, 94, 110, 2, Palette.Ink);
             PixelArt.AddSprite(root, c.ToSprite("Workshop", new Vector2(0.5f, 0.5f)), "Workshop", SortBase);
 
-            var patch = PixelArt.AddSprite(root, PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Patch"), "Patch", SortBase + 50);
+            var patch = PixelArt.AddSprite(root, PixelArt.Load("Characters/patch", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Patch")), "Patch", SortBase + 50);
             patch.transform.localPosition = PixelArt.MapToWorld(50, 170);
-            patch.transform.localScale = new Vector3(2f, 2f, 1f);
+            patch.transform.localScale = PixelArt.CharacterScale(patch.sprite);
 
-            crateSprite = CrateSprite();
-            crackSprite = CrackSprite();
-            wormSprite = PixelArt.GridSprite(WormGrid, Palette.GridNormal, "Worm");
+            crateSprite = PixelArt.Load("Props/crate", CrateSprite);
+            crackSprite = PixelArt.Load("Props/crack", CrackSprite);
+            wormSprite = PixelArt.Load("Characters/worm", () => PixelArt.GridSprite(WormGrid, Palette.GridNormal, "Worm"));
         }
 
         protected override void OnShiftStarted()

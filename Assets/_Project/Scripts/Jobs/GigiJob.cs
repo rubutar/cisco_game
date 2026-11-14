@@ -51,11 +51,11 @@ namespace ByteWorld
             for (var y = 0; y < c.Height; y += 8) c.Fill(WallX - 5, y, 14, 2, Palette.CliffDark);
             PixelArt.AddSprite(root, c.ToSprite("Gate", new Vector2(0.5f, 0.5f)), "Gate", SortBase);
 
-            var gigi = PixelArt.AddSprite(root, PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Gigi"), "Gigi", SortBase + 50);
+            var gigi = PixelArt.AddSprite(root, PixelArt.Load("Characters/gigi", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Gigi")), "Gigi", SortBase + 50);
             gigi.transform.localPosition = PixelArt.MapToWorld(200, 170);
-            gigi.transform.localScale = new Vector3(2f, 2f, 1f);
+            gigi.transform.localScale = PixelArt.CharacterScale(gigi.sprite);
 
-            visitorSprite = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Visitor");
+            visitorSprite = PixelArt.Load("Characters/visitor", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Visitor"));
 
             // Doors: the world's four plus any other door the shift mentions.
             var doors = new List<int>(WorldDoors);
@@ -70,7 +70,9 @@ namespace ByteWorld
                 var door = PixelArt.AddSprite(root, PixelArt.Block(20, 30, Palette.ByteCream, Palette.Ink, $"Door {doors[i]}"), $"Door {doors[i]}", SortBase + 10);
                 door.transform.localPosition = PixelArt.MapToWorld(WallX + 2, y + 15);
                 doorSprites[doors[i]] = door;
-                JobVisuals.Label(door.transform, doors[i].ToString(), Vector3.zero, 2.5f, Palette.Ink, SortBase + 11);
+                // The 32 x 32 door art has a number plate at the top; the plain block takes the number in its middle.
+                var plate = PixelArt.HasSprite("Props/door_open") ? new Vector3(0f, 15 * PixelArt.Pixel, 0f) : Vector3.zero;
+                JobVisuals.Label(door.transform, doors[i].ToString(), plate, 2.2f, Palette.Ink, SortBase + 11);
             }
         }
 
@@ -100,8 +102,21 @@ namespace ByteWorld
 
         void Refresh()
         {
+            // With the door PNGs each state has its own sprite; without them the cream block is tinted.
+            var pngDoors = PixelArt.HasSprite("Props/door_open");
             foreach (var (door, sprite) in doorSprites)
-                sprite.color = open.Contains(door) ? (Color)Palette.SignalBlue : closed.Contains(door) ? (Color)Palette.AlertPink : Color.white;
+            {
+                var state = open.Contains(door) ? "door_open" : closed.Contains(door) ? "door_shut" : "door_unlisted";
+                if (pngDoors)
+                {
+                    sprite.sprite = PixelArt.Load($"Props/{state}", () => sprite.sprite);
+                    sprite.color = Color.white;
+                }
+                else
+                {
+                    sprite.color = open.Contains(door) ? (Color)Palette.SignalBlue : closed.Contains(door) ? (Color)Palette.AlertPink : Color.white;
+                }
+            }
             DrawBoard();
         }
 

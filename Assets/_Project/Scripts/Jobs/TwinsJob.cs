@@ -41,30 +41,42 @@ namespace ByteWorld
             c.Fill(196, 40, 88, 170, Palette.Ink);
             c.Fill(199, 43, 82, 164, Palette.ByteCream);
             c.Fill(199, 43, 82, 10, Palette.SignalBlue);
-            c.Disc(240, 125, 22, Palette.Ink);
-            c.Disc(240, 125, 19, Palette.ByteCream);
-            c.Fill(239, 107, 2, 36, Palette.Ink);
-            c.Fill(222, 124, 36, 2, Palette.Ink);
-            c.Disc(240, 125, 4, Palette.AlertPink);
+            // Without the vault PNG, draw the dial into the background.
+            var vaultArt = PixelArt.HasSprite("Props/vault");
+            if (!vaultArt)
+            {
+                c.Disc(240, 125, 22, Palette.Ink);
+                c.Disc(240, 125, 19, Palette.ByteCream);
+                c.Fill(239, 107, 2, 36, Palette.Ink);
+                c.Fill(222, 124, 36, 2, Palette.Ink);
+                c.Disc(240, 125, 4, Palette.AlertPink);
+            }
             // Floor in front of the vault.
             c.Fill(0, 210, c.Width, 60, Palette.RoadEdge);
             c.Fill(0, 212, c.Width, 58, Palette.RoadLight);
             PixelArt.AddSprite(root, c.ToSprite("Vault", new Vector2(0.5f, 0.5f)), "Vault", SortBase);
+            if (vaultArt)
+            {
+                // The round vault door, drawn at exactly twice its pixels to fill the housing.
+                var door = PixelArt.AddSprite(root, PixelArt.Load("Props/vault", () => null), "Vault door", SortBase + 5);
+                door.transform.localPosition = PixelArt.MapToWorld(240, 125);
+                door.transform.localScale = new Vector3(2f, 2f, 1f);
+            }
 
             var byteSprite = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Twin");
-            var uno = PixelArt.AddSprite(root, byteSprite, "Uno", SortBase + 50);
+            var uno = PixelArt.AddSprite(root, PixelArt.Load("Characters/uno", () => byteSprite), "Uno", SortBase + 50);
             uno.transform.localPosition = PixelArt.MapToWorld(150, 120);
-            uno.transform.localScale = new Vector3(2f, 2f, 1f);
-            var due = PixelArt.AddSprite(root, byteSprite, "Due", SortBase + 50);
+            uno.transform.localScale = PixelArt.CharacterScale(uno.sprite);
+            var due = PixelArt.AddSprite(root, PixelArt.Load("Characters/due", () => byteSprite), "Due", SortBase + 50);
             due.transform.localPosition = PixelArt.MapToWorld(150, 210);
-            due.transform.localScale = new Vector3(2f, 2f, 1f);
+            due.transform.localScale = PixelArt.CharacterScale(due.sprite);
 
             // Due's phone: shows the owner's code for the visitor being checked.
-            var handset = PixelArt.AddSprite(root, PixelArt.Block(44, 18, Palette.Ink, Palette.Ink, "Phone"), "Phone", SortBase + 60);
+            var handset = PixelArt.AddSprite(root, PixelArt.Load("Props/phone", () => PixelArt.Block(44, 18, Palette.Ink, Palette.Ink, "Phone")), "Phone", SortBase + 60);
             handset.transform.localPosition = PixelArt.MapToWorld(100, 190);
             phone = JobVisuals.Label(handset.transform, "", Vector3.zero, 2.8f, Palette.NeonCyan, SortBase + 61, 3f);
 
-            visitorSprite = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Visitor");
+            visitorSprite = PixelArt.Load("Characters/visitor", () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Visitor"));
         }
 
         protected override void OnShiftStarted() => phone.text = "";
