@@ -1,0 +1,227 @@
+// Stream B. Day 3 build mode (IBuildMode, PRD 4.10). Lives on UIRoot.prefab and registers itself, so
+// GameManager can call Services.BuildMode.Begin(puzzle) as soon as Day 3 starts. Loads puzzles only from
+// build.json, keeps the network in a NetworkGraph and the tap rules in a CableTool; the board, slots,
+// cables and tray only display and report taps.
+using System.Collections.Generic;
+using ByteWorld.Data;
+using UnityEngine;
+
+namespace ByteWorld
+{
+    public class BuildManager : MonoBehaviour, IBuildMode
+    {
+        /// <summary>Sockets on a switch from the tray: one cable in, several out.</summary>
+        public const int SwitchSockets = 5;
+        public const float MapWidth = 480f;  // build.json slot positions are in 480 x 270 map pixels
+        public const float MapHeight = 270f;
+
+        [SerializeField] GameObject view;
+        [SerializeField] RectTransform board;
+        [SerializeField] RectTransform cableLayer;
+        [SerializeField] RectTransform slotLayer;
+        [SerializeField] RectTransform tray;
+
+        readonly Dictionary<string, BuildSlot> slots = new();
+        readonly Dictionary<string, SlotData> slotData = new();
+        readonly List<CableLine> cableViews = new();
+        readonly List<TrayPiece> trayViews = new();
+        Vector2 lastBoardSize;
+
+        public NetworkGraph Graph { get; private set; }
+        public CableTool Tool { get; private set; }
+        public PuzzleData Puzzle { get; private set; }
+        public int PuzzleIndex { get; private set; } // 1-based
+        public int PuzzleCount => Services.Data?.Build?.puzzles?.Length ?? 0;
+
+        /// <summary>Build mode was closed (End): anything playing on the board should stop.</summary>
+        public event System.Action Ended;
+
+        void Awake()
+        {
+            Services.Register<IBuildMode>(this);
+            view.SetActive(false);
+        }
+
+        void OnDestroy() => Services.Unregister<IBuildMode>(this);
+
+        // ---------- IBuildMode ----------
+
+        public void Begin(int startPuzzle)
+        {
+            var count = PuzzleCount;
+            if (count == 0)
+            {
+                Debug.LogError("[BuildManager] build.json has no puzzles.");
+                return;
+            }
+            LoadPuzzle(Mathf.Clamp(startPuzzle, 1, count));
+        }
+
+        public void End()
+        {
+            Ended?.Invoke();
+            ClearBoard();
+            view.SetActive(false);
+        }
+
+        // ---------- Puzzle setup ----------
+
+        void LoadPuzzle(int index)
+        {
+            ClearBoard();
+            PuzzleIndex = index;
+            Puzzle = Services.Data.Build.puzzles[index - 1];
+            Graph = new NetworkGraph();
+
+            var open = new List<string>();
+            foreach (var s in Puzzle.slots ?? System.Array.Empty<SlotData>())
+            {
+                slotData[s.id] = s;
+                switch (s.@fixed)
+                {
+                    case "router":
+                        Graph.AddPiece(s.id, PieceKind.Router, Mathf.Max(1, Puzzle.router?.sockets ?? 1));
+                        break;
+                    case "house":
+                        Graph.AddPiece(s.id, PieceKind.House, 1);
+                        break;
+                    default:
+                        open.Add(s.id);
+                        break;
+                }
+                slots[s.id] = BuildSlot.Create(this, slotLayer, s.id, s.x / MapWidth, 1f - s.y / MapHeight);
+            }
+
+            var trayCounts = new Dictionary<string, int>();
+            foreach (var t in Puzzle.tray ?? System.Array.Empty<TrayEntry>())
+            {
+                trayCounts[t.piece] = t.count;
+                trayViews.Add(TrayPiece.Create(this, tray, t.piece, Palette.NeonCyan));
+            }
+
+            Tool = new CableTool(Graph, open, trayCounts, DescribeTrayPiece);
+            view.SetActive(true);
+            Refresh();
+            GameEvents.RaisePuzzleStarted(Puzzle.id, index, PuzzleCount);
+        }
+
+        // "switch" is the only tray piece so far (build.json tray[].piece).
+        static (PieceKind, int) DescribeTrayPiece(string piece) => (PieceKind.Switch, SwitchSockets);
+
+        void ClearBoard()
+        {
+            foreach (var s in slots.Values) if (s != null) Destroy(s.gameObject);
+            foreach (var c in cableViews) if (c != null) Destroy(c.gameObject);
+            foreach (var t in trayViews) if (t != null) Destroy(t.gameObject);
+            slots.Clear();
+            slotData.Clear();
+            cableViews.Clear();
+            trayViews.Clear();
+            Graph = null;
+            Tool = null;
+            Puzzle = null;
+        }
+
+        // ---------- Taps ----------
+
+        // The board only changes while building, not during a test run or a reveal.
+        bool CanEdit => Tool != null && Services.Flow.State == GameState.Build;
+
+        public void OnSlotTapped(string id)
+        {
+            if (!CanEdit) return;
+            if (Tool.TapSlot(id) == TapOutcome.Rejected) slots[id].Flash();
+            Refresh();
+        }
+
+        public void OnCableTapped(Cable cable)
+        {
+            if (!CanEdit) return;
+            Tool.TapCable(cable);
+            Refresh();
+        }
+
+        public void OnTrayTapped(string piece)
+        {
+            if (!CanEdit) return;
+            Tool.TapTray(piece);
+            Refresh();
+        }
+
+        public void ClearSelection()
+        {
+            Tool?.ClearSelection();
+            Refresh();
+        }
+
+        public void FlashSlot(string id)
+        {
+            if (slots.TryGetValue(id, out var slot)) slot.Flash();
+        }
+
+        public Vector2 BoardSize => board.rect.size;
+
+        // ---------- Path check ----------
+
+        /// <summary>Each house's address and whether a message from the router can reach it.</summary>
+        public List<(string slot, int address, bool connected)> HouseReport()
+        {
+            var report = new List<(string, int, bool)>();
+            if (Graph == null) return report;
+            foreach (var s in slotData.Values)
+                if (s.@fixed == "house") report.Add((s.id, s.address, Graph.ReachesRouter(s.id)));
+            return report;
+        }
+
+        // ---------- Display ----------
+
+        void LateUpdate()
+        {
+            // Cables are laid out in board pixels, so redo them if the screen size changes.
+            if (Graph != null && board.rect.size != lastBoardSize) LayCables();
+        }
+
+        void Refresh()
+        {
+            if (Graph == null) return;
+            foreach (var pair in slots)
+            {
+                var id = pair.Key;
+                if (!Graph.HasPiece(id))
+                {
+                    pair.Value.ShowOpen(Tool.SelectedTrayPiece != null);
+                    continue;
+                }
+                var kind = Graph.KindOf(id);
+                pair.Value.ShowPiece(kind, Graph.SocketsOf(id), Graph.UsedSockets(id), Tool.SelectedSlot == id,
+                    kind == PieceKind.House && Graph.ReachesRouter(id), slotData[id].address);
+            }
+            foreach (var t in trayViews) t.Show(Tool.TrayCount(t.Piece), Tool.SelectedTrayPiece == t.Piece);
+            LayCables();
+        }
+
+        void LayCables()
+        {
+            lastBoardSize = board.rect.size;
+            var cables = Graph.Cables;
+            while (cableViews.Count < cables.Count) cableViews.Add(CableLine.Create(this, cableLayer));
+            for (var i = 0; i < cableViews.Count; i++)
+            {
+                if (i >= cables.Count)
+                {
+                    cableViews[i].gameObject.SetActive(false);
+                    continue;
+                }
+                var c = cables[i];
+                cableViews[i].Show(c, AnchorOf(c.a), AnchorOf(c.b), lastBoardSize);
+            }
+        }
+
+        /// <summary>Where a slot sits on the board, in anchor space (0..1, origin bottom left).</summary>
+        public Vector2 AnchorOf(string id)
+        {
+            var s = slotData[id];
+            return new Vector2(s.x / MapWidth, 1f - s.y / MapHeight);
+        }
+    }
+}

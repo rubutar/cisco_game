@@ -28,10 +28,12 @@ namespace ByteWorld.EditorTools
                 var safe = NewRect("SafeArea", root.transform);
                 Stretch(safe);
                 safe.gameObject.AddComponent<SafeArea>();
+                BuildBuildView(safe);
                 BuildTopBar(safe);
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
                 BuildJobScreens(root.transform);
+                BuildBuildIntro(root.transform);
                 BuildDayCards(root.transform);
                 BuildCollapseScreen(root.transform);
 
@@ -402,6 +404,157 @@ namespace ByteWorld.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // ---------- Day 3 build mode ----------
+
+        static void BuildBuildView(RectTransform parent)
+        {
+            var host = NewRect("BuildMode", parent);
+            Stretch(host);
+            var manager = host.gameObject.AddComponent<BuildManager>();
+
+            var view = NewRect("View", host);
+            Stretch(view);
+            // Blueprint backdrop: blocks taps to anything behind and sets the build-day mood.
+            AddImage(view.gameObject, Palette.CliffDark, true);
+
+            // The board keeps the map's 16:9 shape and scales to fit; slots are placed by map coordinates.
+            var board = NewRect("Board", view);
+            Stretch(board);
+            var fitter = board.gameObject.AddComponent<AspectRatioFitter>();
+            fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fitter.aspectRatio = BuildManager.MapWidth / BuildManager.MapHeight;
+            var boardTint = (Color)Palette.SignalBlue;
+            boardTint.a = 0.35f;
+            AddImage(board.gameObject, boardTint, false);
+
+            var cables = NewRect("Cables", board);
+            Stretch(cables);
+            var slots = NewRect("Slots", board);
+            Stretch(slots);
+            var packets = NewRect("Packets", board);
+            Stretch(packets);
+
+            // Tray of pieces to place, bottom left.
+            var tray = NewRect("Tray", view);
+            tray.anchorMin = tray.anchorMax = new Vector2(0, 0);
+            tray.pivot = new Vector2(0, 0);
+            tray.anchoredPosition = new Vector2(48, 48);
+            var trayColor = (Color)Palette.Ink;
+            trayColor.a = 0.8f;
+            AddImage(tray.gameObject, trayColor, true);
+            AddOutline(tray.gameObject, 6);
+            var trayLayout = tray.gameObject.AddComponent<HorizontalLayoutGroup>();
+            trayLayout.padding = new RectOffset(36, 48, 36, 36);
+            trayLayout.spacing = 40;
+            trayLayout.childAlignment = TextAnchor.MiddleLeft;
+            trayLayout.childControlWidth = true;
+            trayLayout.childControlHeight = true;
+            trayLayout.childForceExpandWidth = false;
+            trayLayout.childForceExpandHeight = false;
+            var trayFit = tray.gameObject.AddComponent<ContentSizeFitter>();
+            trayFit.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            trayFit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var so = new SerializedObject(manager);
+            so.FindProperty("view").objectReferenceValue = view.gameObject;
+            so.FindProperty("board").objectReferenceValue = board;
+            so.FindProperty("cableLayer").objectReferenceValue = cables;
+            so.FindProperty("slotLayer").objectReferenceValue = slots;
+            so.FindProperty("tray").objectReferenceValue = tray;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            BuildRunnerParts(host.gameObject.AddComponent<BuildRunner>(), view, packets);
+        }
+
+        static void BuildRunnerParts(BuildRunner runner, RectTransform view, RectTransform packets)
+        {
+            // Run, bottom right.
+            var run = NewRect("RunButton", view);
+            run.anchorMin = run.anchorMax = new Vector2(1, 0);
+            run.pivot = new Vector2(1, 0);
+            run.anchoredPosition = new Vector2(-48, 48);
+            run.sizeDelta = new Vector2(320, 128);
+            var runImage = AddImage(run.gameObject, Palette.AlertPink, true);
+            var runOutline = run.gameObject.AddComponent<Outline>();
+            runOutline.effectColor = Palette.ByteCream;
+            runOutline.effectDistance = new Vector2(8, -8);
+            var runButton = run.gameObject.AddComponent<Button>();
+            runButton.targetGraphic = runImage;
+            var runLabel = NewText("Label", run, 60, Palette.ByteCream, TextAlignmentOptions.Center);
+            runLabel.fontStyle = FontStyles.Bold;
+            Stretch(runLabel.rectTransform);
+
+            // Result card, centred.
+            var card = NewRect("ResultCard", view);
+            card.anchorMin = card.anchorMax = new Vector2(0.5f, 0.5f);
+            card.pivot = new Vector2(0.5f, 0.5f);
+            card.sizeDelta = new Vector2(1000, 0);
+            AddImage(card.gameObject, Palette.ByteCream, true);
+            AddOutline(card.gameObject, 10);
+            var layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(56, 56, 48, 48);
+            layout.spacing = 28;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var line = NewText("Line", card, 48, Palette.Ink, TextAlignmentOptions.Center);
+            line.textWrappingMode = TextWrappingModes.Normal;
+            var summary = NewText("Summary", card, 36, Palette.SignalBlue, TextAlignmentOptions.Center);
+            summary.textWrappingMode = TextWrappingModes.Normal;
+            var row = NewRect("ButtonRow", card);
+            var rowLayout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.childAlignment = TextAnchor.MiddleCenter;
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var resultButton = NewButton("Button", row, Palette.AlertPink, out var resultLabel);
+            var element = resultButton.GetComponent<LayoutElement>();
+            element.minWidth = 480;
+            element.preferredWidth = 480;
+            resultLabel.fontSize = 44;
+
+            var so = new SerializedObject(runner);
+            so.FindProperty("runButton").objectReferenceValue = runButton;
+            so.FindProperty("runLabel").objectReferenceValue = runLabel;
+            so.FindProperty("packetLayer").objectReferenceValue = packets;
+            so.FindProperty("resultCard").objectReferenceValue = card.gameObject;
+            so.FindProperty("resultLine").objectReferenceValue = line;
+            so.FindProperty("resultSummary").objectReferenceValue = summary;
+            so.FindProperty("resultButton").objectReferenceValue = resultButton;
+            so.FindProperty("resultButtonLabel").objectReferenceValue = resultLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void BuildBuildIntro(Transform parent)
+        {
+            var host = NewRect("BuildIntro", parent);
+            Stretch(host);
+            var intro = host.gameObject.AddComponent<BuildIntroScreen>();
+
+            var root = NewRect("ButtonRoot", host);
+            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);
+            root.sizeDelta = new Vector2(520, 140);
+            var image = AddImage(root.gameObject, Palette.AlertPink, true);
+            var outline = root.gameObject.AddComponent<Outline>();
+            outline.effectColor = Palette.ByteCream;
+            outline.effectDistance = new Vector2(8, -8);
+            var button = root.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            var label = NewText("Label", root, 60, Palette.ByteCream, TextAlignmentOptions.Center);
+            label.fontStyle = FontStyles.Bold;
+            Stretch(label.rectTransform);
+
+            var so = new SerializedObject(intro);
+            so.FindProperty("buttonRoot").objectReferenceValue = root.gameObject;
+            so.FindProperty("button").objectReferenceValue = button;
+            so.FindProperty("buttonLabel").objectReferenceValue = label;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         // ---------- Top bar ----------
 
         static void BuildTopBar(RectTransform parent)
@@ -425,6 +578,15 @@ namespace ByteWorld.EditorTools
             dayLabel.rectTransform.offsetMin = new Vector2(48, 0);
             dayLabel.rectTransform.offsetMax = Vector2.zero;
 
+            // Day 3 goal line in the free middle of the bar; shrinks to fit long goals.
+            var goal = NewText("Goal", bar, 36, Palette.PacketYellow, TextAlignmentOptions.Center);
+            goal.rectTransform.anchorMin = goal.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            goal.rectTransform.anchoredPosition = new Vector2(-150, 0);
+            goal.rectTransform.sizeDelta = new Vector2(720, 96);
+            goal.enableAutoSizing = true;
+            goal.fontSizeMin = 22;
+            goal.fontSizeMax = 36;
+
             var right = NewRect("Right", bar);
             right.anchorMin = new Vector2(1, 0);
             right.anchorMax = new Vector2(1, 1);
@@ -441,6 +603,7 @@ namespace ByteWorld.EditorTools
             var so = new SerializedObject(topBar);
             so.FindProperty("bar").objectReferenceValue = bar.gameObject;
             so.FindProperty("dayLabel").objectReferenceValue = dayLabel;
+            so.FindProperty("goalText").objectReferenceValue = goal;
             so.FindProperty("backupsLabel").objectReferenceValue = backupsLabel;
             so.FindProperty("backupPips").objectReferenceValue = backupPips;
             so.FindProperty("complaintsGroup").objectReferenceValue = complaints.gameObject;
