@@ -31,6 +31,7 @@ namespace ByteWorld.EditorTools
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
                 BuildJobScreens(root.transform);
+                BuildDayCards(root.transform);
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out var ok);
                 if (ok) Debug.Log($"[UIRootBuilder] Saved {PrefabPath}");
@@ -206,6 +207,77 @@ namespace ByteWorld.EditorTools
             so.FindProperty("cardNote").objectReferenceValue = note;
             so.FindProperty("cardButton").objectReferenceValue = button;
             so.FindProperty("cardButtonLabel").objectReferenceValue = buttonLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Day end and day start ----------
+
+        static void BuildDayCards(Transform parent)
+        {
+            var host = NewRect("DayCards", parent);
+            Stretch(host);
+            var cards = host.gameObject.AddComponent<DayCards>();
+
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            var backdrop = AddImage(screen.gameObject, Palette.Ink, true); // colour set per card at runtime
+
+            var content = NewRect("Content", screen);
+            content.anchorMin = content.anchorMax = new Vector2(0.5f, 0.5f);
+            content.pivot = new Vector2(0.5f, 0.5f);
+            content.sizeDelta = new Vector2(1400, 0);
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 36;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var title = NewText("Title", content, 140, Palette.ByteCream, TextAlignmentOptions.Center);
+            title.fontStyle = FontStyles.Bold;
+
+            var tag = NewRect("SpeakerTag", content);
+            AddImage(tag.gameObject, Palette.NeonCyan, false);
+            AddOutline(tag.gameObject, 6);
+            var tagLayout = tag.gameObject.AddComponent<HorizontalLayoutGroup>();
+            tagLayout.padding = new RectOffset(40, 40, 10, 10);
+            tagLayout.childControlWidth = true;
+            tagLayout.childControlHeight = true;
+            tagLayout.childForceExpandWidth = false; // hug the name instead of filling the row
+            tagLayout.childForceExpandHeight = false;
+            var speaker = NewText("Name", tag, 40, Palette.Ink, TextAlignmentOptions.Center);
+
+            var line = NewText("Line", content, 56, Palette.ByteCream, TextAlignmentOptions.Center);
+            line.fontStyle = FontStyles.Italic;
+            line.textWrappingMode = TextWrappingModes.Normal;
+            var lineElement = line.gameObject.AddComponent<LayoutElement>();
+            lineElement.preferredWidth = 1400;
+
+            var buttonRow = NewRect("ButtonRow", content);
+            var rowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.padding = new RectOffset(0, 0, 24, 0);
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var button = NewButton("Button", buttonRow, Palette.AlertPink, out var label);
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 520;
+            element.preferredWidth = 520;
+            element.preferredHeight = 120;
+            label.fontSize = 48;
+
+            var so = new SerializedObject(cards);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("backdrop").objectReferenceValue = backdrop;
+            so.FindProperty("titleText").objectReferenceValue = title;
+            so.FindProperty("speakerTag").objectReferenceValue = tag.gameObject;
+            so.FindProperty("speakerText").objectReferenceValue = speaker;
+            so.FindProperty("lineText").objectReferenceValue = line;
+            so.FindProperty("button").objectReferenceValue = button;
+            so.FindProperty("buttonLabel").objectReferenceValue = label;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
