@@ -26,6 +26,12 @@ namespace ByteWorld
                 case "Job_Scout":
                     Spawn<ScoutJob>(scene, "Scout Job");
                     break;
+                case "Job_Gigi":
+                    Spawn<GigiJob>(scene, "Gigi Job");
+                    break;
+                case "Job_Twins":
+                    Spawn<TwinsJob>(scene, "Twins Job");
+                    break;
             }
         }
 
