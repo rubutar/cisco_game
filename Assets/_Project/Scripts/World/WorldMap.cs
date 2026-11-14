@@ -3,6 +3,9 @@
 // buildings (greyed while locked), the station Bytes beside their buildings, roaming Bytes on lit roads
 // only, and Pax. Redraws when station states change. Hidden while a station world is open so its taps
 // don't reach the map.
+// When Props/town_map.png exists (the hi-fi design's map, from Tools/sprites/import_hifi.py) it is the whole
+// town: buildings and station Bytes are baked in, the game's station Bytes are drawn exactly over them,
+// a grey road turns to sand (Props/road_<id>) once its station opens, and stations on alert get the ring.
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +16,26 @@ namespace ByteWorld
         public static WorldMap Instance { get; private set; }
 
 
+
+        // The hi-fi map's station Bytes: the top-left of each 16 x 16 Byte baked into Props/town_map.png
+        // (the Twins' second Byte stands beside the first). Stations missing here use the door offset.
+        static readonly Dictionary<string, Vector2Int[]> HifiBytes = new()
+        {
+            ["harbour"] = new[] { new Vector2Int(373, 185) },
+            ["gate"] = new[] { new Vector2Int(105, 201) },
+            ["vault"] = new[] { new Vector2Int(113, 65), new Vector2Int(129, 65) },
+            ["workshop"] = new[] { new Vector2Int(253, 217) },
+            ["observatory"] = new[] { new Vector2Int(213, 85) },
+            ["switchyard"] = new[] { new Vector2Int(253, 40) },
+            ["tower"] = new[] { new Vector2Int(363, 55) },
+        };
+
+        // On the hi-fi map the river is a chain of ponds from x 386; Pax stays on the town's side of it
+        // (map px, feet: half his width short of the water).
+        const float HifiRiverBank = 380f;
+
+        // The drawn town's river (used when there's no hi-fi map) and its bridge.
+        static readonly Rect Bridge = new(352, 120, 56, 24);
 
         static readonly Vector2Int[] River =
         {
@@ -30,6 +53,10 @@ namespace ByteWorld
 
         readonly Dictionary<JobId, JobByte> jobBytes = new();
         readonly Dictionary<string, SpriteRenderer> buildings = new();
+        readonly Dictionary<string, SpriteRenderer> roads = new();
+        readonly Dictionary<string, SpriteRenderer> rings = new();
+        readonly Dictionary<string, SpriteRenderer> stationBytes = new();
+        Sprite hifiMap;
         readonly List<GameObject> roamers = new();
         GameObject content;
         SpriteRenderer town;
@@ -41,24 +68,52 @@ namespace ByteWorld
             Instance = this;
             content = new GameObject("Content");
             content.transform.SetParent(transform, false);
-            town = PixelArt.AddSprite(content.transform, DrawTown(), "Town", -1000);
+            hifiMap = PixelArt.Load("Props/town_map", () => null);
+            town = PixelArt.AddSprite(content.transform, hifiMap != null ? hifiMap : DrawTown(), "Town", -1000);
 
             foreach (var c in Services.Checkpoints.All)
             {
-                var building = PixelArt.AddSprite(content.transform, null, $"Station {c.id}", 5);
-                // Station art is 64 x 48 with the door at the bottom centre.
-                building.transform.localPosition = PixelArt.MapToWorld(c.x, c.y - 24);
-                buildings[c.id] = building;
+                if (hifiMap != null)
+                {
+                    // Grey road turned to sand, and the alert ring, both shown by Refresh.
+                    var road = PixelArt.Load($"Props/road_{c.id}", () => null);
+                    if (road != null) roads[c.id] = PixelArt.AddSprite(content.transform, road, $"Road {c.id}", -990);
+                    var ring = PixelArt.AddSprite(content.transform, PixelArt.Load("Props/alert_ring", () => null), $"Ring {c.id}", -980);
+                    ring.transform.localPosition = PixelArt.MapToWorld(c.x - 2, c.y - 4);
+                    rings[c.id] = ring;
+                }
+                else
+                {
+                    var building = PixelArt.AddSprite(content.transform, null, $"Station {c.id}", 5);
+                    // Station art is 64 x 48 with the door at the bottom centre.
+                    building.transform.localPosition = PixelArt.MapToWorld(c.x, c.y - 24);
+                    buildings[c.id] = building;
+                }
+
+                // Spots are the top-left of a station Byte; on the hi-fi map, exactly over the baked one.
+                var spots = hifiMap != null && HifiBytes.TryGetValue(c.id, out var baked)
+                    ? baked
+                    : new[] { new Vector2Int(c.x + 34, c.y - 14), new Vector2Int(c.x + 48, c.y - 14) };
 
                 // The four job stations keep their Byte beside the building (it flashes on alert).
-                if (!JobIds.TryParse(c.job, out var job) || jobBytes.ContainsKey(job)) continue;
-                var spots = job == JobId.Twins
-                    ? new[] { new Vector2Int(c.x + 34, c.y - 14), new Vector2Int(c.x + 48, c.y - 14) }
-                    : new[] { new Vector2Int(c.x + 34, c.y - 14) };
+                if (!JobIds.TryParse(c.job, out var job))
+                {
+                    // Hunt, build and siege stations have a Byte too on the hi-fi map (grey until open).
+                    if (hifiMap == null) continue;
+                    var b = PixelArt.AddSprite(content.transform, null, $"{c.id} Byte", 10);
+                    b.transform.localPosition = PixelArt.MapToWorld(spots[0].x + 8, spots[0].y + 16);
+                    stationBytes[c.id] = b;
+                    continue;
+                }
+                if (jobBytes.ContainsKey(job)) continue;
                 var go = new GameObject($"{job} Byte");
                 go.transform.SetParent(content.transform, false);
                 var jobByte = go.AddComponent<JobByte>();
-                jobByte.Init(job, spots);
+                // 16 x 16 spots are the sprite's top-left; JobByte wants the 12 x 12 one's (2 in, 4 down).
+                var jobSpots = System.Array.ConvertAll(job == JobId.Twins ? spots : new[] { spots[0] },
+                    p => hifiMap != null ? new Vector2Int(p.x + 2, p.y + 4) : p);
+                // On the hi-fi map the Bytes stand still, so they always cover the baked ones.
+                jobByte.Init(job, jobSpots, bob: hifiMap == null);
                 jobBytes[job] = jobByte;
             }
 
@@ -69,7 +124,21 @@ namespace ByteWorld
             Refresh();
         }
 
-        void Start() => WorldSetup.EnsureRaycaster();
+        /// <summary>True where Pax can't walk: the river, except over the drawn town's bridge.</summary>
+        public static bool IsWater(Vector2 p)
+        {
+            if (Instance != null && Instance.hifiMap != null) return p.x >= HifiRiverBank;
+            if (Bridge.Contains(p)) return false;
+            foreach (var r in River)
+                if ((p - r).sqrMagnitude < 13f * 13f) return true;
+            return false;
+        }
+
+        void Start()
+        {
+            WorldSetup.EnsureRaycaster();
+            WorldSetup.FitCameraToWindow();
+        }
 
         void OnEnable()
         {
@@ -98,7 +167,14 @@ namespace ByteWorld
         void Refresh()
         {
             if (town == null) return;
-            town.sprite = DrawTown();
+            if (hifiMap == null) town.sprite = DrawTown();
+            foreach (var (id, road) in roads) road.enabled = Services.Checkpoints.StateOf(id) != CheckpointState.Locked;
+            foreach (var (id, ring) in rings) ring.enabled = Services.Checkpoints.StateOf(id) == CheckpointState.Alert;
+            foreach (var (id, b) in stationBytes)
+                b.sprite = PixelArt.Load(Services.Checkpoints.StateOf(id) == CheckpointState.Locked ? "Characters/map_byte_dim" : "Characters/map_byte",
+                    () => PixelArt.GridSprite(PixelArt.Byte, Palette.GridDim, "Station Byte"));
+            foreach (var c in Services.Checkpoints.All)
+                if (JobIds.TryParse(c.job, out var j)) GetJobByte(j)?.SetLocked(Services.Checkpoints.StateOf(c.id) == CheckpointState.Locked);
             foreach (var (id, building) in buildings)
             {
                 var locked = Services.Checkpoints.StateOf(id) == CheckpointState.Locked;

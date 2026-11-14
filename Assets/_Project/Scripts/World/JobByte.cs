@@ -13,6 +13,9 @@ namespace ByteWorld
         SpriteRenderer[] bodies;
         Sprite[] normals;
         Sprite[] alerts;
+        Sprite[] dims;
+        bool bob = true;
+        bool locked;
         Vector3[] basePositions;
         SpriteRenderer mark;
         SpriteRenderer patienceBack;
@@ -22,15 +25,19 @@ namespace ByteWorld
         float timer;
         bool frame;
 
-        public void Init(JobId job, Vector2Int[] spots)
+        /// <summary>Spots are each Byte's top-left in map pixels. With bob off the Bytes stand still (on the hi-fi
+        /// map they cover the Bytes baked into the art).</summary>
+        public void Init(JobId job, Vector2Int[] spots, bool bob = true)
         {
             Job = job;
+            this.bob = bob;
             normal = PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, $"{job} normal");
             alert = PixelArt.GridSprite(PixelArt.Byte, Palette.GridAlert, $"{job} alert");
 
             bodies = new SpriteRenderer[spots.Length];
             normals = new Sprite[spots.Length];
             alerts = new Sprite[spots.Length];
+            dims = new Sprite[spots.Length];
             basePositions = new Vector3[spots.Length];
             for (var i = 0; i < spots.Length; i++)
             {
@@ -39,6 +46,8 @@ namespace ByteWorld
                 var look = SpriteName(job, i);
                 normals[i] = PixelArt.Load($"Characters/map_{look}", () => normal);
                 alerts[i] = PixelArt.Load($"Characters/map_{look}_alert", () => alert);
+                var n = normals[i];
+                dims[i] = PixelArt.Load($"Characters/map_{look}_dim", () => n);
                 bodies[i] = PixelArt.AddSprite(transform, normals[i], $"Body {i + 1}", 10);
                 bodies[i].transform.localPosition = basePositions[i];
                 Tappable.Add(bodies[i].gameObject, bodies[i]).Tapped += OnTapped;
@@ -75,8 +84,20 @@ namespace ByteWorld
         {
             Alerting = on;
             if (!on) SetPatience(-1f);
-            for (var i = 0; i < bodies.Length; i++) bodies[i].sprite = on ? alerts[i] : normals[i];
+            ShowLook();
             mark.enabled = on;
+        }
+
+        /// <summary>A locked station's Byte is grey (dim) unless it's alerting.</summary>
+        public void SetLocked(bool on)
+        {
+            locked = on;
+            ShowLook();
+        }
+
+        void ShowLook()
+        {
+            for (var i = 0; i < bodies.Length; i++) bodies[i].sprite = Alerting ? alerts[i] : locked ? dims[i] : normals[i];
         }
 
         /// <summary>Sprite file per job Byte: scout, gigi, uno and due (the Twins), patch.</summary>
@@ -94,7 +115,7 @@ namespace ByteWorld
             if (timer > 0f) return;
             frame = !frame;
             timer = Alerting ? 0.2f : 0.5f;
-            for (var i = 0; i < bodies.Length; i++)
+            for (var i = 0; i < bodies.Length && bob; i++)
             {
                 // One-pixel bob; the Twins bob out of step with each other.
                 var up = frame ^ (i % 2 == 1);

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draws the v2 grids (PRD-v2 6.6) with simple shapes and writes them to Tools/sprites/grids/: the seven
 station buildings (64 x 48, with a dim mood for locked stations), station Bytes, map attackers, the
-Visitor Pass and tool badges. Pax is in draw_pax.py. Re-run after changing a shape; hand-edit the grids for pixel tweaks.
+Visitor Pass and tool badges. Pax, the station Bytes and the town map come from the hi-fi design (import_hifi.py). Re-run after changing a shape; hand-edit the grids for pixel tweaks.
 Then run make_sprites.py."""
 import os
 
@@ -36,7 +36,7 @@ def save(name, folder, c, moods="normal"):
         f.write(f"# folder: {folder}\n# moods: {moods}\n" + "\n".join(c.outlined()) + "\n")
 
 
-# Pax is drawn by draw_pax.py.
+# Pax comes from the hi-fi design (import_hifi.py).
 
 
 # ---------- Station buildings, 64 x 48, bottom centre is the door (PRD-v2 4.2, 4.3)
@@ -125,19 +125,8 @@ def byte16(face="smile", ant=(8,), extra=None):
     c.put(4, 10, "a"); c.put(11, 10, "a")
     if extra: extra(c)
     return c
-def spyglass(c): c.rect(12, 6, 4, 2, "W"); c.put(15, 6, "k"); c.put(15, 7, "k")
-def clipboard(c): c.rect(12, 7, 4, 5, "4"); c.rect(13, 6, 2, 1, "W"); c.rect(13, 8, 2, 1, "2"); c.rect(13, 10, 2, 1, "2")
-def keys(c): c.ell(13.5, 9.5, 1.6, 1.6, "y"); c.rect(14, 10, 2, 1, "y"); c.put(15, 11, "y")
-def wrench(c): c.rect(13, 7, 1, 6, "c"); c.rect(12, 5, 3, 2, "c"); c.put(13, 5, ".")
-def cap(c): c.ell(8, 5, 5, 2.5, "2", only=lambda x, y: y <= 5); c.rect(3, 5, 10, 1, "2"); c.rect(11, 5, 4, 1, "2"); c.rect(5, 3, 5, 1, "3")
-def bow(c): c.rect(5, 0, 2, 2, "5"); c.rect(9, 0, 2, 2, "5"); c.put(7, 1, "5"); c.put(8, 1, "5")
-def hat(c): c.ell(8, 5, 5.5, 3, "y", only=lambda x, y: y <= 5); c.rect(2, 5, 12, 1, "y"); c.rect(7, 2, 2, 3, "o")
-J = "normal alert dim"
-save("map_scout", "Characters", byte16("smile", ant=(), extra=lambda c: (cap(c), spyglass(c))), J)
-save("map_gigi", "Characters", byte16("smile", extra=lambda c: (bow(c), clipboard(c))), J)
-save("map_uno", "Characters", byte16("smile", ant=(8,), extra=keys), J)
-save("map_due", "Characters", byte16("smile", ant=(5, 10), extra=keys), J)
-save("map_patch", "Characters", byte16("smile", ant=(), extra=lambda c: (hat(c), wrench(c))), J)
+# The station Bytes on the map (map_byte, map_scout, map_gigi, map_uno, map_due, map_patch, normal, alert and
+# dim) come from the hi-fi design: Tools/sprites/import_hifi.py writes them.
 for face in ("happy", "worried", "surprised"):
     save(f"map_byte_{face}", "Characters", byte16(face))
 

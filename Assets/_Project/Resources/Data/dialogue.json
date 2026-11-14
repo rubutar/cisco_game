@@ -157,8 +157,9 @@
     }
   ],
   "intro": [
-    "Every message you send passes through a tiny town inside your router.",
-    "Gigi: A visitor! Perfect timing, Pax. We need help."
+    "Every message you send passes through Byte World, a tiny town of Bytes inside your network.",
+    "Strangers keep sneaking in, so the Bytes called a visitor with an empty Cisco toolkit: you, Pax.",
+    "Gigi: Walk with WASD or the arrow keys, then press Enter at a station. Follow the red rings!"
   ],
   "dayEnd": [
     {
@@ -210,7 +211,7 @@
   },
   "ui": {
     "gameTitle": "BYTE WORLD",
-    "tagline": "A tiny world living inside your Wi-Fi",
+    "tagline": "A tiny world living inside your network",
     "play": "Play",
     "next": "Next",
     "skip": "Skip",
