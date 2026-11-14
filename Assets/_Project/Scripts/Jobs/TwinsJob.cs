@@ -127,6 +127,9 @@ namespace ByteWorld
             new InspectField(FieldLabel(2, "Visitor's code"), item.visitorCode),
         };
 
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"vault user={item.title} password={(item.passwordCorrect ? "ok" : "bad")} push={item.pushCount} action={(allowed ? "open" : "deny")}";
+
         /// <summary>What the owner's phone says: the code (marked expired), or "not asked" if the owner never asked.</summary>
         string PhoneShows(ItemData item)
         {

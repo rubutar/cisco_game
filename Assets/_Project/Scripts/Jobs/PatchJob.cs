@@ -238,6 +238,9 @@ namespace ByteWorld
             nextSpot = 0;
         }
 
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"workshop file={item.title} from={item.from} sig={(string.IsNullOrEmpty(item.signature) ? "-" : item.signature)} action={(allowed ? "install" : "reject")}";
+
         protected override InspectField[] InspectFields(ItemData item) => new[]
         {
             new InspectField(FieldLabel(0, "From"), item.from),
