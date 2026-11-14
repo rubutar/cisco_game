@@ -31,7 +31,6 @@ namespace ByteWorld.EditorTools
                 BuildBuildView(safe);
                 BuildTopBar(safe);
                 BuildTownSpace(safe);
-                BuildTicker(safe);
                 var materials = BuildMaterialsPanel(safe);
                 BuildCheckpointMap(safe, materials);
                 materials.transform.SetAsLastSibling(); // the panel covers the bubbles and the card
@@ -1332,46 +1331,6 @@ namespace ByteWorld.EditorTools
 
         // ---------- Splunk ticker (B-09, map and stations, bottom right) ----------
 
-        const int TickerLines = 2;
-
-        static void BuildTicker(RectTransform parent)
-        {
-            var host = NewRect("SplunkTicker", parent);
-            Stretch(host);
-            var ticker = host.gameObject.AddComponent<SplunkTicker>();
-
-            // Slim strip in the bottom-right corner: two log lines, fades out on its own.
-            var strip = NewRect("Strip", host);
-            Place(strip, new Vector2(1, 0), new Vector2(-24, 24), new Vector2(620, 0));
-            AddImage(strip.gameObject, UiStyle.Dim(0.82f), false);
-            var group = strip.gameObject.AddComponent<CanvasGroup>();
-            group.blocksRaycasts = false;
-            group.interactable = false;
-            var layout = strip.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(20, 20, 10, 12);
-            layout.spacing = 2;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            strip.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var so = new SerializedObject(ticker);
-            var lines = so.FindProperty("lineTexts");
-            lines.arraySize = TickerLines;
-            for (var i = 0; i < TickerLines; i++)
-            {
-                var line = NewText($"Line{i}", strip, UiStyle.Small, Palette.NeonCyan, TextAlignmentOptions.MidlineLeft, UiFont.Mono);
-                line.textWrappingMode = TextWrappingModes.NoWrap;
-                line.overflowMode = TextOverflowModes.Ellipsis;
-                line.richText = true;
-                lines.GetArrayElementAtIndex(i).objectReferenceValue = line;
-            }
-            so.FindProperty("strip").objectReferenceValue = strip.gameObject;
-            so.FindProperty("group").objectReferenceValue = group;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
         // ---------- Shared card helpers ----------
 
         /// <summary>A centred cream card with an ink border that grows with its content.</summary>
@@ -1643,86 +1602,14 @@ namespace ByteWorld.EditorTools
 
         // ---------- Webex Town Space strip (map, bottom left) ----------
 
-        const int TownSpaceRows = 2;
-
         static void BuildTownSpace(RectTransform parent)
         {
+            // The comms dock (Webex chat + Splunk log) builds its own parts at runtime.
             var host = NewRect("TownSpace", parent);
             Stretch(host);
             var town = host.gameObject.AddComponent<TownSpace>();
-
-            var strip = NewRect("Strip", host);
-            Place(strip, Vector2.zero, new Vector2(24, 24), new Vector2(600, 0));
-            AddImage(strip.gameObject, UiStyle.Dim(0.82f), false);
-            var townGroup = strip.gameObject.AddComponent<CanvasGroup>();
-            townGroup.blocksRaycasts = false;
-            townGroup.interactable = false;
-            var layout = strip.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(20, 20, 12, 16);
-            layout.spacing = 10;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            strip.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var header = NewRect("Header", strip);
-            ConfigureRow(header.gameObject.AddComponent<HorizontalLayoutGroup>(), 14, TextAnchor.MiddleLeft);
-            var dot = NewRect("Dot", header);
-            AddImage(dot.gameObject, Palette.NeonCyan, false);
-            var dotElement = dot.gameObject.AddComponent<LayoutElement>();
-            dotElement.preferredWidth = dotElement.preferredHeight = 16;
-            var spaceText = NewText("Space", header, UiStyle.Small, Palette.NeonCyan, TextAlignmentOptions.MidlineLeft, UiFont.Title);
-
             var so = new SerializedObject(town);
-            so.FindProperty("strip").objectReferenceValue = strip.gameObject;
-            so.FindProperty("group").objectReferenceValue = townGroup;
-            so.FindProperty("spaceText").objectReferenceValue = spaceText;
-            var rows = so.FindProperty("rows");
-            var avatars = so.FindProperty("avatars");
-            var initials = so.FindProperty("initials");
-            var names = so.FindProperty("names");
-            var times = so.FindProperty("times");
-            var lines = so.FindProperty("lines");
-            rows.arraySize = avatars.arraySize = initials.arraySize = names.arraySize = times.arraySize = lines.arraySize = TownSpaceRows;
-            for (var i = 0; i < TownSpaceRows; i++)
-            {
-                var row = NewRect($"Post{i}", strip);
-                var rowLayout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-                ConfigureRow(rowLayout, 16, TextAnchor.UpperLeft);
-
-                var avatar = NewRect("Avatar", row);
-                var avatarImage = AddImage(avatar.gameObject, Palette.SignalBlue, false);
-                AddOutline(avatar.gameObject, 3);
-                var avatarElement = avatar.gameObject.AddComponent<LayoutElement>();
-                avatarElement.minWidth = avatarElement.preferredWidth = 60;
-                avatarElement.minHeight = avatarElement.preferredHeight = 60;
-                var init = NewText("Initials", avatar, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.Center, UiFont.Title);
-                Stretch(init.rectTransform);
-
-                var column = NewRect("Text", row);
-                var columnLayout = column.gameObject.AddComponent<VerticalLayoutGroup>();
-                columnLayout.spacing = 2;
-                columnLayout.childControlWidth = true;
-                columnLayout.childControlHeight = true;
-                columnLayout.childForceExpandWidth = true;
-                columnLayout.childForceExpandHeight = false;
-                column.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
-
-                var top = NewRect("Top", column);
-                ConfigureRow(top.gameObject.AddComponent<HorizontalLayoutGroup>(), 16, TextAnchor.LowerLeft);
-                var name = NewText("Name", top, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.BottomLeft, UiFont.Title);
-                var time = NewText("Time", top, UiStyle.Small, Palette.GridDim[4], TextAlignmentOptions.BottomLeft, UiFont.Mono);
-                var line = NewText("Line", column, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.TopLeft);
-                line.textWrappingMode = TextWrappingModes.Normal;
-
-                rows.GetArrayElementAtIndex(i).objectReferenceValue = row.gameObject;
-                avatars.GetArrayElementAtIndex(i).objectReferenceValue = avatarImage;
-                initials.GetArrayElementAtIndex(i).objectReferenceValue = init;
-                names.GetArrayElementAtIndex(i).objectReferenceValue = name;
-                times.GetArrayElementAtIndex(i).objectReferenceValue = time;
-                lines.GetArrayElementAtIndex(i).objectReferenceValue = line;
-            }
+            so.FindProperty("root").objectReferenceValue = host;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

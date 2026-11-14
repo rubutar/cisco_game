@@ -4,7 +4,7 @@
 //             Tap: Pax walks there ("walk:<id>").
 //   Popup   - when Pax arrives (HeroArrived) the bubble becomes a small popup: badge, station, tool, Enter.
 //             Alert stations bounce gently. Walking away (HeroLeft) closes it.
-//   Next    - a chip at the bottom centre names the station to visit next ("Next" + badge + tool); tapping it
+//   Next    - a chip in the bottom-right corner names the station to visit next ("Next" + badge + tool); tapping it
 //             walks Pax there. Stations waiting for the player also get a bouncing arrow over their bubble.
 //   Card    - Enter (button, or "interact:<id>" from the Enter key) expands it: the station, the tool as the
 //             title, one sentence, without → with, and the buttons by state (Go in / See materials / Play again,
@@ -41,6 +41,8 @@ namespace ByteWorld
             public TMP_Text markText;
             public TMP_Text tool;
             public RectTransform arrow;
+            public CanvasGroup group;
+            public LayoutElement badgeSize;
         }
 
         readonly Dictionary<string, Bubble> bubbles = new();
@@ -200,6 +202,7 @@ namespace ByteWorld
             b.rect.pivot = new Vector2(0.5f, 0);
             b.fill = UiKit.Image(b.rect.gameObject, UiStyle.Panel, true);
             b.border = UiKit.Border(b.rect.gameObject, 4);
+            b.group = b.rect.gameObject.AddComponent<CanvasGroup>();
             UiKit.Row(b.rect.gameObject, 12, new RectOffset(12, 18, 8, 8));
             UiKit.Fit(b.rect.gameObject, true, true);
             var button = b.rect.gameObject.AddComponent<Button>();
@@ -210,7 +213,7 @@ namespace ByteWorld
             var badge = UiKit.Rect("Badge", b.rect);
             b.badge = UiKit.Image(badge.gameObject, Color.white);
             b.badge.preserveAspect = true;
-            UiKit.Size(badge.gameObject, 52, 52);
+            b.badgeSize = UiKit.Size(badge.gameObject, 52, 52);
 
             b.tool = UiKit.Text("Tool", b.rect, UiStyle.Small, UiStyle.Ink, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             b.tool.textWrappingMode = TextWrappingModes.NoWrap;
@@ -258,11 +261,15 @@ namespace ByteWorld
                 b.tool.color = state == CheckpointState.Locked ? UiStyle.LockedDark : UiStyle.Ink;
                 b.fill.color = state == CheckpointState.Locked ? (Color)Palette.GridDim[4] : UiStyle.Panel;
                 b.border.effectColor = state == CheckpointState.Alert ? UiStyle.Danger : state == CheckpointState.Done ? UiStyle.Done : UiStyle.Locked;
-                // Done shows in the green border; the corner mark is only the alert "!".
-                b.mark.SetActive(state == CheckpointState.Alert);
-                b.markFill.color = UiStyle.Danger;
-                b.markText.text = "!";
-                b.arrow.gameObject.SetActive(state == CheckpointState.Alert);
+                // Only stations that need the player stand out (name, pink border, arrow); the rest step back:
+                // a small badge, faded (locked) or with a green border (done).
+                var alert = state == CheckpointState.Alert;
+                b.mark.SetActive(false);
+                b.arrow.gameObject.SetActive(alert);
+                var badgeSize = alert ? 52 : 36;
+                b.badgeSize.minWidth = b.badgeSize.preferredWidth = b.badgeSize.minHeight = b.badgeSize.preferredHeight = badgeSize;
+                b.group.alpha = state == CheckpointState.Locked ? 0.55f : alert ? 1f : 0.85f;
+                b.rect.transform.localScale = Vector3.one;
             }
             UpdatePopup();
             UpdateNextChip();
@@ -282,7 +289,7 @@ namespace ByteWorld
             // The chip shares the bottom of the screen with the dialogue bubble.
             var chip = nextId != null && cardFor == null && !Services.Dialogue.IsShowing && !string.IsNullOrEmpty(nextLabel.text);
             if (nextChip.gameObject.activeSelf != chip) nextChip.gameObject.SetActive(chip);
-            if (chip) nextChip.anchoredPosition = new Vector2(0, 28 + Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 2.5f)) * 2f) * 4f);
+            if (chip) nextChip.anchoredPosition = new Vector2(-24, 24 + Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 2.5f)) * 2f) * 4f);
 
             // Follow the camera every frame (the map may scale with the screen).
             var bob = Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3f)) * 3f) * 6f;
@@ -335,8 +342,8 @@ namespace ByteWorld
         void BuildNextChip()
         {
             nextChip = UiKit.Rect("NextChip", layer);
-            nextChip.anchorMin = nextChip.anchorMax = nextChip.pivot = new Vector2(0.5f, 0);
-            nextChip.anchoredPosition = new Vector2(0, 28);
+            nextChip.anchorMin = nextChip.anchorMax = nextChip.pivot = new Vector2(1, 0);
+            nextChip.anchoredPosition = new Vector2(-24, 24);
             var fill = UiKit.Image(nextChip.gameObject, UiStyle.Panel, true);
             UiKit.Border(nextChip.gameObject, 4).effectColor = UiStyle.Danger;
             var shadow = nextChip.gameObject.AddComponent<Shadow>();
