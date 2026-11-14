@@ -58,6 +58,7 @@ namespace ByteWorld.Stubs
         public BuildFile Build { get; } = Load<BuildFile>("build");
         public FlagsFile Flags { get; } = Load<FlagsFile>("flags");
         public HuntFile Hunt { get; } = Load<HuntFile>("hunt");
+        public CheckpointsFile Checkpoints { get; } = Load<CheckpointsFile>("checkpoints");
 
         public static T Load<T>(string name) where T : new()
         {
@@ -96,6 +97,30 @@ namespace ByteWorld.Stubs
             State = next;
             GameEvents.RaiseStateChanged(previous, next);
         }
+    }
+
+    /// <summary>Stand-in for Person A's CheckpointManager: the first two stations on Alert, the rest locked.</summary>
+    public class StubCheckpointService : ICheckpointService, IStub
+    {
+        public CheckpointData[] All => Services.Data.Checkpoints?.checkpoints ?? new CheckpointData[0];
+
+        public CheckpointData Get(string id)
+        {
+            foreach (var c in All) if (c.id == id) return c;
+            return null;
+        }
+
+        public CheckpointState StateOf(string id)
+        {
+            var all = All;
+            for (var i = 0; i < all.Length && i < 2; i++) if (all[i].id == id) return CheckpointState.Alert;
+            return CheckpointState.Locked;
+        }
+
+        public string LockReason(string id) => StateOf(id) == CheckpointState.Locked ? $"Opens after Quest {Mathf.Max(1, (Get(id)?.quest ?? 2) - 1)}" : "";
+
+        public int ToolsCollected => 0;
+        public int ToolsTotal => All.Length;
     }
 
     /// <summary>Stand-in for Person A's Splunk Trace: pins the target row at once.</summary>

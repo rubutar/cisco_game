@@ -11,6 +11,7 @@ namespace ByteWorld.EditorTools
         int day = 1;
         int puzzle = 1;
         int complaints = 1;
+        string checkpoint = "harbour";
         Vector2 scroll;
 
         [MenuItem("Byte World/Fake Event Panel")]
@@ -57,6 +58,16 @@ namespace ByteWorld.EditorTools
             if (GUILayout.Button("TestRunFinished (pass)")) GameEvents.RaiseTestRunFinished(new RunResult { puzzleId = puzzle, delivered = 7, passed = true });
             if (GUILayout.Button("PuzzlePassed")) GameEvents.RaisePuzzlePassed(puzzle);
             if (GUILayout.Button("RevealClosed")) GameEvents.RaiseRevealClosed(puzzle);
+
+            EditorGUILayout.LabelField("Hero and stations (v2)", EditorStyles.boldLabel);
+            checkpoint = EditorGUILayout.TextField("Checkpoint id", checkpoint);
+            if (GUILayout.Button("HeroArrived")) GameEvents.RaiseHeroArrived(checkpoint);
+            if (GUILayout.Button("HeroLeft")) GameEvents.RaiseHeroLeft(checkpoint);
+            if (GUILayout.Button("StationFinished")) GameEvents.RaiseStationFinished(checkpoint);
+            if (GUILayout.Button("CheckpointStatesChanged")) GameEvents.RaiseCheckpointStatesChanged();
+            if (GUILayout.Button("UI command walk:<id>")) GameEvents.RaiseUiAction($"walk:{checkpoint}");
+            if (GUILayout.Button("UI command goin:<id>")) GameEvents.RaiseUiAction($"goin:{checkpoint}");
+            if (GUILayout.Button("PropTapped door23")) GameEvents.RaisePropTapped("door23");
 
             EditorGUILayout.LabelField("UI requests", EditorStyles.boldLabel);
             foreach (UiAction action in System.Enum.GetValues(typeof(UiAction)))
