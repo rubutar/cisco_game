@@ -29,7 +29,10 @@ namespace ByteWorld
         readonly Queue<Vector2> route = new();
         string arrivedAt;
         SpriteRenderer body;
-        Sprite[] idleDown, idleSide, walkSide;
+        Sprite[] idleDown, idleSide, walkSide, walkDown, walkUp, interactSide, cheer, worried;
+        float poseUntil;            // a short pose (interact, cheer, worried) overrides walking and idling
+        Sprite[] pose;
+        bool facingUp;
         float animTimer;
         int frame;
         bool facingLeft;
@@ -48,8 +51,13 @@ namespace ByteWorld
             Sprite Fallback() => PixelArt.GridSprite(PixelArt.Byte, Palette.GridNormal, "Pax");
             idleDown = new[] { PixelArt.Load("Characters/pax_idle_down_0", Fallback), PixelArt.Load("Characters/pax_idle_down_1", Fallback) };
             idleSide = new[] { PixelArt.Load("Characters/pax_idle_side_0", Fallback), PixelArt.Load("Characters/pax_idle_side_1", Fallback) };
-            walkSide = new Sprite[4];
-            for (var i = 0; i < 4; i++) walkSide[i] = PixelArt.Load($"Characters/pax_walk_side_{i}", Fallback);
+            walkSide = Frames("pax_walk_side", 4, Fallback);
+            // Should frames (PRD-v2 6.6); each falls back to the Must frames when its PNG is missing.
+            walkDown = Frames("pax_walk_down", 4, () => idleDown[0]);
+            walkUp = Frames("pax_walk_up", 4, () => idleDown[0]);
+            interactSide = Frames("pax_interact_side", 2, () => idleSide[0]);
+            cheer = Frames("pax_cheer_down", 2, () => idleDown[0]);
+            worried = Frames("pax_worried_down", 1, () => idleDown[0]);
 
             body = PixelArt.AddSprite(transform, idleDown[0], "Pax", 30);
 
@@ -65,14 +73,38 @@ namespace ByteWorld
             Place();
         }
 
+        static Sprite[] Frames(string name, int count, System.Func<Sprite> fallback)
+        {
+            var frames = new Sprite[count];
+            for (var i = 0; i < count; i++) frames[i] = PixelArt.Load($"Characters/{name}_{i}", fallback);
+            return frames;
+        }
+
         void OnEnable()
         {
             move?.Enable(); interact?.Enable(); materials?.Enable(); back?.Enable();
+            GameEvents.StationFinished += OnStationFinished;
+            GameEvents.Snatched += OnSnatched;
+            GameEvents.Collapsed += OnCollapsed;
         }
 
         void OnDisable()
         {
             move?.Disable(); interact?.Disable(); materials?.Disable(); back?.Disable();
+            GameEvents.StationFinished -= OnStationFinished;
+            GameEvents.Snatched -= OnSnatched;
+            GameEvents.Collapsed -= OnCollapsed;
+        }
+
+        // Expressions in use (PRD-v2 6.6): cheer when a station finishes, worried when a backup is lost.
+        void OnStationFinished(string id) => Pose(cheer, 1.5f);
+        void OnSnatched(SnatchInfo info) => Pose(worried, 2f);
+        void OnCollapsed(int day) => Pose(worried, 2f);
+
+        void Pose(Sprite[] frames, float seconds)
+        {
+            pose = frames;
+            poseUntil = Time.time + seconds;
         }
 
         void OnDestroy()
@@ -141,7 +173,11 @@ namespace ByteWorld
                     if ((position - target).sqrMagnitude < 0.25f) route.Dequeue();
                 }
 
-                if (interact.WasPressedThisFrame() && arrivedAt != null) GameEvents.RaiseUiAction($"interact:{arrivedAt}");
+                if (interact.WasPressedThisFrame() && arrivedAt != null)
+                {
+                    Pose(interactSide, 0.5f);
+                    GameEvents.RaiseUiAction($"interact:{arrivedAt}");
+                }
                 if (materials.WasPressedThisFrame() && arrivedAt != null) GameEvents.RaiseUiAction($"materials:{arrivedAt}");
             }
             if (back.WasPressedThisFrame()) GameEvents.RaiseUiAction("back");
@@ -188,7 +224,7 @@ namespace ByteWorld
         void Animate(Vector2 moved)
         {
             var walking = moved.sqrMagnitude > 0.0001f;
-            if (walking && Mathf.Abs(moved.x) > 0.001f)
+            if (walking && Mathf.Abs(moved.x) >= Mathf.Abs(moved.y))
             {
                 sideways = true;
                 facingLeft = moved.x < 0f;
@@ -196,6 +232,7 @@ namespace ByteWorld
             else if (walking)
             {
                 sideways = false;
+                facingUp = moved.y < 0f; // map y grows downward: negative is walking up the screen
             }
 
             animTimer -= Time.deltaTime;
@@ -204,7 +241,16 @@ namespace ByteWorld
                 frame++;
                 animTimer = walking ? 0.12f : 0.5f;
             }
-            body.sprite = walking && sideways ? walkSide[frame % 4] : (sideways ? idleSide : idleDown)[frame % 2];
+            if (pose != null && Time.time < poseUntil && !walking)
+            {
+                body.sprite = pose[frame % pose.Length];
+                body.flipX = pose == interactSide && facingLeft;
+                body.sortingOrder = 30;
+                return;
+            }
+            pose = null;
+            if (walking) body.sprite = sideways ? walkSide[frame % 4] : (facingUp ? walkUp : walkDown)[frame % 4];
+            else body.sprite = (sideways ? idleSide : idleDown)[frame % 2];
             body.flipX = sideways && facingLeft;
             body.sortingOrder = 30;
         }
