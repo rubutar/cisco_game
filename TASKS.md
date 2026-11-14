@@ -29,23 +29,23 @@ Must: 15h15.
 
 | ID | Task | Est. | Tier | Merge by | Status |
 |---|---|---|---|---|---|
-| B-01 | Fonts (Pixelify Sans, Nunito, JetBrains Mono), yellow main buttons with a pressed state, white secondary buttons, mono font for inspected values | 1h | Must | Sat 22:00 | To do |
-| B-02 | Webex chat skin for the dialogue bubble: space name, avatar initials, timestamp. Brief at quest start. **(v2.1)** Town Space strip on the map | 1h | Must | Sat 22:00 | To do |
-| B-03 | Field Card after each station’s success, reusing RevealCard, with **Back to Byte World** | 45m | Must | Sat 22:00 | To do |
-| B-14 | **(v2.1)** Station bubbles (3 states), arrival popup with Enter, expanded card (4.2a) with Go in / See materials / Play again and the lock line; anchors flip near edges; raises `walk`, `goin`, `materials` | 1h30 | Must | Sun 08:00 | To do |
-| B-15 | **(v2.1)** Materials panel (4.4.4): half screen from the right, text from `ICheckpointService`, without/with slider over two images (RectMask2D), Field Card preview, NetAcad line, footer by state | 1h15 | Must | Sun 08:00 | To do |
-| B-04 | Quest-end sequence on DayEnded: Check card (4 options plus explanation), then the quest card | 1h15 | Must | Sun 08:00 | To do |
-| B-05 | Quest 3 lanes: lane membership in NetworkGraph, the test packet in TrafficRun, the unmanaged-vs-managed pop-up | 2h | Must | Sun 08:00 | To do |
-| B-06 | Quest 4 siege, scripted: call stream and flood, a blind-phase call indicator, the Call button, ThousandEyes overlay (link colours plus loss and latency), the priority toggle, the second run passes | 2h | Must | Sun 08:00 | To do |
-| B-07 | Learner Card on the peace screen: outcomes, Field Notes x/8, check score, QR | 1h | Must | Sun 08:00 | To do |
+| B-01 | Fonts (Pixelify Sans, Nunito, JetBrains Mono), yellow main buttons with a pressed state, white secondary buttons, mono font for inspected values | 1h | Must | Sat 22:00 | Done |
+| B-02 | Webex chat skin for the dialogue bubble: space name, avatar initials, timestamp. Brief at quest start. **(v2.1)** Town Space strip on the map | 1h | Must | Sat 22:00 | Done |
+| B-03 | Field Card after each station’s success, reusing RevealCard, with **Back to Byte World** | 45m | Must | Sat 22:00 | Done |
+| B-14 | **(v2.1)** Station bubbles (3 states), arrival popup with Enter, expanded card (4.2a) with Go in / See materials / Play again and the lock line; anchors flip near edges; raises `walk`, `goin`, `materials` | 1h30 | Must | Sun 08:00 | Done |
+| B-15 | **(v2.1)** Materials panel (4.4.4): half screen from the right, text from `ICheckpointService`, without/with slider over two images (RectMask2D), Field Card preview, NetAcad line, footer by state | 1h15 | Must | Sun 08:00 | Done |
+| B-04 | Quest-end sequence on DayEnded: Check card (4 options plus explanation), then the quest card | 1h15 | Must | Sun 08:00 | Done |
+| B-05 | Quest 3 lanes: lane membership in NetworkGraph, the test packet in TrafficRun, the unmanaged-vs-managed pop-up | 2h | Must | Sun 08:00 | Done |
+| B-06 | Quest 4 siege, scripted: call stream and flood, a blind-phase call indicator, the Call button, ThousandEyes overlay (link colours plus loss and latency), the priority toggle, the second run passes | 2h | Must | Sun 08:00 | Done |
+| B-07 | Learner Card on the peace screen: outcomes, Field Notes x/8, check score, QR | 1h | Must | Sun 08:00 | Done |
 | B-08 | WebGL build, tag demo, check on iPhone and Android, help capture | 45m | Must | Sun 10:30 | To do |
-| B-16 | **(v2.1)** Cisco toolkit: top-bar button with count, toast on `StationFinished`, toolkit panel showing the Visitor Pass with its tool badges and the Learner Card slot | 45m | Should | Sun 10:00 | To do |
-| B-18 | **(v2.1)** Pax portraits in the UI: in the station world header, on the Field Card (happy) and on the toolkit panel; expression chosen by event (alert, go in, finished, backup lost) | 30m | Should | Sun 10:00 | To do |
-| B-17 | **(v2.1)** Iris transition into and out of station worlds | 30m | Should | Sun 10:00 | To do |
-| B-09 | Splunk ticker on ItemResolved | 30m | Should | Sun 10:00 | To do |
-| B-10 | Prop card on PropTapped | 30m | Stretch |  | To do |
-| B-11 | Incident report: order 5 cards | 45m | Should | Sun 10:00 | To do |
-| B-12 | Quest 3 rules puzzle: order matters and the pinned IP is blocked | 45m | Should | Sun 10:00 | To do |
+| B-16 | **(v2.1)** Cisco toolkit: top-bar button with count, toast on `StationFinished`, toolkit panel showing the Visitor Pass with its tool badges and the Learner Card slot | 45m | Should | Sun 10:00 | Done |
+| B-18 | **(v2.1)** Pax portraits in the UI: in the station world header, on the Field Card (happy) and on the toolkit panel; expression chosen by event (alert, go in, finished, backup lost) | 30m | Should | Sun 10:00 | Done |
+| B-17 | **(v2.1)** Iris transition into and out of station worlds | 30m | Should | Sun 10:00 | Done |
+| B-09 | Splunk ticker on ItemResolved | 30m | Should | Sun 10:00 | Done |
+| B-10 | Prop card on PropTapped | 30m | Stretch |  | Done |
+| B-11 | Incident report: order 5 cards | 45m | Should | Sun 10:00 | Done |
+| B-12 | Quest 3 rules puzzle: order matters and the pinned IP is blocked | 45m | Should | Sun 10:00 | Done |
 | B-13 | Quest 4 live mode: a free reroute instead of the scripted fix | 1h30 | Stretch |  | To do |
 
 Must: 12h30.
