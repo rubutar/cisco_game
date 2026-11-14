@@ -157,8 +157,11 @@
     }
   ],
   "intro": [
-    "Every message you send passes through a tiny town inside your router.",
-    "Gigi: A visitor! Perfect timing, Pax. We need help."
+    "Every message you send passes through a tiny town inside your network: Byte World.",
+    "The Bytes live here. They carry your photos, chats and logins from door to door.",
+    "Lately, strangers keep sneaking in: fake messages, look-alike visitors, worms at the walls.",
+    "So the Bytes called for help, and a visitor arrived with an empty Cisco toolkit. That's you, Pax.",
+    "Gigi: A visitor! Perfect timing, Pax. Two stations need help. Follow the red rings!"
   ],
   "dayEnd": [
     {
