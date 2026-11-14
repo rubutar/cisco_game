@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Draws the v2 grids (PRD-v2 6.6) with simple shapes and writes them to Tools/sprites/grids/:
-Pax (32 x 32: idle down and side, walk side 4 frames) and the seven station buildings (64 x 48, with a
-dim mood for locked stations). Re-run after changing a shape; hand-edit the grids for pixel tweaks.
+"""Draws the v2 grids (PRD-v2 6.6) with simple shapes and writes them to Tools/sprites/grids/: the seven
+station buildings (64 x 48, with a dim mood for locked stations), station Bytes, map attackers, the
+Visitor Pass and tool badges. Pax is in draw_pax.py. Re-run after changing a shape; hand-edit the grids for pixel tweaks.
 Then run make_sprites.py."""
 import os
 
@@ -36,52 +36,7 @@ def save(name, folder, c, moods="normal"):
         f.write(f"# folder: {folder}\n# moods: {moods}\n" + "\n".join(c.outlined()) + "\n")
 
 
-# ---------- Pax: a young learner (person, not a Byte). Yellow hoodie, blue trousers, headset, Visitor Pass.
-def pax(facing="down", leg=0, blink=False, bob=0):
-    c = C(32, 32)
-    y0 = 6 + bob
-    # legs (blue trousers) and shoes
-    if facing == "down":
-        c.rect(12, y0 + 17, 3, 6, "2"); c.rect(17, y0 + 17, 3, 6, "2")
-        c.rect(11, y0 + 23, 4, 2, "1"); c.rect(17, y0 + 23, 4, 2, "1")
-    else:
-        stride = [(-2, 2), (0, 0), (2, -2), (0, 0)][leg]
-        c.rect(14 + stride[0], y0 + 17, 3, 6, "2"); c.rect(16 + stride[1], y0 + 17, 3, 6, "C")
-        c.rect(13 + stride[0], y0 + 23, 4, 2, "1"); c.rect(15 + stride[1], y0 + 23, 4, 2, "1")
-    # hoodie body and arms
-    c.ell(16, y0 + 13, 6, 5.5, "y"); c.rect(10, y0 + 12, 12, 6, "y"); c.rect(10, y0 + 16, 12, 2, "o")
-    if facing == "down":
-        c.rect(8, y0 + 11, 2, 6, "y"); c.rect(22, y0 + 11, 2, 6, "y"); c.rect(8, y0 + 17, 2, 2, "4"); c.rect(22, y0 + 17, 2, 2, "4")
-    else:
-        swing = [1, 0, -1, 0][leg]
-        c.rect(15 + swing, y0 + 11, 3, 6, "o"); c.rect(15 + swing, y0 + 17, 3, 2, "4")
-    # Visitor Pass on its lanyard (glows cyan)
-    if facing == "down":
-        c.put(14, y0 + 9, "1"); c.put(18, y0 + 9, "1"); c.rect(15, y0 + 10, 3, 1, "1"); c.rect(15, y0 + 11, 3, 4, "3")
-    # head, hair, face
-    c.ell(16, y0 + 4, 5.5, 5, "4")
-    c.ell(16, y0 + 1, 6, 3.5, "1", only=lambda x, y: y <= y0 + 2)
-    if facing == "down":
-        if blink: c.rect(13, y0 + 5, 2, 1, "1"); c.rect(18, y0 + 5, 2, 1, "1")
-        else: c.rect(13, y0 + 4, 2, 2, "1"); c.rect(18, y0 + 4, 2, 2, "1")
-        c.rect(15, y0 + 7, 3, 1, "5"); c.put(12, y0 + 6, "a"); c.put(20, y0 + 6, "a")
-        c.rect(10, y0 + 3, 1, 4, "C"); c.rect(21, y0 + 3, 1, 4, "C")       # headset ear cups
-        c.rect(10, y0 + 7, 3, 1, "C"); c.put(13, y0 + 7, "3")               # mic
-    else:
-        if blink: c.rect(18, y0 + 5, 2, 1, "1")
-        else: c.rect(18, y0 + 4, 2, 2, "1")
-        c.rect(19, y0 + 7, 2, 1, "5"); c.put(20, y0 + 6, "a")
-        c.rect(13, y0 + 3, 2, 4, "C"); c.rect(14, y0 + 7, 4, 1, "C"); c.put(18, y0 + 7, "3")
-        c.ell(13, y0 + 3, 3, 3, "1", only=lambda x, y: x <= 14)             # hair at the back
-    return c
-
-
-for i, (f, blink) in enumerate((("down", False), ("down", True))):
-    save(f"pax_idle_down_{i}", "Characters", pax("down", blink=blink, bob=0 if i == 0 else 1))
-for i, blink in enumerate((False, True)):
-    save(f"pax_idle_side_{i}", "Characters", pax("side", leg=1, blink=blink, bob=0 if i == 0 else 1))
-for i in range(4):
-    save(f"pax_walk_side_{i}", "Characters", pax("side", leg=i, bob=1 if i % 2 else 0))
+# Pax is drawn by draw_pax.py.
 
 
 # ---------- Station buildings, 64 x 48, bottom centre is the door (PRD-v2 4.2, 4.3)
@@ -150,84 +105,6 @@ for name, f in (("station_harbour", harbour), ("station_gate", gate), ("station_
                 ("station_observatory", observatory), ("station_switchyard", switchyard), ("station_tower", tower)):
     save(name, "Props", f(), "normal dim")
 print("v2 grids written")
-
-
-# ---------- Pax, Should animations (PRD-v2 6.6): walk up / down, interact, cheer, worried
-def pax_front(leg=0, arms="down", mouth="smile", brows=None, sweat=False, back=False, bob=0):
-    """Pax facing the camera (or away, back=True): legs step on frames 0 and 2."""
-    c = C(32, 32)
-    y0 = 6 + bob
-    step = [(-1, 1), (0, 0), (1, -1), (0, 0)][leg]
-    c.rect(12, y0 + 17 + max(0, step[0]), 3, 6 - abs(step[0]), "2"); c.rect(17, y0 + 17 + max(0, step[1]), 3, 6 - abs(step[1]), "2")
-    c.rect(11, y0 + 23, 4, 2, "1"); c.rect(17, y0 + 23, 4, 2, "1")
-    c.ell(16, y0 + 13, 6, 5.5, "y"); c.rect(10, y0 + 12, 12, 6, "y"); c.rect(10, y0 + 16, 12, 2, "o")
-    if arms == "up":
-        c.rect(7, y0 + 5, 2, 7, "y"); c.rect(23, y0 + 5, 2, 7, "y"); c.rect(7, y0 + 3, 2, 2, "4"); c.rect(23, y0 + 3, 2, 2, "4")
-    else:
-        swing = [1, 0, -1, 0][leg]
-        c.rect(8, y0 + 11 + swing, 2, 6, "y"); c.rect(22, y0 + 11 - swing, 2, 6, "y")
-        c.rect(8, y0 + 17 + swing, 2, 2, "4"); c.rect(22, y0 + 17 - swing, 2, 2, "4")
-    c.ell(16, y0 + 4, 5.5, 5, "4")
-    if back:
-        c.ell(16, y0 + 3, 6, 5, "1", only=lambda x, y: y <= y0 + 6)        # back of the head: all hair
-        c.rect(10, y0 + 3, 1, 4, "C"); c.rect(21, y0 + 3, 1, 4, "C"); c.rect(11, y0 - 1, 10, 1, "C")  # headset band
-        return c
-    c.ell(16, y0 + 1, 6, 3.5, "1", only=lambda x, y: y <= y0 + 2)
-    c.rect(13, y0 + 4, 2, 2, "1"); c.rect(18, y0 + 4, 2, 2, "1")
-    if brows == "worried": c.put(13, y0 + 2, "1"); c.put(19, y0 + 2, "1")
-    if mouth == "smile": c.rect(15, y0 + 7, 3, 1, "5")
-    elif mouth == "open": c.rect(15, y0 + 7, 3, 2, "1"); c.put(16, y0 + 8, "5")
-    elif mouth == "wavy": c.put(14, y0 + 8, "1"); c.put(15, y0 + 7, "1"); c.put(16, y0 + 8, "1"); c.put(17, y0 + 7, "1")
-    c.put(12, y0 + 6, "a"); c.put(20, y0 + 6, "a")
-    c.rect(10, y0 + 3, 1, 4, "C"); c.rect(21, y0 + 3, 1, 4, "C"); c.rect(10, y0 + 7, 3, 1, "C"); c.put(13, y0 + 7, "3")
-    c.put(14, y0 + 9, "1"); c.put(18, y0 + 9, "1"); c.rect(15, y0 + 10, 3, 1, "1"); c.rect(15, y0 + 11, 3, 4, "3")  # Visitor Pass
-    if sweat: c.ell(23, y0 + 1, 1.2, 1.6, "k")
-    return c
-
-
-for i in range(4):
-    save(f"pax_walk_down_{i}", "Characters", pax_front(leg=i, bob=1 if i % 2 else 0))
-    save(f"pax_walk_up_{i}", "Characters", pax_front(leg=i, back=True, bob=1 if i % 2 else 0))
-save("pax_interact_side_0", "Characters", pax("side", leg=1))
-lean = pax("side", leg=1, bob=1); lean.rect(19, 15, 4, 2, "4")             # reaching toward the station
-save("pax_interact_side_1", "Characters", lean)
-save("pax_cheer_down_0", "Characters", pax_front(arms="up", mouth="open"))
-save("pax_cheer_down_1", "Characters", pax_front(arms="up", mouth="open", bob=-1))
-save("pax_worried_down_0", "Characters", pax_front(mouth="wavy", brows="worried", sweat=True))
-
-
-# ---------- Pax portraits, 48 x 48, head and shoulders (UI)
-def portrait(mood):
-    c = C(48, 48)
-    c.ell(24, 46, 18, 12, "y"); c.rect(6, 40, 36, 8, "y"); c.rect(21, 36, 6, 4, "4")            # hoodie and neck
-    c.rect(19, 38, 1, 6, "1"); c.rect(28, 38, 1, 6, "1"); c.rect(20, 42, 8, 6, "3"); c.rect(22, 43, 4, 1, "2")  # lanyard + pass
-    c.ell(24, 22, 13, 14, "4"); c.ell(24, 22, 13, 14, "p", only=lambda x, y: x >= 33)              # face
-    c.ell(24, 13, 14, 8, "1", only=lambda x, y: y <= 15); c.rect(11, 12, 4, 10, "1")               # hair
-    c.rect(9, 18, 3, 10, "C"); c.rect(36, 18, 3, 10, "C"); c.ell(24, 13, 14, 9, "C", only=lambda x, y: y <= 6 and y >= 4)  # headset band over the hair
-    c.rect(9, 28, 6, 2, "C"); c.rect(15, 28, 2, 2, "3")
-    eyes = {"neutral": "open", "happy": "happy", "surprised": "wide", "worried": "open", "determined": "narrow"}[mood]
-    for ex in (17, 28):
-        if eyes == "open": c.rect(ex, 19, 3, 4, "1"); c.put(ex, 19, "4")
-        elif eyes == "happy": c.put(ex, 21, "1"); c.put(ex + 1, 20, "1"); c.put(ex + 2, 21, "1")
-        elif eyes == "wide": c.rect(ex, 18, 4, 5, "1"); c.rect(ex + 1, 19, 1, 2, "4")
-        elif eyes == "narrow": c.rect(ex, 20, 3, 2, "1"); c.put(ex, 20, "4")
-    if mood == "worried": c.put(17, 16, "1"); c.put(18, 16, "1"); c.put(19, 17, "1"); c.put(28, 17, "1"); c.put(29, 16, "1"); c.put(30, 16, "1")
-    if mood == "determined": c.put(17, 17, "1"); c.put(18, 17, "1"); c.put(19, 18, "1"); c.put(28, 18, "1"); c.put(29, 17, "1"); c.put(30, 17, "1")
-    if mood == "surprised": c.rect(17, 15, 3, 1, "1"); c.rect(28, 15, 3, 1, "1")
-    mouth = {"neutral": "smile", "happy": "open", "surprised": "o", "worried": "wavy", "determined": "flat"}[mood]
-    if mouth == "smile": c.rect(22, 28, 4, 1, "5"); c.put(21, 27, "5"); c.put(26, 27, "5")
-    elif mouth == "open": c.ell(24, 28, 3, 2, "1"); c.rect(23, 29, 2, 1, "5")
-    elif mouth == "o": c.ell(24, 29, 1.6, 2, "1")
-    elif mouth == "wavy": [c.put(21 + i, 28 + (i % 2), "1") for i in range(6)]
-    elif mouth == "flat": c.rect(21, 28, 6, 1, "1")
-    c.rect(14, 25, 3, 1, "a"); c.rect(31, 25, 3, 1, "a")
-    if mood == "worried": c.ell(37, 15, 1.5, 2.2, "k")
-    return c
-
-
-for mood in ("neutral", "happy", "surprised", "worried", "determined"):
-    save(f"pax_portrait_{mood}", "UI", portrait(mood))
-print("pax extras written")
 
 
 # ---------- Station Bytes on the map, 16 x 16, holding their props (PRD-v2 6.6), and their faces
