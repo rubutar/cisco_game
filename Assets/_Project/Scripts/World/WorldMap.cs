@@ -30,6 +30,14 @@ namespace ByteWorld
             ["tower"] = new[] { new Vector2Int(363, 55) },
         };
 
+        // Props on the hi-fi map (PRD-v2 4.9, A-11): the tap area in map px (x, y, width, height) and the
+        // station that has to be open first. Tapping raises PropTapped; B's prop card shows dialogue.json "props".
+        static readonly (string id, RectInt area, string station)[] HifiProps =
+        {
+            ("door23", new RectInt(97, 192, 12, 17), "gate"),         // the Gate's rusty pink door
+            ("bridges", new RectInt(214, 13, 53, 43), "switchyard"),  // the Switch Yard's rack, one bridge per row
+        };
+
         // On the hi-fi map the river is a chain of ponds from x 386; Pax stays on the town's side of it
         // (map px, feet: half his width short of the water).
         const float HifiRiverBank = 380f;
@@ -117,11 +125,35 @@ namespace ByteWorld
                 jobBytes[job] = jobByte;
             }
 
+            if (hifiMap != null) AddProps();
+
             var hero = new GameObject("Pax");
             hero.transform.SetParent(content.transform, false);
             hero.AddComponent<HeroController>();
 
             Refresh();
+        }
+
+        void AddProps()
+        {
+            foreach (var (id, area, station) in HifiProps)
+            {
+                var go = new GameObject($"Prop {id}", typeof(BoxCollider2D));
+                go.transform.SetParent(content.transform, false);
+                go.transform.localPosition = PixelArt.MapToWorld(area.center.x, area.center.y);
+                go.GetComponent<BoxCollider2D>().size = new Vector2(area.width, area.height) * PixelArt.Pixel;
+                var propId = id;
+                var stationId = station;
+                Tappable.Add(go, null).Tapped += () => OnPropTapped(propId, stationId);
+            }
+        }
+
+        static void OnPropTapped(string id, string station)
+        {
+            var state = Services.Flow.State;
+            if (state != GameState.WorldPeace && state != GameState.Alert) return;
+            if (Services.Checkpoints.StateOf(station) == CheckpointState.Locked) return;
+            GameEvents.RaisePropTapped(id);
         }
 
         /// <summary>True where Pax can't walk: the river, except over the drawn town's bridge.</summary>
