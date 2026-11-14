@@ -1,5 +1,5 @@
-// Stream B. Build day intro (screen B0): the lead Byte's intro lines from dialogue.json build.intro in the
-// bubble, then "Let's build" (UiAction.LetsBuild). GameManager then starts build mode.
+// Stream B. Build day intro (screen B0): Quest 3's Webex brief (dialogue.json briefs, quest 3) or the v1
+// build.intro lines in the bubble, then "Let's build" (UiAction.LetsBuild). GameManager then starts build mode.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,7 +28,10 @@ namespace ByteWorld
 
             var build = Services.Data?.Dialogue?.build;
             buttonLabel.text = UiStrings.Ui.letsBuild ?? "";
-            Services.Dialogue.SayLines(build?.speaker ?? "", build?.intro, ShowButton);
+            // v2: Quest 3's Webex brief from Gigi when there is one, else the v1 build intro.
+            var brief = TownSpace.BriefFor(3);
+            if (brief != null && brief.Length > 0) Services.Dialogue.SayLines(TownSpace.BriefSpeaker, brief, ShowButton);
+            else Services.Dialogue.SayLines(build?.speaker ?? "", build?.intro, ShowButton);
         }
 
         void ShowButton()

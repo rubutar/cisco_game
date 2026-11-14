@@ -129,6 +129,19 @@ namespace ByteWorld
         {
             var job = UiStrings.Job(currentJob);
             var lines = UiStrings.JobDay(currentJob, Services.Flow.Day);
+
+            // v2: the station's Field Card, with Back to Byte World (B-03). Old content without one keeps the plain card.
+            var card = lines?.fieldCard;
+            if (!string.IsNullOrEmpty(card?.term) && RevealCard.Instance != null)
+            {
+                Services.Inspect.Hide();
+                Services.Dialogue.Hide();
+                overlay.SetActive(false);
+                RevealCard.Instance.ShowFieldCard(currentJob.ToKey(), lines.successLine, card, UiStrings.Ui.backToWorld,
+                    () => GameEvents.RaiseUiAction(UiAction.BackToWorld));
+                return;
+            }
+
             ShowCard(
                 title: job?.name ?? "",
                 titleColor: Palette.SignalBlue,

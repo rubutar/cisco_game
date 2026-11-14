@@ -62,7 +62,7 @@ namespace ByteWorld
             text.rectTransform.anchoredPosition = new Vector2(0, -6);
             text.rectTransform.sizeDelta = new Vector2(100, 44);
             text.fontSize = 38;
-            text.fontStyle = FontStyles.Bold;
+            UiStyle.Apply(text, UiFont.Title);
             text.alignment = TextAlignmentOptions.Center;
             text.color = Palette.Ink;
             text.raycastTarget = false;

@@ -1,5 +1,6 @@
 // Stream B. Peace screen (screen 09): Byte World is safe again. Shows dialogue.json "peace" under the game
-// title, and "Play again" (UiAction.PlayAgain) sends GameManager back to the title.
+// title, the Learner Card beside it (PRD-v2 4.9, B-07), and "Play again" (UiAction.PlayAgain) sends
+// GameManager back to the title.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +14,7 @@ namespace ByteWorld
         [SerializeField] TMP_Text lineText;
         [SerializeField] Button button;
         [SerializeField] TMP_Text buttonLabel;
+        [SerializeField] LearnerCard learnerCard;
 
         void Awake()
         {
@@ -47,6 +49,7 @@ namespace ByteWorld
             Services.Dialogue.Hide();
             Services.Inspect.Hide();
             screen.SetActive(true);
+            if (learnerCard != null) learnerCard.Refresh(true);
         }
 
         void OnPlayAgain()

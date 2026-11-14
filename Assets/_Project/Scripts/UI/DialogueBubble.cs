@@ -1,5 +1,7 @@
-// Stream B. The speech bubble (IDialogueService). One line at a time; a tap anywhere continues.
-// ShowHint (Day 1 tutorial, screen T1) points at a world position and shows "Try again" instead.
+// Stream B. The speech bubble (IDialogueService), styled as a Webex message (PRD-v2 4.2, B-02): the Town
+// Space name on a tab, the speaker's avatar tile with initials, name and timestamp, then the line.
+// One line at a time; a tap anywhere continues. Narration (no speaker) hides the avatar and header.
+// ShowHint (Quest 1 hints) points at a world position and shows "Try again" instead.
 // Lives on UIRoot.prefab; registers itself in Awake so gameplay finds it through Services.Dialogue.
 using System;
 using System.Collections.Generic;
@@ -23,6 +25,14 @@ namespace ByteWorld
         [SerializeField] Button retryButton;
         [SerializeField] TMP_Text retryLabel;
         [SerializeField] RectTransform pointer;
+
+        [Header("Webex")]
+        [SerializeField] TMP_Text spaceText;
+        [SerializeField] Image avatar;
+        [SerializeField] TMP_Text avatarText;
+        [SerializeField] TMP_Text timeText;
+        [SerializeField] float bodyLeftWithAvatar = 200;
+        [SerializeField] float bodyLeftWithout = 56;
 
         readonly Queue<string> pending = new();
         Action onDone;
@@ -130,8 +140,32 @@ namespace ByteWorld
         void SetSpeaker(string speaker)
         {
             var name = UiStrings.SpeakerName(speaker);
+            var hasName = !string.IsNullOrEmpty(name);
             if (nameText != null) nameText.text = name;
-            if (nameTag != null) nameTag.SetActive(!string.IsNullOrEmpty(name));
+            if (nameTag != null) nameTag.SetActive(hasName);
+            if (spaceText != null) spaceText.text = UiStrings.Ui.gameTitle ?? "";
+            if (timeText != null) timeText.text = hasName ? Webex.NextTime() : "";
+            if (avatar != null)
+            {
+                avatar.gameObject.SetActive(hasName);
+                avatar.color = UiStyle.AvatarFill(speaker);
+            }
+            if (avatarText != null)
+            {
+                avatarText.text = Webex.Initials(name);
+                avatarText.color = UiStyle.AvatarText(speaker);
+            }
+
+            // Header and body sit right of the avatar; narration uses the full width.
+            var left = hasName ? bodyLeftWithAvatar : bodyLeftWithout;
+            var body = bodyText.rectTransform;
+            body.offsetMin = new Vector2(left, body.offsetMin.y);
+            body.offsetMax = new Vector2(body.offsetMax.x, hasName ? -96 : -52);
+            if (nameTag != null)
+            {
+                var header = (RectTransform)nameTag.transform;
+                header.anchoredPosition = new Vector2(left, header.anchoredPosition.y);
+            }
         }
 
         void SetVisible(bool visible, bool hint)
@@ -142,6 +176,9 @@ namespace ByteWorld
             if (continueIcon != null) continueIcon.SetActive(visible && !hint);
             if (retryButton != null) retryButton.gameObject.SetActive(visible && hint);
             if (pointer != null) pointer.gameObject.SetActive(visible && hint);
+            // Keep the line clear of the Try again button on hints, and of the continue arrow otherwise.
+            var body = bodyText.rectTransform;
+            body.offsetMax = new Vector2(hint ? -420 : -96, body.offsetMax.y);
         }
 
         void PlacePointer()
