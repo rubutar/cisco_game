@@ -1,7 +1,8 @@
-// Stream B. The Splunk ticker (PRD-v2 4.2, B-09): every decision appears as one log line in a strip along
-// the bottom right, e.g. "14:02 gate src=Luca door=23 action=deny". Lines come from ItemResolved.logLine
-// (Person A's JobShift); a wrong call shows in pink. Visible on the map and inside a station, out of the way
-// while a dialogue bubble is open.
+// Stream B. The Splunk ticker (PRD-v2 4.2, B-09): every decision appears as one log line in a slim strip in
+// the bottom-right corner, e.g. "splunk> 14:02 gate src=Luca door=23 action=deny". Lines come from
+// ItemResolved.logLine (Person A's JobShift); a wrong call shows in pink. It slides in when a line arrives and
+// fades out a few seconds later, so it never sits on the map for long. Hidden while a dialogue bubble or the
+// Splunk Trace is open.
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -10,8 +11,11 @@ namespace ByteWorld
 {
     public class SplunkTicker : MonoBehaviour
     {
+        const float ShowSeconds = 6f;
+        const float FadeSeconds = 0.4f;
+
         [SerializeField] GameObject strip;
-        [SerializeField] TMP_Text prefixText;
+        [SerializeField] CanvasGroup group;
         [SerializeField] TMP_Text[] lineTexts;
 
         struct Entry
@@ -21,6 +25,7 @@ namespace ByteWorld
         }
 
         readonly List<Entry> entries = new();
+        float shownAt = -100f;
 
         void Awake() => strip.SetActive(false);
 
@@ -48,19 +53,23 @@ namespace ByteWorld
             if (string.IsNullOrEmpty(info.logLine)) return;
             entries.Add(new Entry { line = info.logLine, correct = info.correct });
             while (entries.Count > lineTexts.Length) entries.RemoveAt(0);
+            shownAt = Time.unscaledTime;
             Redraw();
         }
 
         void LateUpdate()
         {
-            var show = entries.Count > 0 && Shows(Services.Flow.State) && !Services.Dialogue.IsShowing;
+            var age = Time.unscaledTime - shownAt;
+            var show = entries.Count > 0 && age < ShowSeconds && Shows(Services.Flow.State)
+                       && !Services.Dialogue.IsShowing && !HuntScreen.IsOpen;
             if (strip.activeSelf != show) strip.SetActive(show);
+            if (show && group != null) group.alpha = Mathf.Clamp01((ShowSeconds - age) / FadeSeconds);
         }
 
         void Redraw()
         {
-            prefixText.text = UiStrings.Ui.tickerPrefix ?? "";
-            prefixText.gameObject.SetActive(!string.IsNullOrEmpty(prefixText.text));
+            var prefix = UiStrings.Ui.tickerPrefix;
+            var tag = string.IsNullOrEmpty(prefix) ? "" : $"<color=#{ColorUtility.ToHtmlStringRGB(Palette.PacketYellow)}>{prefix}</color> ";
             // Newest at the bottom.
             var offset = lineTexts.Length - entries.Count;
             for (var i = 0; i < lineTexts.Length; i++)
@@ -69,7 +78,7 @@ namespace ByteWorld
                 lineTexts[i].gameObject.SetActive(has);
                 if (!has) continue;
                 var e = entries[i - offset];
-                lineTexts[i].text = e.line;
+                lineTexts[i].text = tag + e.line;
                 lineTexts[i].color = e.correct ? (Color)Palette.NeonCyan : UiStyle.Danger;
             }
         }

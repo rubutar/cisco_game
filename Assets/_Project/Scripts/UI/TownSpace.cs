@@ -1,6 +1,6 @@
 // Stream B. The Webex Town Space (PRD-v2 4.2, B-02).
-//   * On the map, a chat strip in the bottom-left corner shows the last few posts: the quest brief and
-//     each Byte's alert line. It never blocks taps.
+//   * On the map, a slim chat strip in the bottom-left corner shows the newest posts (the quest brief and
+//     each Byte's alert line) for a few seconds, then fades away so the map stays clear. It never blocks taps.
 //   * At the start of a quest (first time the map shows on a new day) the brief also plays in the
 //     dialogue bubble, from Gigi, so the player reads it once in full.
 // Text comes from dialogue.json (briefs[], jobs[].days[].alertLine). Other UI can post with Post().
@@ -16,7 +16,11 @@ namespace ByteWorld
     {
         public const string BriefSpeaker = "gigi";
 
+        const float ShowSeconds = 8f;
+        const float FadeSeconds = 0.5f;
+
         [SerializeField] GameObject strip;
+        [SerializeField] CanvasGroup group;
         [SerializeField] TMP_Text spaceText;
         [SerializeField] GameObject[] rows;
         [SerializeField] Image[] avatars;
@@ -36,6 +40,7 @@ namespace ByteWorld
         int lastAlertGroup = -1;
         int lastAlertDay = -1;
         bool dirty;
+        float postedAt = -100f;
 
         void Awake()
         {
@@ -116,14 +121,20 @@ namespace ByteWorld
             if (string.IsNullOrEmpty(line)) return;
             posts.Add(new Post { speaker = speaker, name = UiStrings.SpeakerName(speaker), time = Webex.NextTime(), line = line });
             while (posts.Count > rows.Length) posts.RemoveAt(0);
+            postedAt = Time.unscaledTime;
             Redraw();
         }
 
         // Shown on the map only, and out of the way while a dialogue bubble is open (it sits on the same corner).
         void LateUpdate()
         {
-            var show = posts.Count > 0 && IsMap(Services.Flow.State) && !Services.Dialogue.IsShowing;
+            // The clock only runs while the strip could show, so a post made behind the bubble is still seen.
+            var canShow = posts.Count > 0 && IsMap(Services.Flow.State) && !Services.Dialogue.IsShowing && !HuntScreen.IsOpen;
+            if (!canShow && Time.unscaledTime - postedAt < ShowSeconds) postedAt = Time.unscaledTime;
+            var age = Time.unscaledTime - postedAt;
+            var show = canShow && age < ShowSeconds;
             if (strip.activeSelf != show) strip.SetActive(show);
+            if (show && group != null) group.alpha = Mathf.Clamp01((ShowSeconds - age) / FadeSeconds);
             if (show && dirty)
             {
                 dirty = false;

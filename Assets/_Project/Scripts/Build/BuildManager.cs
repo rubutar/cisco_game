@@ -275,6 +275,13 @@ namespace ByteWorld
             Refresh();
         }
 
+        bool HasOpenSlot()
+        {
+            foreach (var id in slots.Keys)
+                if (!Graph.HasPiece(id)) return true;
+            return false;
+        }
+
         public void OnTrayTapped(string piece)
         {
             if (!CanEdit) return;
@@ -347,7 +354,10 @@ namespace ByteWorld
                     kind == PieceKind.House && Graph.ReachesRouter(id), slotData[id].address);
                 pair.Value.ShowLane(kind == PieceKind.House ? LaneColor(Lanes?.LaneOf(id)) : null);
             }
-            foreach (var t in trayViews) t.Show(Tool.TrayCount(t.Piece), Tool.SelectedTrayPiece == t.Piece);
+            // Guide the next tap: the tray blinks until a piece is picked up, then the empty spots blink.
+            foreach (var t in trayViews)
+                t.Show(Tool.TrayCount(t.Piece), Tool.SelectedTrayPiece == t.Piece,
+                    Tool.SelectedTrayPiece == null && Tool.TrayCount(t.Piece) > 0 && HasOpenSlot());
             LayCables();
             Changed?.Invoke();
         }
