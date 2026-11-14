@@ -106,7 +106,7 @@ namespace ByteWorld
         void Update()
         {
             var state = Services.Flow.State;
-            var free = state == GameState.WorldPeace || state == GameState.Alert || state == GameState.FinalAttack;
+            var free = (state == GameState.WorldPeace || state == GameState.Alert || state == GameState.FinalAttack) && !HuntScreen.IsOpen;
             var speed = Mathf.Max(20f, Services.Data.Flags?.heroSpeed ?? 110f);
             var moved = Vector2.zero;
 
