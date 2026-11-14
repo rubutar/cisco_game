@@ -24,7 +24,8 @@
       "primaryAction": "Open vault", "secondaryAction": "Keep it shut", "fieldLabels": ["Password", "Phone code", "Visitor's code"],
       "valueLabels": ["right", "wrong", "expired", "not asked"],
       "days": [
-        { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" }
+        { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" },
+        { "day": 2, "alertLine": "The vault queue is long today!", "introLines": ["Uno: Some passwords will be right.", "Due: So my code must match, be fresh, and be asked for!"], "successLine": "Right password, but an old code nobody asked for. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the owner never asked for that code!", "backupLine": "I'll stand by the vault. Two checks, got it!", "waitingLine": "Uno: Finally! Due: The vault queue reached the bridge!", "complaintLine": "Uno: That was really Mum! Due: Both checks were fine.", "complaintFailLine": "Owners got locked out so often they stopped checking. The Rams loved that." }
       ]
     },
     {
@@ -32,7 +33,8 @@
       "jobLine": "When the builders send new parts, I fit them before the old cracks get bigger.",
       "primaryAction": "Fit now", "secondaryAction": "Later", "fieldLabels": ["From"],
       "days": [
-        { "day": 1, "alertLine": "New parts arrived!", "introLines": ["The builders sent new bricks.", "Fit them now, or later?"], "successLine": "Fixed before they found it. That's why I never say 'later'.", "snatchLine": "The Worm found the crack first…", "backupLine": "I'll fix the wall. Pass me the bricks!" }
+        { "day": 1, "alertLine": "New parts arrived!", "introLines": ["The builders sent new bricks.", "Fit them now, or later?"], "successLine": "Fixed before they found it. That's why I never say 'later'.", "snatchLine": "The Worm found the crack first…", "backupLine": "I'll fix the wall. Pass me the bricks!" },
+        { "day": 2, "alertLine": "Crates everywhere, and the Worms are back!", "introLines": ["Real parts first, before the Worms find a crack.", "And check who sent them. Not every crate is from the builders."], "successLine": "That crate said b1lders, not builders. Real parts only, and never later!", "snatchLine": "I waited too long, and the Worm got in…", "backupLine": "I'll fix the wall. Pass me the bricks!", "waitingLine": "There you are! The Worms are halfway up the wall!", "complaintLine": "Hey, those were real bricks from the builders!", "complaintFailLine": "Too many good crates sent back. The wall fell apart and the Worms walked in." }
       ]
     }
   ],
