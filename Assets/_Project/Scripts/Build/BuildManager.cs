@@ -44,6 +44,17 @@ namespace ByteWorld
 
         void OnDestroy() => Services.Unregister<IBuildMode>(this);
 
+        void OnEnable() => GameEvents.RevealClosed += OnRevealClosed;
+        void OnDisable() => GameEvents.RevealClosed -= OnRevealClosed;
+
+        // GameManager returns to Build after a reveal but only calls Begin once, so the next puzzle loads here.
+        // After the last puzzle GameManager calls End instead.
+        void OnRevealClosed(int puzzleId)
+        {
+            if (Puzzle == null || puzzleId != Puzzle.id || PuzzleIndex >= PuzzleCount) return;
+            LoadPuzzle(PuzzleIndex + 1);
+        }
+
         // ---------- IBuildMode ----------
 
         public void Begin(int startPuzzle)
