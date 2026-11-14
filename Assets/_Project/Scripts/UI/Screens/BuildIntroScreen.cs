@@ -18,8 +18,27 @@ namespace ByteWorld
             buttonRoot.SetActive(false);
         }
 
-        void OnEnable() => GameEvents.StateChanged += OnStateChanged;
-        void OnDisable() => GameEvents.StateChanged -= OnStateChanged;
+        int quest = 3;
+
+        void OnEnable()
+        {
+            GameEvents.StateChanged += OnStateChanged;
+            GameEvents.UiCommandRequested += OnCommand;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.StateChanged -= OnStateChanged;
+            GameEvents.UiCommandRequested -= OnCommand;
+        }
+
+        // "goin:switchyard" is Quest 3, "goin:tower" Quest 4 (checkpoints.json quest).
+        void OnCommand(string command)
+        {
+            if (command == null || !command.StartsWith("goin:")) return;
+            var c = Services.Checkpoints?.Get(command.Substring(5));
+            if (c != null && (c.job == "build" || c.job == "siege")) quest = c.quest;
+        }
 
         void OnStateChanged(GameState from, GameState to)
         {
@@ -29,7 +48,7 @@ namespace ByteWorld
             var build = Services.Data?.Dialogue?.build;
             buttonLabel.text = UiStrings.Ui.letsBuild ?? "";
             // v2: Quest 3's Webex brief from Gigi when there is one, else the v1 build intro.
-            var brief = TownSpace.BriefFor(3);
+            var brief = TownSpace.BriefFor(quest);
             if (brief != null && brief.Length > 0) Services.Dialogue.SayLines(TownSpace.BriefSpeaker, brief, ShowButton);
             else Services.Dialogue.SayLines(build?.speaker ?? "", build?.intro, ShowButton);
         }

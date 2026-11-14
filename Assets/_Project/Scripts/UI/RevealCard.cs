@@ -29,6 +29,7 @@ namespace ByteWorld
         [SerializeField] TMP_Text roleText;
         [SerializeField] Button nextButton;
         [SerializeField] TMP_Text nextLabel;
+        [SerializeField] Image paxImage;     // Pax, happy (B-18)
 
         public static RevealCard Instance { get; private set; }
 
@@ -88,6 +89,11 @@ namespace ByteWorld
             var role = SetChip(roleChip, roleText, card?.role);
             chipRow.SetActive(tool || concept || role);
             nextLabel.text = button ?? "";
+            if (paxImage != null)
+            {
+                paxImage.sprite = Portraits.Get(Portraits.Happy);
+                paxImage.gameObject.SetActive(paxImage.sprite != null);
+            }
 
             Services.Dialogue.Hide();
             Services.Inspect.Hide();

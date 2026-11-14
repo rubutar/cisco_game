@@ -85,6 +85,9 @@ namespace ByteWorld
         void OnRevealClosed(int puzzleId)
         {
             if (Puzzle == null || puzzleId != Puzzle.id || PuzzleIndex >= PuzzleCount) return;
+            // v2: after the Switch Yard's last puzzle GameManager goes back to the map; the Signal Tower opens the next.
+            var next = Services.Data.Build.puzzles[PuzzleIndex];
+            if (QuestCheck.QuestOf(next) != QuestCheck.QuestOf(Puzzle)) return;
             LoadPuzzle(PuzzleIndex + 1);
         }
 

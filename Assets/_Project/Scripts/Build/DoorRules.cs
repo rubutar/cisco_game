@@ -32,7 +32,11 @@ namespace ByteWorld
             if (HasDoors)
                 foreach (var d in puzzle.doors) doorOption[d.port] = 0;
             if (HasRules)
-                for (var i = 0; i < puzzle.rules.Length; i++) order.Add(i);
+            {
+                // build.json lists the rules in the right order; the player starts from a fixed scramble
+                // (reversed), so putting them in order is the puzzle and the same every time.
+                for (var i = puzzle.rules.Length - 1; i >= 0; i--) order.Add(i);
+            }
         }
 
         // ---------- Doors ----------

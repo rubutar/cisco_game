@@ -57,7 +57,6 @@ namespace ByteWorld
         float loss;             // 0..1, drives the indicator
         readonly List<GameObject> packets = new();
         readonly Dictionary<Cable, (bool bad, int lossPercent, int latency)> health = new();
-        int briefedPuzzle = -1;
         Coroutine callStream, flood;
 
         SiegeData Siege => manager.Puzzle?.siege;
@@ -85,20 +84,11 @@ namespace ByteWorld
             GameEvents.StateChanged -= OnStateChanged;
         }
 
-        // Quest 4's brief when the siege board appears.
-        void OnLoaded()
-        {
-            if (!manager.IsSiege || manager.Puzzle.id == briefedPuzzle) return;
-            briefedPuzzle = manager.Puzzle.id;
-            var brief = Brief(0);
-            if (brief == null) return;
-            foreach (var line in brief) TownSpace.Add(TownSpace.BriefSpeaker, line);
-            Services.Dialogue.SayLines(TownSpace.BriefSpeaker, brief);
-        }
+        // The Quest 4 brief itself plays on the build intro (BuildIntroScreen).
+        void OnLoaded() { }
 
         void OnStateChanged(GameState from, GameState to)
         {
-            if (to == GameState.Title) briefedPuzzle = -1;
             if (stage != Stage.Idle && to != GameState.TestRun) Stop();
         }
 
@@ -157,8 +147,13 @@ namespace ByteWorld
                 yield return null;
             }
 
-            // Gigi asks for the network team.
+            // Gigi asks for the network team: a second Quest 4 brief if there is one, else the brief's last line.
             var ask = Brief(1);
+            if (ask == null)
+            {
+                var first = Brief(0);
+                if (first != null && first.Length > 0) ask = new[] { first[first.Length - 1] };
+            }
             if (ask != null)
             {
                 foreach (var line in ask) TownSpace.Add(TownSpace.BriefSpeaker, line);

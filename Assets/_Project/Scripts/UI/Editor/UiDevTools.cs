@@ -56,6 +56,7 @@ namespace ByteWorld.EditorTools
             var cam = new GameObject("UiCaptureCamera").AddComponent<Camera>();
             var main = Camera.main;
             if (main != null) cam.CopyFrom(main);
+            cam.cullingMask |= 1 << 5; // the UI layer, which station cameras may leave out
             cam.targetTexture = rt;
 
             var mode = canvas.renderMode;

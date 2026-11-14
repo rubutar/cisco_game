@@ -30,6 +30,10 @@ namespace ByteWorld
         [SerializeField] Button cardButton;
         [SerializeField] TMP_Text cardButtonLabel;
 
+        [Header("Pax (B-18)")]
+        [SerializeField] Image cardPortrait;    // worried on the snatched card
+        [SerializeField] Image bannerPortrait;  // determined on the way in
+
         JobId currentJob;
         SnatchInfo lastSnatch;
         bool snatchPending; // Snatched event seen, card not shown yet
@@ -86,6 +90,7 @@ namespace ByteWorld
             var lines = UiStrings.JobDay(ctx.job, ctx.day);
             placeText.text = job?.place ?? "";
             placeBanner.SetActive(!string.IsNullOrEmpty(placeText.text));
+            SetPortrait(bannerPortrait, Portraits.Determined);
 
             var say = new System.Collections.Generic.List<string>();
             if (keptWaiting && !string.IsNullOrEmpty(lines?.waitingLine)) say.Add(lines.waitingLine);
@@ -183,8 +188,17 @@ namespace ByteWorld
             SetText(cardNote, note);
             cardButtonLabel.text = button ?? "";
             cardAction = action;
+            if (action == UiAction.KeepWatching) SetPortrait(cardPortrait, Portraits.Worried);
+            else if (cardPortrait != null) cardPortrait.gameObject.SetActive(false);
             overlay.SetActive(true);
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)cardTitle.transform.parent);
+        }
+
+        static void SetPortrait(Image image, string expression)
+        {
+            if (image == null) return;
+            image.sprite = Portraits.Get(expression);
+            image.gameObject.SetActive(image.sprite != null);
         }
 
         static void SetText(TMP_Text text, string value)

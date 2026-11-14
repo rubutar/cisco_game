@@ -1,7 +1,7 @@
 // Stream B. The Learner Card (PRD-v2 4.9, B-07): the outcomes ticked, Field Notes x/8, the check score as
 // pips (green = right), and the QR code and link to Cisco Networking Academy. Shown on the peace screen and
 // later in the toolkit panel. Text from dialogue.json learnerCard and ui.fieldNotesFormat; the QR image is
-// Resources/UI/LearnerQR (a PNG from Person A, A-09) and hides itself until it exists.
+// Resources/Sprites/UI/qr_netacad (a PNG from Person A, A-09) and hides itself if it's missing.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,7 +12,7 @@ namespace ByteWorld
     {
         public const int MaxOutcomes = 9;
         public const int MaxCheckPips = 8;
-        public const string QrResource = "UI/LearnerQR";
+        public const string QrResource = "Sprites/UI/qr_netacad"; // Person A, A-09
 
         [SerializeField] TMP_Text titleText;
         [SerializeField] GameObject[] outcomeRows;

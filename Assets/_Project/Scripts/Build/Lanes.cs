@@ -1,6 +1,7 @@
-// Stream B. Quest 3 lanes (PRD-v2 4.7, B-05), plain C#: build.json lanes[] say which houses (pods) belong to
-// which lane. A managed switch carries one lane, so a lane is right when every house in it hangs off a switch
-// that carries only that lane. The router keeps lanes apart: traffic from one lane to another is stopped there,
+// Stream B. Quest 3 lanes (PRD-v2 4.7, B-05), plain C#: build.json lanes[] say which slots belong to which
+// lane: the pods, and optionally the switch slot that carries the lane. A managed switch carries one lane, so a
+// lane is right when every pod in it hangs off a switch that carries only that lane (and, if the lane names its
+// switch slot, off that very switch). The router keeps lanes apart: traffic from one lane to another is stopped there,
 // so the test packet from an infected pod only gets through if it shares a switch with its target.
 using System.Collections.Generic;
 using ByteWorld.Data;
@@ -41,12 +42,13 @@ namespace ByteWorld
             foreach (var pair in laneOf)
             {
                 var house = pair.Key;
-                if (!graph.HasPiece(house)) continue;
+                if (!graph.HasPiece(house) || graph.KindOf(house) != PieceKind.House) continue;
                 var ok = false;
                 foreach (var next in graph.Neighbours(house))
                 {
                     if (graph.KindOf(next) != PieceKind.Switch) continue;
-                    ok = CarriesOnly(graph, next, pair.Value);
+                    var switchLane = LaneOf(next);
+                    ok = (switchLane == null || switchLane == pair.Value) && CarriesOnly(graph, next, pair.Value);
                     break;
                 }
                 if (!ok) wrong.Add(house);
@@ -64,11 +66,11 @@ namespace ByteWorld
             return true;
         }
 
-        /// <summary>Where a test packet lands: a slot id, or the first house of a lane id.</summary>
+        /// <summary>Where a test packet lands: a slot id, or the last slot of a lane id (lanes list the switch first).</summary>
         public string Resolve(string target)
         {
             if (string.IsNullOrEmpty(target)) return null;
-            if (slotsOf.TryGetValue(target, out var list)) return list.Count > 0 ? list[0] : null;
+            if (slotsOf.TryGetValue(target, out var list)) return list.Count > 0 ? list[list.Count - 1] : null;
             return target;
         }
     }

@@ -17,6 +17,15 @@ namespace ByteWorld
         Vector2 restFace;
         bool pressed;
 
+        /// <summary>For buttons made at runtime (UiKit).</summary>
+        public void Init(Shadow dropShadow, RectTransform buttonFace)
+        {
+            shadow = dropShadow;
+            face = buttonFace;
+            restShadow = shadow != null ? shadow.effectDistance : Vector2.zero;
+            restFace = face != null ? face.anchoredPosition : Vector2.zero;
+        }
+
         void Awake()
         {
             button = GetComponent<Button>();
