@@ -17,14 +17,6 @@ namespace ByteWorld
         const float ArriveRadius = 26f;
         const float LeaveRadius = 30f;
 
-        // The data river's centre line (map px) and the bridge where it can be crossed.
-        static readonly Vector2[] River =
-        {
-            new(410, 58), new(402, 82), new(388, 104), new(378, 128), new(372, 150), new(382, 174), new(372, 198),
-            new(356, 222), new(346, 246), new(342, 272),
-        };
-        static readonly Rect Bridge = new(352, 120, 56, 24);
-
         Vector2 position;           // map px, feet
         readonly Queue<Vector2> route = new();
         string arrivedAt;
@@ -184,19 +176,18 @@ namespace ByteWorld
 
             Animate(moved);
             Place();
-            if (free) CheckArrival();
+            if (free) CheckArrival(route.Count == 0);
         }
 
         bool Walkable(Vector2 p)
         {
             if (p.x < 8 || p.x > PixelArt.MapWidth - 8 || p.y < 30 || p.y > PixelArt.MapHeight - 4) return false;
-            if (Bridge.Contains(p)) return true;
-            foreach (var r in River)
-                if ((p - r).sqrMagnitude < 13f * 13f) return false;
-            return true;
+            return !WorldMap.IsWater(p);
         }
 
-        void CheckArrival()
+        /// <summary>Raises HeroLeft / HeroArrived. During a tapped walk Pax can leave but not arrive, so passing
+        /// another station's door on the way (the Tower's road passes the Switch Yard's) opens nothing.</summary>
+        void CheckArrival(bool canArrive = true)
         {
             string nearest = null;
             var best = float.MaxValue;
@@ -214,7 +205,7 @@ namespace ByteWorld
                 arrivedAt = null;
                 GameEvents.RaiseHeroLeft(left);
             }
-            if (nearest != null && best <= ArriveRadius)
+            if (canArrive && nearest != null && best <= ArriveRadius)
             {
                 arrivedAt = nearest;
                 GameEvents.RaiseHeroArrived(nearest);
