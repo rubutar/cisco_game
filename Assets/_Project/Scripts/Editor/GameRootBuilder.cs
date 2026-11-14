@@ -21,19 +21,27 @@ namespace ByteWorld.EditorTools
             typeof(DataLoader),
             typeof(BackupNest),
             typeof(GameManager),
+            typeof(DebugTools.DebugMenu),
         };
 
         static GameRootBuilder()
         {
             if (Application.isBatchMode) return;
-            EditorApplication.delayCall += () =>
+            EditorApplication.delayCall += RebuildIfNeeded;
+            // A compile during Play mode can't save the prefab; catch up as soon as Play mode stops.
+            EditorApplication.playModeStateChanged += state =>
             {
-                if (IsUpToDate()) return;
-                if (EditorApplication.isPlayingOrWillChangePlaymode)
-                    Debug.LogWarning("[Stream A] GameRoot.prefab is out of date; leave Play mode and run Byte World > Stream A > Build GameRoot Prefab.");
-                else
-                    Build();
+                if (state == PlayModeStateChange.EnteredEditMode) RebuildIfNeeded();
             };
+        }
+
+        static void RebuildIfNeeded()
+        {
+            if (IsUpToDate()) return;
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                Debug.LogWarning("[Stream A] GameRoot.prefab is out of date; it rebuilds when Play mode stops.");
+            else
+                Build();
         }
 
         static bool IsUpToDate()

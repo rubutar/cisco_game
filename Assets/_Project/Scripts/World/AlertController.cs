@@ -37,7 +37,8 @@ namespace ByteWorld
         void Update()
         {
             var flow = Services.Flow;
-            if (flow.State != GameState.WorldPeace) return;
+            // FinalAttack is the fallback Day 3: the same groups, from DataLoader's fallback day.
+            if (flow.State != GameState.WorldPeace && flow.State != GameState.FinalAttack) return;
 
             // A new day (or a restarted one) begins as soon as the world is at peace on it.
             if (startedDay != flow.Day) BeginDay(flow.Day);
@@ -75,7 +76,7 @@ namespace ByteWorld
         public void OnJobTapped(JobId job)
         {
             var state = Services.Flow.State;
-            if (!waitingSince.ContainsKey(job) || (state != GameState.Alert && state != GameState.WorldPeace)) return;
+            if (!waitingSince.ContainsKey(job) || (state != GameState.Alert && state != GameState.WorldPeace && state != GameState.FinalAttack)) return;
 
             var waited = WaitedSeconds(job);
             waitingSince.Remove(job);
@@ -120,7 +121,9 @@ namespace ByteWorld
             {
                 nextAlertAt = -1f;
                 Debug.Log($"[AlertController] Day {startedDay}: all alert groups done");
-                GameEvents.RaiseDayEnded(startedDay);
+                // The fallback final attack ends the game in peace; any other day ends with its day card.
+                if (Services.Flow.Mode == DayMode.Build) GameManager.Instance.FinishFinalAttack();
+                else GameEvents.RaiseDayEnded(startedDay);
             }
         }
     }

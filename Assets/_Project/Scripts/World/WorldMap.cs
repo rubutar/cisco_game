@@ -55,6 +55,15 @@ namespace ByteWorld
             content.transform.SetParent(transform, false);
             PixelArt.AddSprite(content.transform, DrawTown(), "Town", -1000);
 
+            // Ordinary Bytes walking the cable roads (A-07); every third carries a data orb.
+            const int roamingCount = 12;
+            for (var i = 0; i < roamingCount; i++)
+            {
+                var go = new GameObject($"Roaming Byte {i + 1}");
+                go.transform.SetParent(content.transform, false);
+                go.AddComponent<RoamingByte>().Init(Roads[i % Roads.Length], (i * 0.31f) % 1f, 0.9f + (i % 4) * 0.25f, i % 3 == 0, i);
+            }
+
             foreach (var (job, spots) in JobSpots)
             {
                 var go = new GameObject($"{job} Byte");
