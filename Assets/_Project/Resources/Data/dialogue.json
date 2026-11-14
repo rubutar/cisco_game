@@ -22,6 +22,7 @@
       "job": "twins", "name": "Uno and Due", "place": "The Twins' Vault",
       "jobLine": "Uno checks the password. Due checks with the owner's phone. You need both of us.",
       "primaryAction": "Open vault", "secondaryAction": "Keep it shut", "fieldLabels": ["Password", "Phone code", "Visitor's code"],
+      "valueLabels": ["right", "wrong", "expired", "not asked"],
       "days": [
         { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" }
       ]
