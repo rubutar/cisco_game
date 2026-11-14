@@ -28,6 +28,7 @@ namespace ByteWorld.EditorTools
                 var safe = NewRect("SafeArea", root.transform);
                 Stretch(safe);
                 safe.gameObject.AddComponent<SafeArea>();
+                BuildBuildView(safe);
                 BuildTopBar(safe);
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
@@ -399,6 +400,64 @@ namespace ByteWorld.EditorTools
             so.FindProperty("nextLabel").objectReferenceValue = nextLabel;
             so.FindProperty("skipButton").objectReferenceValue = skipButton;
             so.FindProperty("skipLabel").objectReferenceValue = skipLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Day 3 build mode ----------
+
+        static void BuildBuildView(RectTransform parent)
+        {
+            var host = NewRect("BuildMode", parent);
+            Stretch(host);
+            var manager = host.gameObject.AddComponent<BuildManager>();
+
+            var view = NewRect("View", host);
+            Stretch(view);
+            // Blueprint backdrop: blocks taps to anything behind and sets the build-day mood.
+            AddImage(view.gameObject, Palette.CliffDark, true);
+
+            // The board keeps the map's 16:9 shape and scales to fit; slots are placed by map coordinates.
+            var board = NewRect("Board", view);
+            Stretch(board);
+            var fitter = board.gameObject.AddComponent<AspectRatioFitter>();
+            fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fitter.aspectRatio = BuildManager.MapWidth / BuildManager.MapHeight;
+            var boardTint = (Color)Palette.SignalBlue;
+            boardTint.a = 0.35f;
+            AddImage(board.gameObject, boardTint, false);
+
+            var cables = NewRect("Cables", board);
+            Stretch(cables);
+            var slots = NewRect("Slots", board);
+            Stretch(slots);
+
+            // Tray of pieces to place, bottom left.
+            var tray = NewRect("Tray", view);
+            tray.anchorMin = tray.anchorMax = new Vector2(0, 0);
+            tray.pivot = new Vector2(0, 0);
+            tray.anchoredPosition = new Vector2(48, 48);
+            var trayColor = (Color)Palette.Ink;
+            trayColor.a = 0.8f;
+            AddImage(tray.gameObject, trayColor, true);
+            AddOutline(tray.gameObject, 6);
+            var trayLayout = tray.gameObject.AddComponent<HorizontalLayoutGroup>();
+            trayLayout.padding = new RectOffset(36, 48, 36, 36);
+            trayLayout.spacing = 40;
+            trayLayout.childAlignment = TextAnchor.MiddleLeft;
+            trayLayout.childControlWidth = true;
+            trayLayout.childControlHeight = true;
+            trayLayout.childForceExpandWidth = false;
+            trayLayout.childForceExpandHeight = false;
+            var trayFit = tray.gameObject.AddComponent<ContentSizeFitter>();
+            trayFit.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            trayFit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var so = new SerializedObject(manager);
+            so.FindProperty("view").objectReferenceValue = view.gameObject;
+            so.FindProperty("board").objectReferenceValue = board;
+            so.FindProperty("cableLayer").objectReferenceValue = cables;
+            so.FindProperty("slotLayer").objectReferenceValue = slots;
+            so.FindProperty("tray").objectReferenceValue = tray;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
