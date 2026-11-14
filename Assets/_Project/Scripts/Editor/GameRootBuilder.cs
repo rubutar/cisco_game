@@ -23,6 +23,7 @@ namespace ByteWorld.EditorTools
             typeof(GameManager),
             typeof(CheckpointManager),
             typeof(HuntScreen),
+            typeof(AudioDirector),
             typeof(DebugTools.DebugMenu),
         };
 

@@ -152,11 +152,13 @@ namespace ByteWorld
             if (order != nextOrder)
             {
                 StartCoroutine(Flash(chip.GetComponent<Image>(), Palette.AlertPink, Palette.ByteCream));
+                AudioDirector.Instance?.Play("wrong");
                 chipMisses++;
                 if (chipsByOrder.TryGetValue(nextOrder, out var next)) StartCoroutine(Pulse(next.GetComponent<Image>(), Palette.ByteCream));
                 if (chipMisses >= 2) ShowQuery(NextLabel());
                 return;
             }
+            AudioDirector.Instance?.Play("tap");
             built = string.IsNullOrEmpty(built) ? label : $"{built} {label}";
             ShowQuery(null);
             chip.gameObject.SetActive(false);
@@ -224,10 +226,12 @@ namespace ByteWorld
             if (!row.target)
             {
                 StartCoroutine(Flash(image, Palette.AlertPink, Palette.ByteCream));
+                AudioDirector.Instance?.Play("wrong");
                 if (++rowMisses >= 2 && targetRow != null) StartCoroutine(Pulse(targetRow, Palette.ByteCream));
                 return;
             }
             pinned = $"{row.srcIp}:{row.destPort}";
+            AudioDirector.Instance?.Play("pin");
             image.color = Palette.PacketYellow;
             ShowFieldCard();
         }
