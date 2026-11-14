@@ -27,6 +27,9 @@ namespace ByteWorld
         public JobId? CurrentJob { get; private set; }
         public int CurrentPuzzle { get; private set; } = 1;
 
+        /// <summary>The job being played; job scenes load after JobEntered, so they read it here.</summary>
+        public JobContext CurrentContext { get; private set; }
+
         string loadedJobScene;
 
         // Expected transitions. Anything else still happens but logs a warning, to catch wiring bugs early.
@@ -35,7 +38,7 @@ namespace ByteWorld
             { GameState.Boot, new[] { GameState.Title, GameState.WorldPeace, GameState.BuildIntro, GameState.Build } },
             { GameState.Title, new[] { GameState.Intro, GameState.WorldPeace, GameState.BuildIntro, GameState.FinalAttack } },
             { GameState.Intro, new[] { GameState.WorldPeace } },
-            { GameState.WorldPeace, new[] { GameState.Alert, GameState.DayEnd } },
+            { GameState.WorldPeace, new[] { GameState.Alert, GameState.DayEnd, GameState.JobIntro } },
             { GameState.Alert, new[] { GameState.JobIntro, GameState.FinalAttack } },
             { GameState.JobIntro, new[] { GameState.JobShift } },
             { GameState.JobShift, new[] { GameState.JobSuccess, GameState.Snatched, GameState.Collapse } },
@@ -132,6 +135,7 @@ namespace ByteWorld
         public void EnterJob(JobContext context)
         {
             CurrentJob = context.job;
+            CurrentContext = context;
             UnloadJobScene();
             loadedJobScene = SceneNames.ForJob(context.job);
             SceneManager.LoadSceneAsync(loadedJobScene, LoadSceneMode.Additive);

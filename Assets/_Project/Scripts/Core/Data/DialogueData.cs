@@ -27,6 +27,7 @@ namespace ByteWorld.Data
         public string primaryAction;        // "Let it dock"
         public string secondaryAction;      // "Send away"
         public string[] fieldLabels;        // inspect panel labels, e.g. ["From", "Cargo"]
+        public string[] valueLabels;        // words a job shows as values; Twins: [right, wrong, expired, not asked]
         public JobDayDialogue[] days;
     }
 
