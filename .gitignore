@@ -114,3 +114,5 @@ InitTestScene*.unity*
 .utmp/
 /[Bb]uilds/
 /[Ww]eb[Gg][Ll]/
+.venv/
+.DS_Store
