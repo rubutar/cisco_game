@@ -64,6 +64,7 @@
     "gameTitle": "BYTE WORLD",
     "tagline": "A tiny world living inside your Wi-Fi",
     "play": "Play", "next": "Next", "skip": "Skip", "tryAgain": "Try again",
+    "pause": "Paused", "resume": "Resume", "restartDay": "Restart day",
     "backToWorld": "Back to Byte World", "keepWatching": "Keep watching", "sleep": "Sleep",
     "startDay": "Start the day", "startAgain": "Start again", "letsBuild": "Let's build",
     "run": "Run", "fixBuild": "Fix the build", "playAgain": "Play again",
