@@ -44,8 +44,25 @@ namespace ByteWorld
 
         void OnDestroy() => Services.Unregister<IBuildMode>(this);
 
-        void OnEnable() => GameEvents.RevealClosed += OnRevealClosed;
-        void OnDisable() => GameEvents.RevealClosed -= OnRevealClosed;
+        void OnEnable()
+        {
+            GameEvents.RevealClosed += OnRevealClosed;
+            GameEvents.StateChanged += OnStateChanged;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.RevealClosed -= OnRevealClosed;
+            GameEvents.StateChanged -= OnStateChanged;
+        }
+
+        // A Day 3 collapse (or going back to the title) leaves build mode without End(): clear the board so
+        // it doesn't sit under the collapse and build-intro screens. LetsBuild calls Begin again.
+        void OnStateChanged(GameState from, GameState to)
+        {
+            if (Graph == null) return;
+            if (to == GameState.Collapse || to == GameState.BuildIntro || to == GameState.Title) End();
+        }
 
         // GameManager returns to Build after a reveal but only calls Begin once, so the next puzzle loads here.
         // After the last puzzle GameManager calls End instead.
