@@ -35,16 +35,16 @@ namespace ByteWorld
             Services.Unregister<IGameData>(this);
         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Editor and development builds only: confirms the data loaded.
         void Start()
         {
+            if (!Debug.isDebugBuild) return;
             var scout = GetShift(1, JobId.Scout);
             var items = scout?.items ?? new ItemData[0];
             Debug.Log($"[DataLoader] Day 1 Scout: {items.Length} item(s): " +
                       string.Join(", ", System.Array.ConvertAll(items, i => $"{i.id} {i.kind} \"{i.title}\"")) +
                       $". Backups {Services.Backups.Left}/{Services.Backups.Max}. Day 3 mode: {Flags.day3Mode}.");
         }
-#endif
 
         /// <summary>Reads every file again (handy after editing JSON during Play mode).</summary>
         public void Reload()
