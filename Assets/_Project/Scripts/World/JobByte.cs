@@ -107,7 +107,10 @@ namespace ByteWorld
         {
             if (Alerting)
             {
-                AlertController.Instance?.OnJobTapped(Job);
+                // v2: tapping a flashing station Byte walks Pax to its station (the popup does the rest).
+                var station = CheckpointManager.Instance?.StationForJob(Job.ToKey());
+                if (station != null) GameEvents.RaiseUiAction($"walk:{station}");
+                else AlertController.Instance?.OnJobTapped(Job);
                 return;
             }
             var state = Services.Flow.State;

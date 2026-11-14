@@ -91,6 +91,23 @@ namespace ByteWorld
             GameEvents.RaiseAlert(new AlertInfo { jobs = jobs.ToArray(), groupIndex = groupIndex, groupCount = groups.Length });
         }
 
+        /// <summary>
+        /// Go in at a station (PRD-v2): enter the job if it's flashing; if its group hasn't been raised yet,
+        /// raise it now (the player walked there before the alert fired) and enter.
+        /// </summary>
+        public void TryEnter(JobId job)
+        {
+            var flow = Services.Flow;
+            if (startedDay != flow.Day && (flow.State == GameState.WorldPeace || flow.State == GameState.FinalAttack)) BeginDay(flow.Day);
+            if (!waitingSince.ContainsKey(job) && !groupActive && groups != null && groupIndex < groups.Length)
+            {
+                var key = job.ToKey();
+                foreach (var k in groups[groupIndex].jobs ?? new string[0])
+                    if (k == key) { RaiseNextGroup(); break; }
+            }
+            OnJobTapped(job);
+        }
+
         public void OnJobTapped(JobId job)
         {
             var state = Services.Flow.State;
@@ -141,6 +158,8 @@ namespace ByteWorld
                 Debug.Log($"[AlertController] Day {startedDay}: all alert groups done");
                 // The fallback final attack ends the game in peace; any other day ends with its day card.
                 if (Services.Flow.Mode == DayMode.Build) GameManager.Instance.FinishFinalAttack();
+                // v2: the day-end card waits until the quest's stations are done (Day 2: the Splunk Observatory).
+                else if (CheckpointManager.Instance != null) CheckpointManager.Instance.TryEndDay(startedDay);
                 else GameEvents.RaiseDayEnded(startedDay);
             }
         }

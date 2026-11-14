@@ -248,7 +248,8 @@
     "toolkit": "Cisco toolkit",
     "toolkitCountFormat": "Cisco toolkit {0}/{1}",
     "toolkitToastFormat": "{0} added to your Cisco toolkit",
-    "keyHint": "Enter: go in · M: materials · Esc: close"
+    "keyHint": "Enter: go in · M: materials · Esc: close",
+    "lockFormat": "Opens after Quest {0}"
   },
   "briefs": [
     {

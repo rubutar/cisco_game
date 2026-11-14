@@ -2,8 +2,8 @@
   "puzzles": [
     {
       "id": 1,
-      "name": "Connect the town",
-      "goal": "Connect every house to the router",
+      "name": "Lanes",
+      "goal": "Put the pods in two lanes so Pod 12 can't reach the vault",
       "router": {
         "slot": "r",
         "sockets": 2
@@ -17,21 +17,21 @@
         },
         {
           "id": "s1",
-          "x": 160,
+          "x": 300,
           "y": 150
         },
         {
           "id": "s2",
-          "x": 290,
+          "x": 150,
           "y": 150
         },
         {
           "id": "h10",
-          "x": 128,
-          "y": 130,
+          "x": 100,
+          "y": 110,
           "fixed": "house",
           "address": 10,
-          "service": "mail"
+          "service": "vault"
         },
         {
           "id": "h11",
@@ -39,75 +39,101 @@
           "y": 44,
           "fixed": "house",
           "address": 11,
-          "service": "photos"
+          "service": "vault"
         },
         {
           "id": "h12",
-          "x": 272,
-          "y": 100,
+          "x": 300,
+          "y": 70,
           "fixed": "house",
           "address": 12,
-          "service": "games"
+          "service": "media"
         },
         {
-          "id": "h13",
-          "x": 244,
-          "y": 236,
+          "id": "h14",
+          "x": 330,
+          "y": 226,
           "fixed": "house",
-          "address": 13,
-          "service": "home"
+          "address": 14,
+          "service": "media"
         }
       ],
       "tray": [
         {
           "piece": "switch",
-          "count": 1
+          "count": 2
         }
       ],
       "traffic": [
         {
-          "id": "p1-1",
+          "id": "q3a-1",
           "to": 10,
-          "kind": "safe",
+          "port": 0,
           "friend": true,
-          "label": "Mum's message"
+          "kind": "safe",
+          "label": "Vault backup to Pod 10"
         },
         {
-          "id": "p1-2",
+          "id": "q3a-2",
           "to": 11,
-          "kind": "safe",
+          "port": 0,
           "friend": true,
-          "label": "Luca's photo"
+          "kind": "safe",
+          "label": "Vault sync to Pod 11"
         },
         {
-          "id": "p1-3",
+          "id": "q3a-3",
           "to": 12,
-          "kind": "safe",
+          "port": 0,
           "friend": true,
-          "label": "Game update"
+          "kind": "safe",
+          "label": "Video to Pod 12"
         },
         {
-          "id": "p1-4",
-          "to": 13,
-          "kind": "safe",
+          "id": "q3a-4",
+          "to": 14,
+          "port": 0,
           "friend": true,
-          "label": "Coach's message"
+          "kind": "safe",
+          "label": "Music to Pod 14"
         }
       ],
-      "pass": {
-        "maxLeaks": 0,
-        "maxWrongBlocks": 3
+      "lanes": [
+        {
+          "id": "media",
+          "slots": [
+            "s1",
+            "h12",
+            "h14"
+          ]
+        },
+        {
+          "id": "vault",
+          "slots": [
+            "s2",
+            "h10",
+            "h11"
+          ]
+        }
+      ],
+      "testPacket": {
+        "from": "h12",
+        "to": "h10"
       },
       "reveal": {
         "byte": "patch",
-        "term": "Router and switch",
-        "text": "The router is the town's front door to the internet. A switch lets many houses share one cable."
+        "term": "Segmentation",
+        "text": "Cisco Catalyst switches put each group in its own lane, a VLAN, so one infected pod stays in its lane."
+      },
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
       }
     },
     {
       "id": 2,
-      "name": "Right house, right door",
-      "goal": "Send each message through the right door to the right house",
+      "name": "Doors and rules",
+      "goal": "Order the rules: least privilege, and block the pinned address",
       "router": {
         "slot": "r",
         "sockets": 2
@@ -121,21 +147,21 @@
         },
         {
           "id": "s1",
-          "x": 160,
+          "x": 300,
           "y": 150
         },
         {
           "id": "s2",
-          "x": 290,
+          "x": 150,
           "y": 150
         },
         {
           "id": "h10",
-          "x": 128,
-          "y": 130,
+          "x": 100,
+          "y": 110,
           "fixed": "house",
           "address": 10,
-          "service": "mail"
+          "service": "vault"
         },
         {
           "id": "h11",
@@ -143,165 +169,29 @@
           "y": 44,
           "fixed": "house",
           "address": 11,
-          "service": "photos"
+          "service": "vault"
         },
         {
           "id": "h12",
-          "x": 272,
-          "y": 100,
+          "x": 300,
+          "y": 70,
           "fixed": "house",
           "address": 12,
-          "service": "games"
+          "service": "media"
         },
         {
-          "id": "h13",
-          "x": 244,
-          "y": 236,
+          "id": "h14",
+          "x": 330,
+          "y": 226,
           "fixed": "house",
-          "address": 13,
-          "service": "home"
+          "address": 14,
+          "service": "media"
         }
       ],
       "tray": [
         {
           "piece": "switch",
-          "count": 1
-        }
-      ],
-      "doors": [
-        {
-          "port": 80
-        },
-        {
-          "port": 443
-        },
-        {
-          "port": 8080
-        },
-        {
-          "port": 23
-        }
-      ],
-      "traffic": [
-        {
-          "id": "p2-1",
-          "to": 10,
-          "port": 443,
-          "from": "mum",
-          "friend": true,
-          "kind": "safe",
-          "label": "Mum's message, to door 443"
-        },
-        {
-          "id": "p2-2",
-          "to": 11,
-          "port": 80,
-          "from": "luca",
-          "friend": true,
-          "kind": "safe",
-          "label": "Luca's photo, to door 80"
-        },
-        {
-          "id": "p2-3",
-          "to": 12,
-          "port": 8080,
-          "from": "marco",
-          "friend": true,
-          "kind": "safe",
-          "label": "Game invite, to door 8080"
-        },
-        {
-          "id": "p2-4",
-          "to": 10,
-          "port": 443,
-          "from": "coach",
-          "friend": true,
-          "kind": "safe",
-          "label": "Coach's message, to door 443"
-        },
-        {
-          "id": "p2-5",
-          "to": 0,
-          "port": 23,
-          "from": "unknown",
-          "friend": false,
-          "kind": "attack",
-          "attacker": "ram",
-          "label": "Knock knock, door 23"
-        }
-      ],
-      "pass": {
-        "maxLeaks": 0,
-        "maxWrongBlocks": 3
-      },
-      "reveal": {
-        "byte": "gigi",
-        "term": "Port and socket",
-        "text": "Each door has a number called a port. Address plus port is a socket: the exact place a message is going."
-      }
-    },
-    {
-      "id": 3,
-      "name": "Lock the gate",
-      "goal": "Set each door's rule: friends in, attackers out",
-      "router": {
-        "slot": "r",
-        "sockets": 2
-      },
-      "slots": [
-        {
-          "id": "r",
-          "x": 226,
-          "y": 132,
-          "fixed": "router"
-        },
-        {
-          "id": "s1",
-          "x": 160,
-          "y": 150
-        },
-        {
-          "id": "s2",
-          "x": 290,
-          "y": 150
-        },
-        {
-          "id": "h10",
-          "x": 128,
-          "y": 130,
-          "fixed": "house",
-          "address": 10,
-          "service": "mail"
-        },
-        {
-          "id": "h11",
-          "x": 150,
-          "y": 44,
-          "fixed": "house",
-          "address": 11,
-          "service": "photos"
-        },
-        {
-          "id": "h12",
-          "x": 272,
-          "y": 100,
-          "fixed": "house",
-          "address": 12,
-          "service": "games"
-        },
-        {
-          "id": "h13",
-          "x": 244,
-          "y": 236,
-          "fixed": "house",
-          "address": 13,
-          "service": "home"
-        }
-      ],
-      "tray": [
-        {
-          "piece": "switch",
-          "count": 1
+          "count": 2
         }
       ],
       "doors": [
@@ -325,7 +215,7 @@
       ],
       "traffic": [
         {
-          "id": "p3-1",
+          "id": "q3b-1",
           "to": 10,
           "port": 443,
           "from": "luca",
@@ -334,25 +224,7 @@
           "label": "Luca's message"
         },
         {
-          "id": "p3-2",
-          "to": 11,
-          "port": 80,
-          "from": "mum",
-          "friend": true,
-          "kind": "safe",
-          "label": "Mum's photo"
-        },
-        {
-          "id": "p3-3",
-          "to": 11,
-          "port": 80,
-          "from": "town",
-          "friend": false,
-          "kind": "safe",
-          "label": "Town bulletin"
-        },
-        {
-          "id": "p3-4",
+          "id": "q3b-2",
           "to": 12,
           "port": 8080,
           "from": "marco",
@@ -361,7 +233,26 @@
           "label": "Marco's game invite"
         },
         {
-          "id": "p3-5",
+          "id": "q3b-3",
+          "to": 11,
+          "port": 80,
+          "from": "town",
+          "friend": false,
+          "kind": "safe",
+          "label": "Town bulletin"
+        },
+        {
+          "id": "q3b-4",
+          "to": 0,
+          "port": 8080,
+          "from": "203.0.113.7",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Probe from 203.0.113.7"
+        },
+        {
+          "id": "q3b-5",
           "to": 0,
           "port": 23,
           "from": "unknown",
@@ -369,26 +260,28 @@
           "kind": "attack",
           "attacker": "ram",
           "label": "Knock knock, door 23"
+        }
+      ],
+      "rules": [
+        {
+          "match": "src=203.0.113.7",
+          "action": "drop"
         },
         {
-          "id": "p3-6",
-          "to": 12,
-          "port": 8080,
-          "from": "unknown",
-          "friend": false,
-          "kind": "attack",
-          "attacker": "ram",
-          "label": "Stranger's game request"
+          "match": "door=23",
+          "action": "drop"
         },
         {
-          "id": "p3-7",
-          "to": 10,
-          "port": 443,
-          "from": "luca-copy",
-          "friend": false,
-          "kind": "attack",
-          "attacker": "phisher",
-          "label": "Luca's photo?"
+          "match": "door=443 friends",
+          "action": "allow"
+        },
+        {
+          "match": "door=8080 friends",
+          "action": "allow"
+        },
+        {
+          "match": "door=80",
+          "action": "allow"
         }
       ],
       "pass": {
@@ -397,8 +290,155 @@
       },
       "reveal": {
         "byte": "gigi",
-        "term": "Firewall",
-        "text": "These door rules have a real name: a firewall. Open only what you need, only for who needs it."
+        "term": "Least privilege",
+        "text": "Cisco Secure Firewall checks rules in order and drops anything no rule allows. Open only what you need."
+      }
+    },
+    {
+      "id": 3,
+      "name": "The siege",
+      "goal": "Keep the Webex call clear while the flood hits every door",
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
+      "slots": [
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 300,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 150,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 100,
+          "y": 110,
+          "fixed": "house",
+          "address": 10,
+          "service": "vault"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "vault"
+        },
+        {
+          "id": "h12",
+          "x": 300,
+          "y": 70,
+          "fixed": "house",
+          "address": 12,
+          "service": "media"
+        },
+        {
+          "id": "h14",
+          "x": 330,
+          "y": 226,
+          "fixed": "house",
+          "address": 14,
+          "service": "media"
+        }
+      ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 2
+        }
+      ],
+      "doors": [
+        {
+          "port": 80
+        },
+        {
+          "port": 443
+        },
+        {
+          "port": 8080
+        },
+        {
+          "port": 23
+        }
+      ],
+      "ruleOptions": [
+        "everyone",
+        "friends",
+        "closed"
+      ],
+      "traffic": [
+        {
+          "id": "q4-1",
+          "to": 14,
+          "port": 443,
+          "from": "webex",
+          "friend": true,
+          "kind": "safe",
+          "label": "Webex call from Pod 14"
+        },
+        {
+          "id": "q4-2",
+          "to": 0,
+          "port": 80,
+          "from": "flood",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Flood on door 80"
+        },
+        {
+          "id": "q4-3",
+          "to": 0,
+          "port": 443,
+          "from": "flood",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Flood on door 443"
+        },
+        {
+          "id": "q4-4",
+          "to": 0,
+          "port": 8080,
+          "from": "flood",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Flood on door 8080"
+        }
+      ],
+      "siege": {
+        "enabled": true,
+        "callFrom": "h14",
+        "floodDoors": [
+          80,
+          443,
+          8080,
+          23
+        ],
+        "blindSeconds": 15,
+        "rootCauseLink": "r-s1",
+        "priorityToggle": true
+      },
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      },
+      "reveal": {
+        "byte": "gigi",
+        "term": "Path visibility",
+        "text": "Cisco ThousandEyes shows loss, latency and jitter per link, so you fix the cause, not the symptom."
       }
     }
   ]

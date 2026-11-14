@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 8993306784341931183}
   - component: {fileID: 1926973141350893909}
   - component: {fileID: 691035010237652133}
+  - component: {fileID: 8392313897223383342}
+  - component: {fileID: 4426906717095153113}
   - component: {fileID: 7591388395973765753}
   m_Layer: 0
   m_Name: GameRoot
@@ -72,6 +74,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c2a429af088d4703a6dde4e18802ee7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ByteWorld.GameManager
+--- !u!114 &8392313897223383342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514426719549392348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a6f09397e54e494f8a2f7b7ee9029cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ByteWorld.CheckpointManager
+--- !u!114 &4426906717095153113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514426719549392348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12d79c675795d4817af4f5ee1ad52fd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ByteWorld.HuntScreen
 --- !u!114 &7591388395973765753
 MonoBehaviour:
   m_ObjectHideFlags: 0
