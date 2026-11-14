@@ -23,6 +23,44 @@ namespace ByteWorld.Data
         public TrafficData[] traffic;
         public PassRule pass;
         public RevealData reveal;
+
+        // v2 (PRD-v2 4.7, 4.8, 6.5)
+        public LaneData[] lanes;            // Quest 3: which slots belong to which lane
+        public TestPacket testPacket;       // Quest 3: must be blocked
+        public RuleData[] rules;            // applied in order; anything unmatched is dropped
+        public SiegeData siege;             // Quest 4 (siege.enabled)
+    }
+
+    [Serializable]
+    public class LaneData
+    {
+        public string id;
+        public string[] slots;
+    }
+
+    [Serializable]
+    public class TestPacket
+    {
+        public string from;
+        public string to;
+    }
+
+    [Serializable]
+    public class RuleData
+    {
+        public string match;                // e.g. "src=203.0.113.7", "door=23", "door=8080 friends"
+        public string action;               // "allow" | "drop"
+    }
+
+    [Serializable]
+    public class SiegeData
+    {
+        public bool enabled;
+        public string callFrom;             // slot of the Webex call, e.g. "h14"
+        public int[] floodDoors;
+        public float blindSeconds;
+        public string rootCauseLink;        // cable id of the lossy link
+        public bool priorityToggle;
     }
 
     [Serializable]

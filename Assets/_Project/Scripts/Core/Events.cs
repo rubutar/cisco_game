@@ -30,10 +30,14 @@ namespace ByteWorld
 
     public struct ItemResolvedInfo
     {
+        public int day;        // the day (= quest) the decision was made in
         public JobId job;
         public string itemId;
-        public bool allowed;  // true = let through (dock, let in, open, fit)
-        public bool correct;  // true = the player made the right call
+        public string title;   // the item's title, e.g. "Post boat: Your Bank"
+        public bool allowed;   // true = let through (dock, let in, open, fit)
+        public bool correct;   // true = the player made the right call
+        public string attacker;// the item's attacker ("" for safe items)
+        public string logLine; // Splunk-style line for the ticker, e.g. "14:02 gate src=Luca door=23 action=deny"
     }
 
     public struct ComplaintInfo
@@ -79,6 +83,9 @@ namespace ByteWorld
         public static event Action<JobId> ShiftSucceeded;
         public static event Action PeaceReached;
 
+        // World props (raised by Person A's map, shown by Person B's prop card)
+        public static event Action<string> PropTapped;
+
         // Shared rules (shifts: Stream A; test runs: Stream B)
         public static event Action<ComplaintInfo> Complaint;
 
@@ -107,6 +114,7 @@ namespace ByteWorld
         public static void RaiseItemResolved(ItemResolvedInfo info) => ItemResolved?.Invoke(info);
         public static void RaiseShiftSucceeded(JobId job) => ShiftSucceeded?.Invoke(job);
         public static void RaisePeaceReached() => PeaceReached?.Invoke();
+        public static void RaisePropTapped(string propId) => PropTapped?.Invoke(propId);
         public static void RaiseComplaint(ComplaintInfo info) => Complaint?.Invoke(info);
         public static void RaiseSnatched(SnatchInfo info) => Snatched?.Invoke(info);
         public static void RaiseBackupsChanged(int left, int max) => BackupsChanged?.Invoke(left, max);
@@ -125,7 +133,7 @@ namespace ByteWorld
         {
             StateChanged = null; DayStarted = null; DayEnded = null; AlertRaised = null;
             JobEntered = null; ShiftProgress = null; ItemResolved = null; ShiftSucceeded = null;
-            PeaceReached = null; Complaint = null; Snatched = null; BackupsChanged = null;
+            PeaceReached = null; PropTapped = null; Complaint = null; Snatched = null; BackupsChanged = null;
             Collapsed = null; PuzzleStarted = null; TestRunFinished = null; PuzzlePassed = null;
             RevealClosed = null; UiActionRequested = null; RestartDayRequested = null;
             DebugMenuRequested = null;

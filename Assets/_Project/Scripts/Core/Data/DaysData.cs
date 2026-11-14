@@ -38,6 +38,8 @@ namespace ByteWorld.Data
         public int maxWrongBlocks;          // 0 = complaints off (Day 1)
         public GigiRules rules;             // Gigi only
         public RuleChange ruleChange;       // Gigi only, optional (atSeconds 0 = none)
+        public int rulesChangeAtItem;       // v2 Gigi: the rule change happens when this item (1-based) arrives; 0 = none
+        public string rulesChangeLine;      // v2 Gigi: the Webex post announcing it
         public ItemData[] items;
     }
 
@@ -54,6 +56,9 @@ namespace ByteWorld.Data
         // Scout
         public string from;
         public string body;
+        public string replyTo;              // v2
+        public string senderCheck;          // v2: "pass" | "fail"
+        public string link;                 // v2: the link domain shown in the inspect panel
 
         // Gigi
         public int door;
@@ -65,11 +70,13 @@ namespace ByteWorld.Data
         public string visitorCode;
         public bool codeExpired;
         public bool ownerRequested;
+        public int pushCount;               // v2: approval requests in the last minute (push bombing when > 1)
 
         // Patch
         public string type;                 // "crate" | "fakeCrate" | "crack"
         public bool worm;
         public float wormSpeed;
+        public string signature;            // v2: "valid" | "invalid"
 
         public bool IsAttack => kind == "attack";
     }
