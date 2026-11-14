@@ -7,28 +7,159 @@
       "alertDelaySeconds": 8,
       "shifts": [
         {
-          "job": "scout", "timerSeconds": 45, "spawnIntervalSeconds": 4, "maxWrongBlocks": 0,
+          "job": "scout",
+          "timerSeconds": 45,
+          "spawnIntervalSeconds": 4,
           "items": [
-            { "id": "s1-1", "kind": "attack", "title": "P0st boat: Your Bank", "from": "bank-supp0rt.co", "body": "Your account is locked! Log in now", "attacker": "phisher", "hint": "Look at the name on that boat. Is that a zero instead of an O?" }
+            {
+              "id": "s1-1",
+              "kind": "safe",
+              "title": "Post boat: Mum",
+              "from": "mum@family.it",
+              "body": "Dinner at 8?"
+            },
+            {
+              "id": "s1-2",
+              "kind": "safe",
+              "title": "Post boat: Coach",
+              "from": "coach@club.it",
+              "body": "Training moved to 5pm"
+            },
+            {
+              "id": "s1-3",
+              "kind": "attack",
+              "title": "P0st boat: Your Bank",
+              "from": "bank-supp0rt.co",
+              "body": "Your account is locked! Log in now!",
+              "attacker": "phisher",
+              "hint": "Look at the name. Is that a zero?"
+            },
+            {
+              "id": "s1-4",
+              "kind": "safe",
+              "title": "Post boat: Library",
+              "from": "books@town.it",
+              "body": "Your reserved comic has arrived."
+            }
           ]
         },
         {
-          "job": "gigi", "timerSeconds": 45, "spawnIntervalSeconds": 4, "maxWrongBlocks": 0,
-          "rules": { "open": [80, 443], "closed": [23], "strangers": "block", "known": ["Luca"] },
+          "job": "gigi",
+          "timerSeconds": 45,
+          "spawnIntervalSeconds": 4,
+          "rules": {
+            "open": [80, 443],
+            "closed": [23],
+            "strangers": "block"
+          },
           "items": [
-            { "id": "g1-1", "kind": "attack", "title": "Unknown", "door": 23, "says": "Door 23, please!", "attacker": "ram", "hint": "Check my list. Door 23 is always closed." }
+            {
+              "id": "g1-1",
+              "kind": "safe",
+              "title": "Luca",
+              "door": 443,
+              "says": "Here for the group chat!"
+            },
+            {
+              "id": "g1-2",
+              "kind": "attack",
+              "title": "Unknown",
+              "door": 23,
+              "says": "Door 23, please!",
+              "attacker": "ram",
+              "hint": "Check the gate rules. Door 23 is always closed!"
+            },
+            {
+              "id": "g1-3",
+              "kind": "safe",
+              "title": "Sofia",
+              "door": 80,
+              "says": "Delivering the town bulletin!"
+            }
           ]
         },
         {
-          "job": "twins", "timerSeconds": 45, "spawnIntervalSeconds": 5, "maxWrongBlocks": 0,
+          "job": "twins",
+          "timerSeconds": 45,
+          "spawnIntervalSeconds": 4,
           "items": [
-            { "id": "t1-1", "kind": "attack", "title": "Visitor for Mum's vault", "passwordCorrect": true, "phoneCode": "482 913", "visitorCode": "111 111", "codeExpired": false, "ownerRequested": true, "attacker": "ram", "hint": "The password is right, but does the code match the phone?" }
+            {
+              "id": "t1-1",
+              "kind": "safe",
+              "title": "Luca",
+              "passwordCorrect": true,
+              "phoneCode": "4821",
+              "visitorCode": "4821",
+              "codeExpired": false,
+              "ownerRequested": true
+            },
+            {
+              "id": "t1-2",
+              "kind": "attack",
+              "title": "Ram",
+              "passwordCorrect": false,
+              "phoneCode": "7390",
+              "visitorCode": "1111",
+              "codeExpired": false,
+              "ownerRequested": true,
+              "attacker": "ram",
+              "hint": "Compare the codes! The visitor's code doesn't match the phone."
+            },
+            {
+              "id": "t1-3",
+              "kind": "safe",
+              "title": "Mum",
+              "passwordCorrect": true,
+              "phoneCode": "9054",
+              "visitorCode": "9054",
+              "codeExpired": false,
+              "ownerRequested": true
+            }
           ]
         },
         {
-          "job": "patch", "timerSeconds": 45, "spawnIntervalSeconds": 6, "maxWrongBlocks": 0,
+          "job": "patch",
+          "timerSeconds": 45,
+          "spawnIntervalSeconds": 5,
           "items": [
-            { "id": "p1-1", "kind": "safe", "title": "NEW PARTS", "from": "builders", "type": "crate", "worm": true, "wormSpeed": 0.5, "attacker": "worm", "hint": "A Worm is coming. Fit the new parts now, not later!" }
+            {
+              "id": "p1-1",
+              "kind": "safe",
+              "title": "Town Mail Crate",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": false,
+              "wormSpeed": 0
+            },
+            {
+              "id": "p1-2",
+              "kind": "safe",
+              "title": "Wall Crack",
+              "from": "town",
+              "type": "crack",
+              "worm": false,
+              "wormSpeed": 0
+            },
+            {
+              "id": "p1-3",
+              "kind": "attack",
+              "title": "Suspicious Crate",
+              "from": "later",
+              "type": "fakeCrate",
+              "worm": true,
+              "wormSpeed": 1,
+              "attacker": "worm",
+              "hint": "Look at the label: 'Later' is a fake crate with a Worm inside!"
+            },
+            {
+              "id": "p1-4",
+              "kind": "safe",
+              "title": "Bridge Timber Crate",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": false,
+              "wormSpeed": 0
+            }
           ]
         }
       ]
@@ -60,5 +191,10 @@
     },
     { "day": 3, "mode": "build" }
   ],
-  "fallbackDay3": { "alertGroups": [ { "jobs": ["scout", "gigi", "twins", "patch"] } ], "itemsPerShift": 5, "sourceDay": 2, "timerSeconds": 35 }
+  "fallbackDay3": {
+    "alertGroups": [ { "jobs": ["scout", "gigi", "twins", "patch"] } ],
+    "itemsPerShift": 5,
+    "sourceDay": 2,
+    "timerSeconds": 35
+  }
 }
