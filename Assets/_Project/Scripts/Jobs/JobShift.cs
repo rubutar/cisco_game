@@ -27,6 +27,9 @@ namespace ByteWorld
 
         protected bool Running => running;
 
+        /// <summary>Seconds since the shift (re)started.</summary>
+        protected float Elapsed { get; private set; }
+
         // ---------- What a job script provides ----------
 
         /// <summary>Draw the workplace once, when the job scene loads.</summary>
@@ -46,6 +49,9 @@ namespace ByteWorld
 
         /// <summary>The inspect panel's fields for an item.</summary>
         protected abstract InspectField[] InspectFields(ItemData item);
+
+        /// <summary>Called each time the shift starts or restarts (after ClearItems).</summary>
+        protected virtual void OnShiftStarted() { }
 
         // ---------- Lifecycle ----------
 
@@ -90,7 +96,9 @@ namespace ByteWorld
             timeLeft = Context.timerSeconds > 0f ? Context.timerSeconds : 45f;
             spawnTimer = 0f;
             progressTimer = 0f;
+            Elapsed = 0f;
             running = true;
+            OnShiftStarted();
             Debug.Log($"[{Job}] Shift start: day {Context.day}, {queue.Total} item(s), {(Context.isTutorial ? "tutorial, no timer" : $"{timeLeft:0}s")}");
             RaiseProgress();
         }
@@ -99,6 +107,7 @@ namespace ByteWorld
         {
             if (!running) return;
 
+            Elapsed += Time.deltaTime;
             spawnTimer -= Time.deltaTime;
             if (spawnTimer <= 0f && queue.HasPending)
             {
