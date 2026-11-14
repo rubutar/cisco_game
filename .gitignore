@@ -107,3 +107,10 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Byte World additions
+*.sln
+.mcp.json
+.utmp/
+/[Bb]uilds/
+/[Ww]eb[Gg][Ll]/

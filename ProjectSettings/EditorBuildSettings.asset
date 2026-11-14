@@ -6,7 +6,26 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
+    path: Assets/_Project/Scenes/Boot.unity
+    guid: a8b1781bebc244f169ee980d619e7d45
+  - enabled: 1
+    path: Assets/_Project/Scenes/World.unity
+    guid: 76d458a4f816c4366bcd7e55cfa0256b
+  - enabled: 1
+    path: Assets/_Project/Scenes/Job_Scout.unity
+    guid: 35c47fc17010a4989839bff98b586c55
+  - enabled: 1
+    path: Assets/_Project/Scenes/Job_Gigi.unity
+    guid: baccee5e223a54276bf26887f25a4ba0
+  - enabled: 1
+    path: Assets/_Project/Scenes/Job_Twins.unity
+    guid: 93920b02dfa8a42e994c4288258e37e1
+  - enabled: 1
+    path: Assets/_Project/Scenes/Job_Patch.unity
+    guid: 210a0d242adb04a6786b2f94cddcae94
+  - enabled: 1
+    path: Assets/_Project/Scenes/Build.unity
+    guid: 6b59d702bf7d3442384d565ca6223fa9
   m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

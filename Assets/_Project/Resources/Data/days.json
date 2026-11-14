@@ -1,0 +1,64 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "mode": "tutorial",
+      "alertGroups": [ { "jobs": ["scout"] }, { "jobs": ["gigi"] }, { "jobs": ["twins"] }, { "jobs": ["patch"] } ],
+      "alertDelaySeconds": 8,
+      "shifts": [
+        {
+          "job": "scout", "timerSeconds": 45, "spawnIntervalSeconds": 4, "maxWrongBlocks": 0,
+          "items": [
+            { "id": "s1-1", "kind": "attack", "title": "P0st boat: Your Bank", "from": "bank-supp0rt.co", "body": "Your account is locked! Log in now", "attacker": "phisher", "hint": "Look at the name on that boat. Is that a zero instead of an O?" }
+          ]
+        },
+        {
+          "job": "gigi", "timerSeconds": 45, "spawnIntervalSeconds": 4, "maxWrongBlocks": 0,
+          "rules": { "open": [80, 443], "closed": [23], "strangers": "block", "known": ["Luca"] },
+          "items": [
+            { "id": "g1-1", "kind": "attack", "title": "Unknown", "door": 23, "says": "Door 23, please!", "attacker": "ram", "hint": "Check my list. Door 23 is always closed." }
+          ]
+        },
+        {
+          "job": "twins", "timerSeconds": 45, "spawnIntervalSeconds": 5, "maxWrongBlocks": 0,
+          "items": [
+            { "id": "t1-1", "kind": "attack", "title": "Visitor for Mum's vault", "passwordCorrect": true, "phoneCode": "482 913", "visitorCode": "111 111", "codeExpired": false, "ownerRequested": true, "attacker": "ram", "hint": "The password is right, but does the code match the phone?" }
+          ]
+        },
+        {
+          "job": "patch", "timerSeconds": 45, "spawnIntervalSeconds": 6, "maxWrongBlocks": 0,
+          "items": [
+            { "id": "p1-1", "kind": "attack", "title": "NEW PARTS", "type": "crate", "worm": true, "wormSpeed": 0.5, "attacker": "worm", "hint": "A Worm is coming. Fit the new parts now, not later!" }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "mode": "shifts",
+      "alertGroups": [ { "jobs": ["scout", "gigi"] } ],
+      "alertDelaySeconds": 6,
+      "waitPenaltyPerSecond": 0.5,
+      "maxWaitPenalty": 0.5,
+      "shifts": [
+        {
+          "job": "scout", "timerSeconds": 50, "spawnIntervalSeconds": 3, "maxWrongBlocks": 3,
+          "items": [
+            { "id": "s2-1", "kind": "safe", "title": "Post boat: Mum", "from": "mum@family.it", "body": "Dinner at 8?" },
+            { "id": "s2-2", "kind": "attack", "title": "Post boat: Coach", "from": "coach@c1ub-news.co", "body": "Training cancelled! Pay the fee here", "attacker": "phisher" }
+          ]
+        },
+        {
+          "job": "gigi", "timerSeconds": 50, "spawnIntervalSeconds": 3, "maxWrongBlocks": 3,
+          "rules": { "open": [80, 443], "closed": [23], "strangers": "block", "known": ["Luca"] },
+          "items": [
+            { "id": "g2-1", "kind": "safe", "title": "Luca", "door": 443, "says": "Here for the group chat!" },
+            { "id": "g2-2", "kind": "attack", "title": "Stranger", "door": 443, "says": "Gigi knows me!", "attacker": "ram" }
+          ]
+        }
+      ]
+    },
+    { "day": 3, "mode": "build" }
+  ],
+  "fallbackDay3": { "alertGroups": [ { "jobs": ["scout", "gigi", "twins", "patch"] } ], "itemsPerShift": 5, "sourceDay": 2, "timerSeconds": 35 }
+}

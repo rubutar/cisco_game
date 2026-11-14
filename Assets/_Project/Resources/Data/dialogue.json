@@ -1,0 +1,77 @@
+{
+  "jobs": [
+    {
+      "job": "scout", "name": "Scout", "place": "Scout's Lookout",
+      "jobLine": "I watch the harbour and check every boat that brings messages into town.",
+      "primaryAction": "Let it dock", "secondaryAction": "Send away", "fieldLabels": ["From", "Cargo"],
+      "days": [
+        { "day": 1, "alertLine": "So many boats today!", "introLines": ["I check each boat's name and flag before it docks.", "I can't keep up… will you help?"], "successLine": "That one said it was from the bank, but the name had a zero in it!", "snatchLine": "But it looked just like a post boat…", "backupLine": "I'll take the lookout. Show me how!" },
+        { "day": 2, "alertLine": "Boats coming in!", "introLines": ["Busy dock again.", "Some of these look almost right. Read carefully!"], "successLine": "The name was right, but the sender wasn't. Sneaky!", "snatchLine": "But it looked just like Coach…", "backupLine": "I'll take the lookout. Show me how!", "waitingLine": "Finally! The boats piled up while you were at the gate!", "complaintLine": "Hey, that was Mum!", "complaintFailLine": "Nobody trusts the lookout any more, so the attackers walked right in." }
+      ]
+    },
+    {
+      "job": "gigi", "name": "Gigi", "place": "Gigi's Gate",
+      "jobLine": "I keep the list of who may come in, and which door they use.",
+      "primaryAction": "Let in", "secondaryAction": "Turn away", "fieldLabels": ["Door", "Says"],
+      "days": [
+        { "day": 1, "alertLine": "Visitors at the gate!", "introLines": ["Everyone needs the right door, and the list says who's welcome.", "Help me check them?"], "successLine": "Door 23 has been shut for years. Nobody honest asks for it.", "snatchLine": "They walked right through the old door…", "backupLine": "I'll keep the gate. Show me the list!" },
+        { "day": 2, "alertLine": "Visitors at the gate, hurry!", "introLines": ["The queue is long today.", "If they're not on my list, they don't come in."], "successLine": "Saying 'Gigi knows me' doesn't put you on my list!", "snatchLine": "They sounded so friendly…", "backupLine": "I'll keep the gate. Show me the list!", "waitingLine": "There you are! The queue went all the way to the bridge.", "complaintLine": "That was Luca! He's on the list.", "complaintFailLine": "Friends stopped coming, and the gate got careless." }
+      ]
+    },
+    {
+      "job": "twins", "name": "Uno and Due", "place": "The Twins' Vault",
+      "jobLine": "Uno checks the password. Due checks with the owner's phone. You need both of us.",
+      "primaryAction": "Open vault", "secondaryAction": "Keep it shut", "fieldLabels": ["Password", "Phone code", "Visitor's code"],
+      "days": [
+        { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" }
+      ]
+    },
+    {
+      "job": "patch", "name": "Patch", "place": "Patch's Workshop",
+      "jobLine": "When the builders send new parts, I fit them before the old cracks get bigger.",
+      "primaryAction": "Fit now", "secondaryAction": "Later", "fieldLabels": ["From"],
+      "days": [
+        { "day": 1, "alertLine": "New parts arrived!", "introLines": ["The builders sent new bricks.", "Fit them now, or later?"], "successLine": "Fixed before they found it. That's why I never say 'later'.", "snatchLine": "The Worm found the crack first…", "backupLine": "I'll fix the wall. Pass me the bricks!" }
+      ]
+    }
+  ],
+  "intro": [
+    "Every message, photo and password you send passes through Byte World.",
+    "The Bytes who live here make sure it all gets where it's going."
+  ],
+  "dayEnd": [
+    { "day": 1, "speaker": "gigi", "title": "Day 1 done", "line": "You learn fast. Tomorrow they'll come two at a time." },
+    { "day": 2, "speaker": "patch", "title": "Day 2 done", "line": "They learned all our tricks. Tomorrow we rebuild the town." }
+  ],
+  "dayStart": [
+    { "day": 1, "speaker": "", "title": "Day 1", "line": "A quiet morning in Byte World." },
+    { "day": 2, "speaker": "scout", "title": "Day 2", "line": "Busy dock again. I'll need sharper eyes today." },
+    { "day": 3, "speaker": "patch", "title": "Day 3", "line": "Build day!" }
+  ],
+  "collapse": "No Bytes were left to do the work, and the attackers took over.",
+  "peace": "Built it ourselves, and built it right. Back to work, everyone!",
+  "build": {
+    "speaker": "patch",
+    "intro": ["They learned all our tricks.", "Today we rebuild the town's network ourselves, and this time we build it right."],
+    "failNoPath": "That house isn't connected. The message got lost!",
+    "failWrongHouse": "That message went to the wrong house.",
+    "failLeak": "An attacker got through!",
+    "failBlocked": "Hey, that was a friend!",
+    "success": "Everything arrived where it should!"
+  },
+  "ui": {
+    "gameTitle": "BYTE WORLD",
+    "tagline": "A tiny world living inside your Wi-Fi",
+    "play": "Play", "next": "Next", "skip": "Skip", "tryAgain": "Try again",
+    "backToWorld": "Back to Byte World", "keepWatching": "Keep watching", "sleep": "Sleep",
+    "startDay": "Start the day", "startAgain": "Start again", "letsBuild": "Let's build",
+    "run": "Run", "fixBuild": "Fix the build", "playAgain": "Play again",
+    "backups": "Backups", "complaints": "Complaints",
+    "dayAlertFormat": "Day {0}: alert {1} of {2}",
+    "dayPuzzleFormat": "Day {0}: puzzle {1} of {2}",
+    "backupsLeftFormat": "A backup Byte takes over. Backups left: {0}",
+    "snatchedFormat": "{0} was snatched!",
+    "runResultFormat": "Delivered {0} · Blocked {1} · Leaked {2}",
+    "rotatePhone": "Turn your phone sideways"
+  }
+}

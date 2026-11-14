@@ -1,0 +1,28 @@
+{
+  "puzzles": [
+    {
+      "id": 1,
+      "name": "Connect the town",
+      "goal": "Connect every house to the router",
+      "router": { "slot": "r", "sockets": 2 },
+      "slots": [
+        { "id": "r",   "x": 226, "y": 132, "fixed": "router" },
+        { "id": "s1",  "x": 160, "y": 150 },
+        { "id": "s2",  "x": 290, "y": 150 },
+        { "id": "h10", "x": 128, "y": 130, "fixed": "house", "address": 10, "service": "mail" },
+        { "id": "h11", "x": 150, "y": 44,  "fixed": "house", "address": 11, "service": "photos" },
+        { "id": "h12", "x": 272, "y": 100, "fixed": "house", "address": 12, "service": "games" },
+        { "id": "h13", "x": 244, "y": 236, "fixed": "house", "address": 13, "service": "home" }
+      ],
+      "tray": [ { "piece": "switch", "count": 1 } ],
+      "traffic": [
+        { "id": "p1-1", "to": 10, "kind": "safe", "friend": true, "label": "Mum's message" },
+        { "id": "p1-2", "to": 11, "kind": "safe", "friend": true, "label": "Luca's photo" },
+        { "id": "p1-3", "to": 12, "kind": "safe", "friend": true, "label": "Game update" },
+        { "id": "p1-4", "to": 13, "kind": "safe", "friend": true, "label": "Coach's message" }
+      ],
+      "pass": { "maxLeaks": 0, "maxWrongBlocks": 3 },
+      "reveal": { "byte": "patch", "term": "Router and switch", "text": "The router is the town's front door to the internet. A switch lets many houses share one cable." }
+    }
+  ]
+}
