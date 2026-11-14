@@ -19,5 +19,5 @@ python3 "$DIR/make_town.py"
 render splash "$ROOT/Assets/_Project/Art/Splash/byte_world_splash.png"
 render backdrop "$ROOT/Assets/_Project/Resources/Sprites/UI/title_backdrop.png"
 python3 "$DIR/make_intro.py"
-for n in 1 2 3 4 5; do render "intro_$n" "$ROOT/Assets/_Project/Resources/Sprites/UI/intro_$n.png" 960,540; done
+for n in 1 2 3; do render "intro_$n" "$ROOT/Assets/_Project/Resources/Sprites/UI/intro_$n.png" 960,540; done
 echo "splash art written"
