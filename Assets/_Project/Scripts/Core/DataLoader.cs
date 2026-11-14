@@ -1,5 +1,7 @@
 // Stream A. Loads the JSON content from Resources/Data once at startup and serves it as IGameData,
 // plus lookups the rest of Stream A needs (a day, a job's shift, a job's lines for a day).
+using System.Collections.Generic;
+using System.Linq;
 using ByteWorld.Data;
 using ByteWorld.Stubs;
 using UnityEngine;
@@ -56,12 +58,54 @@ namespace ByteWorld
             Flags = ResourcesGameData.Load<FlagsFile>("flags");
         }
 
+        /// <summary>
+        /// A day's data. With flags.json day3Mode = "fallback", Day 3 is the final attack (PRD 4.7): the
+        /// fallbackDay3 alert groups, playing the source day's shifts cut to itemsPerShift with its timer.
+        /// </summary>
         public DayData GetDay(int day)
+        {
+            if (day == 3 && (Flags?.UseFallbackDay3 ?? false)) return FallbackDay();
+            return RawDay(day);
+        }
+
+        DayData RawDay(int day)
         {
             if (Days?.days == null) return null;
             foreach (var data in Days.days)
                 if (data.day == day) return data;
             return null;
+        }
+
+        DayData FallbackDay()
+        {
+            var fallback = Days?.fallbackDay3 ?? new FallbackDay3();
+            var source = RawDay(fallback.sourceDay > 0 ? fallback.sourceDay : 2) ?? new DayData();
+            var shifts = new List<ShiftData>();
+            foreach (var shift in source.shifts ?? new ShiftData[0])
+            {
+                var items = shift.items ?? new ItemData[0];
+                var count = fallback.itemsPerShift > 0 ? Mathf.Min(fallback.itemsPerShift, items.Length) : items.Length;
+                shifts.Add(new ShiftData
+                {
+                    job = shift.job,
+                    timerSeconds = fallback.timerSeconds > 0f ? fallback.timerSeconds : shift.timerSeconds,
+                    spawnIntervalSeconds = shift.spawnIntervalSeconds,
+                    maxWrongBlocks = shift.maxWrongBlocks,
+                    rules = shift.rules,
+                    ruleChange = shift.ruleChange,
+                    items = items.Take(count).ToArray(),
+                });
+            }
+            return new DayData
+            {
+                day = 3,
+                mode = "shifts",
+                alertGroups = fallback.alertGroups ?? source.alertGroups,
+                alertDelaySeconds = source.alertDelaySeconds,
+                waitPenaltyPerSecond = source.waitPenaltyPerSecond,
+                maxWaitPenalty = source.maxWaitPenalty,
+                shifts = shifts.ToArray(),
+            };
         }
 
         public ShiftData GetShift(int day, JobId job)
