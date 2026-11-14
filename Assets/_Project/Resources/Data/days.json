@@ -28,7 +28,7 @@
         {
           "job": "patch", "timerSeconds": 45, "spawnIntervalSeconds": 6, "maxWrongBlocks": 0,
           "items": [
-            { "id": "p1-1", "kind": "attack", "title": "NEW PARTS", "type": "crate", "worm": true, "wormSpeed": 0.5, "attacker": "worm", "hint": "A Worm is coming. Fit the new parts now, not later!" }
+            { "id": "p1-1", "kind": "safe", "title": "NEW PARTS", "from": "builders", "type": "crate", "worm": true, "wormSpeed": 0.5, "attacker": "worm", "hint": "A Worm is coming. Fit the new parts now, not later!" }
           ]
         }
       ]

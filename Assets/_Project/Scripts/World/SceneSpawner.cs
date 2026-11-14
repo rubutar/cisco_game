@@ -32,6 +32,9 @@ namespace ByteWorld
                 case "Job_Twins":
                     Spawn<TwinsJob>(scene, "Twins Job");
                     break;
+                case "Job_Patch":
+                    Spawn<PatchJob>(scene, "Patch Job");
+                    break;
             }
         }
 
