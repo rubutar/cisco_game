@@ -138,9 +138,24 @@ namespace ByteWorld
 
             var result = run.ToResult(puzzle.id, puzzle.pass);
             lastRunPassed = result.passed;
+            running = null;
+
+            // An attacker got through: that costs a backup, like a snatch on Days 1 and 2 (PRD 4.5).
+            // Only the backup nest decides; with none left it collapses Byte World.
+            if (run.Leaked > 0 && ReportLeak(run) == SnatchResult.Collapsed) yield break;
+
             GameEvents.RaiseTestRunFinished(result);
             ShowResult(run, result);
-            running = null;
+        }
+
+        static SnatchResult ReportLeak(TrafficRun run)
+        {
+            var attacker = "";
+            foreach (var p in run.packets)
+                if (p.outcome == PacketOutcome.Leaked) { attacker = p.traffic.attacker; break; }
+            // The Byte leading build day is the one who reacts to the leak.
+            JobIds.TryParse(Services.Data?.Dialogue?.build?.speaker, out var job);
+            return Services.Backups.ReportSnatch(new SnatchInfo { source = SnatchSource.TestRun, job = job, attacker = attacker });
         }
 
         IEnumerator PlayPacket(PacketPlan plan, System.Action done)

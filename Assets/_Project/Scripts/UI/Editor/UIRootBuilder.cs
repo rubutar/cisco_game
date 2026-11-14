@@ -32,6 +32,7 @@ namespace ByteWorld.EditorTools
                 BuildTopBar(safe);
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
+                BuildPauseMenu(safe);
                 BuildJobScreens(root.transform);
                 BuildBuildIntro(root.transform);
                 BuildRevealCard(root.transform);
@@ -557,6 +558,73 @@ namespace ByteWorld.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // ---------- Pause ----------
+
+        static void BuildPauseMenu(RectTransform parent)
+        {
+            var host = NewRect("PauseMenu", parent);
+            Stretch(host);
+            var pause = host.gameObject.AddComponent<PauseMenu>();
+
+            // Pause button at the left of the top bar: two cream bars, no text.
+            var button = NewRect("PauseButton", host);
+            button.anchorMin = button.anchorMax = new Vector2(0, 1);
+            button.pivot = new Vector2(0, 0.5f);
+            button.anchoredPosition = new Vector2(24, -55);
+            button.sizeDelta = new Vector2(88, 88);
+            var buttonImage = AddImage(button.gameObject, Palette.SignalBlue, true);
+            AddOutline(button.gameObject, 4);
+            button.gameObject.AddComponent<Button>().targetGraphic = buttonImage;
+            foreach (var x in new[] { -14f, 14f })
+            {
+                var bar = NewRect("Bar", button);
+                bar.sizeDelta = new Vector2(14, 44);
+                bar.anchoredPosition = new Vector2(x, 0);
+                AddImage(bar.gameObject, Palette.ByteCream, false);
+            }
+
+            var menu = NewRect("Menu", host);
+            Stretch(menu);
+            var dim = (Color)Palette.Ink;
+            dim.a = 0.8f;
+            AddImage(menu.gameObject, dim, true);
+
+            var card = NewRect("Card", menu);
+            card.anchorMin = card.anchorMax = new Vector2(0.5f, 0.5f);
+            card.pivot = new Vector2(0.5f, 0.5f);
+            card.sizeDelta = new Vector2(720, 0);
+            AddImage(card.gameObject, Palette.ByteCream, true);
+            AddOutline(card.gameObject, 10);
+            var layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(64, 64, 56, 64);
+            layout.spacing = 36;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var title = NewText("Title", card, 72, Palette.Ink, TextAlignmentOptions.Center);
+            title.fontStyle = FontStyles.Bold;
+            var resume = NewButton("Resume", card, Palette.SignalBlue, out var resumeLabel);
+            resume.GetComponent<LayoutElement>().preferredHeight = 120;
+            resumeLabel.fontSize = 48;
+            // Restart is the risky choice, so it's the quieter one (ink, below Resume).
+            var restart = NewButton("RestartDay", card, Palette.Ink, out var restartLabel);
+            restartLabel.fontSize = 40;
+
+            var so = new SerializedObject(pause);
+            so.FindProperty("pauseButton").objectReferenceValue = button.gameObject;
+            so.FindProperty("menu").objectReferenceValue = menu.gameObject;
+            so.FindProperty("titleText").objectReferenceValue = title;
+            so.FindProperty("resumeButton").objectReferenceValue = resume;
+            so.FindProperty("resumeLabel").objectReferenceValue = resumeLabel;
+            so.FindProperty("restartButton").objectReferenceValue = restart;
+            so.FindProperty("restartLabel").objectReferenceValue = restartLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         // ---------- Reveal card and peace ----------
 
         static void BuildRevealCard(Transform parent)
@@ -702,7 +770,7 @@ namespace ByteWorld.EditorTools
             var dayLabel = NewText("DayLabel", bar, 44, Palette.ByteCream, TextAlignmentOptions.MidlineLeft);
             dayLabel.rectTransform.anchorMin = new Vector2(0, 0);
             dayLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
-            dayLabel.rectTransform.offsetMin = new Vector2(48, 0);
+            dayLabel.rectTransform.offsetMin = new Vector2(136, 0); // room for the pause button on the left
             dayLabel.rectTransform.offsetMax = Vector2.zero;
 
             // Day 3 goal line in the free middle of the bar; shrinks to fit long goals.

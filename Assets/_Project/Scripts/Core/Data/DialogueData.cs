@@ -93,5 +93,8 @@ namespace ByteWorld.Data
         public string snatchedFormat;       // "{0} was snatched!"
         public string runResultFormat;      // "Delivered {0} · Blocked {1} · Leaked {2}"
         public string rotatePhone;
+        public string pause;                // pause menu title, "Paused"
+        public string resume;               // pause menu button
+        public string restartDay;           // pause menu button: restart the current day with three backups
     }
 }
