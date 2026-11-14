@@ -30,6 +30,7 @@ namespace ByteWorld.EditorTools
                 BuildTopBar(safe);
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
+                BuildJobScreens(root.transform);
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out var ok);
                 if (ok) Debug.Log($"[UIRootBuilder] Saved {PrefabPath}");
@@ -117,6 +118,94 @@ namespace ByteWorld.EditorTools
             so.FindProperty("taglineText").objectReferenceValue = tagline;
             so.FindProperty("playButton").objectReferenceValue = button;
             so.FindProperty("playLabel").objectReferenceValue = playLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Job intro, success and snatched ----------
+
+        static void BuildJobScreens(Transform parent)
+        {
+            var host = NewRect("JobScreens", parent);
+            Stretch(host);
+            var screens = host.gameObject.AddComponent<JobScreens>();
+
+            // Place banner for the job intro: a tag under the top bar. Doesn't block taps.
+            var banner = NewRect("PlaceBanner", host);
+            banner.anchorMin = banner.anchorMax = new Vector2(0.5f, 1);
+            banner.pivot = new Vector2(0.5f, 1);
+            banner.anchoredPosition = new Vector2(0, -150);
+            banner.sizeDelta = new Vector2(0, 96);
+            AddImage(banner.gameObject, Palette.SignalBlue, false);
+            AddOutline(banner.gameObject, 8);
+            var bannerLayout = banner.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bannerLayout.padding = new RectOffset(56, 56, 0, 0);
+            bannerLayout.childAlignment = TextAnchor.MiddleCenter;
+            bannerLayout.childControlWidth = true;
+            bannerLayout.childControlHeight = true;
+            bannerLayout.childForceExpandWidth = false;
+            bannerLayout.childForceExpandHeight = true;
+            banner.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var place = NewText("Place", banner, 52, Palette.ByteCream, TextAlignmentOptions.Center);
+            place.fontStyle = FontStyles.Bold;
+
+            // Result card: dims the whole screen and blocks taps until the button is pressed.
+            var overlay = NewRect("Overlay", host);
+            Stretch(overlay);
+            var dim = (Color)Palette.Ink;
+            dim.a = 0.75f;
+            AddImage(overlay.gameObject, dim, true);
+
+            var card = NewRect("Card", overlay);
+            card.anchorMin = card.anchorMax = new Vector2(0.5f, 0.5f);
+            card.pivot = new Vector2(0.5f, 0.5f);
+            card.sizeDelta = new Vector2(1100, 0);
+            AddImage(card.gameObject, Palette.ByteCream, true);
+            AddOutline(card.gameObject, 10);
+            var layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(64, 64, 56, 56);
+            layout.spacing = 28;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var title = NewText("Title", card, 68, Palette.SignalBlue, TextAlignmentOptions.Center);
+            title.fontStyle = FontStyles.Bold;
+            title.textWrappingMode = TextWrappingModes.Normal;
+            var line = NewText("Line", card, 46, Palette.Ink, TextAlignmentOptions.Center);
+            line.fontStyle = FontStyles.Italic;
+            line.textWrappingMode = TextWrappingModes.Normal;
+            var line2 = NewText("Line2", card, 42, Palette.SignalBlue, TextAlignmentOptions.Center);
+            line2.textWrappingMode = TextWrappingModes.Normal;
+            var note = NewText("Note", card, 34, Palette.CliffLight, TextAlignmentOptions.Center);
+            note.textWrappingMode = TextWrappingModes.Normal;
+
+            var buttonRow = NewRect("ButtonRow", card);
+            var rowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.padding = new RectOffset(0, 0, 12, 0);
+            rowLayout.childAlignment = TextAnchor.MiddleCenter;
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var button = NewButton("Button", buttonRow, Palette.AlertPink, out var buttonLabel);
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 560;
+            element.preferredWidth = 560;
+            buttonLabel.fontSize = 44;
+
+            var so = new SerializedObject(screens);
+            so.FindProperty("placeBanner").objectReferenceValue = banner.gameObject;
+            so.FindProperty("placeText").objectReferenceValue = place;
+            so.FindProperty("overlay").objectReferenceValue = overlay.gameObject;
+            so.FindProperty("cardTitle").objectReferenceValue = title;
+            so.FindProperty("cardLine").objectReferenceValue = line;
+            so.FindProperty("cardLine2").objectReferenceValue = line2;
+            so.FindProperty("cardNote").objectReferenceValue = note;
+            so.FindProperty("cardButton").objectReferenceValue = button;
+            so.FindProperty("cardButtonLabel").objectReferenceValue = buttonLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

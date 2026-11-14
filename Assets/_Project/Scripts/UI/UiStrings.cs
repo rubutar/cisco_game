@@ -21,6 +21,30 @@ namespace ByteWorld
             return "";
         }
 
+        public static JobDialogue Job(JobId job)
+        {
+            var jobs = Services.Data?.Dialogue?.jobs;
+            if (jobs == null) return null;
+            var key = job.ToKey();
+            foreach (var j in jobs)
+                if (j != null && j.job == key) return j;
+            return null;
+        }
+
+        /// <summary>
+        /// A job's lines for a day. Some Bytes only have Day 1 lines, so this falls back to the latest
+        /// earlier day that exists. Null if the job has no lines at all.
+        /// </summary>
+        public static JobDayDialogue JobDay(JobId job, int day)
+        {
+            var days = Job(job)?.days;
+            if (days == null) return null;
+            JobDayDialogue best = null;
+            foreach (var d in days)
+                if (d != null && d.day <= day && (best == null || d.day > best.day)) best = d;
+            return best;
+        }
+
         /// <summary>Title for a day from dayStart ("Day 2"), or "" if it's not in the JSON.</summary>
         public static string DayTitle(int day)
         {
