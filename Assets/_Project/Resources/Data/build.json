@@ -4,25 +4,402 @@
       "id": 1,
       "name": "Connect the town",
       "goal": "Connect every house to the router",
-      "router": { "slot": "r", "sockets": 2 },
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
       "slots": [
-        { "id": "r",   "x": 226, "y": 132, "fixed": "router" },
-        { "id": "s1",  "x": 160, "y": 150 },
-        { "id": "s2",  "x": 290, "y": 150 },
-        { "id": "h10", "x": 128, "y": 130, "fixed": "house", "address": 10, "service": "mail" },
-        { "id": "h11", "x": 150, "y": 44,  "fixed": "house", "address": 11, "service": "photos" },
-        { "id": "h12", "x": 272, "y": 100, "fixed": "house", "address": 12, "service": "games" },
-        { "id": "h13", "x": 244, "y": 236, "fixed": "house", "address": 13, "service": "home" }
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 160,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 290,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 128,
+          "y": 130,
+          "fixed": "house",
+          "address": 10,
+          "service": "mail"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "photos"
+        },
+        {
+          "id": "h12",
+          "x": 272,
+          "y": 100,
+          "fixed": "house",
+          "address": 12,
+          "service": "games"
+        },
+        {
+          "id": "h13",
+          "x": 244,
+          "y": 236,
+          "fixed": "house",
+          "address": 13,
+          "service": "home"
+        }
       ],
-      "tray": [ { "piece": "switch", "count": 1 } ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 1
+        }
+      ],
       "traffic": [
-        { "id": "p1-1", "to": 10, "kind": "safe", "friend": true, "label": "Mum's message" },
-        { "id": "p1-2", "to": 11, "kind": "safe", "friend": true, "label": "Luca's photo" },
-        { "id": "p1-3", "to": 12, "kind": "safe", "friend": true, "label": "Game update" },
-        { "id": "p1-4", "to": 13, "kind": "safe", "friend": true, "label": "Coach's message" }
+        {
+          "id": "p1-1",
+          "to": 10,
+          "kind": "safe",
+          "friend": true,
+          "label": "Mum's message"
+        },
+        {
+          "id": "p1-2",
+          "to": 11,
+          "kind": "safe",
+          "friend": true,
+          "label": "Luca's photo"
+        },
+        {
+          "id": "p1-3",
+          "to": 12,
+          "kind": "safe",
+          "friend": true,
+          "label": "Game update"
+        },
+        {
+          "id": "p1-4",
+          "to": 13,
+          "kind": "safe",
+          "friend": true,
+          "label": "Coach's message"
+        }
       ],
-      "pass": { "maxLeaks": 0, "maxWrongBlocks": 3 },
-      "reveal": { "byte": "patch", "term": "Router and switch", "text": "The router is the town's front door to the internet. A switch lets many houses share one cable." }
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      },
+      "reveal": {
+        "byte": "patch",
+        "term": "Router and switch",
+        "text": "The router is the town's front door to the internet. A switch lets many houses share one cable."
+      }
+    },
+    {
+      "id": 2,
+      "name": "Right house, right door",
+      "goal": "Send each message through the right door to the right house",
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
+      "slots": [
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 160,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 290,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 128,
+          "y": 130,
+          "fixed": "house",
+          "address": 10,
+          "service": "mail"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "photos"
+        },
+        {
+          "id": "h12",
+          "x": 272,
+          "y": 100,
+          "fixed": "house",
+          "address": 12,
+          "service": "games"
+        },
+        {
+          "id": "h13",
+          "x": 244,
+          "y": 236,
+          "fixed": "house",
+          "address": 13,
+          "service": "home"
+        }
+      ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 1
+        }
+      ],
+      "doors": [
+        {
+          "port": 80
+        },
+        {
+          "port": 443
+        },
+        {
+          "port": 8080
+        },
+        {
+          "port": 23
+        }
+      ],
+      "traffic": [
+        {
+          "id": "p2-1",
+          "to": 10,
+          "port": 443,
+          "from": "mum",
+          "friend": true,
+          "kind": "safe",
+          "label": "Mum's message, to door 443"
+        },
+        {
+          "id": "p2-2",
+          "to": 11,
+          "port": 80,
+          "from": "luca",
+          "friend": true,
+          "kind": "safe",
+          "label": "Luca's photo, to door 80"
+        },
+        {
+          "id": "p2-3",
+          "to": 12,
+          "port": 8080,
+          "from": "marco",
+          "friend": true,
+          "kind": "safe",
+          "label": "Game invite, to door 8080"
+        },
+        {
+          "id": "p2-4",
+          "to": 10,
+          "port": 443,
+          "from": "coach",
+          "friend": true,
+          "kind": "safe",
+          "label": "Coach's message, to door 443"
+        },
+        {
+          "id": "p2-5",
+          "to": 0,
+          "port": 23,
+          "from": "unknown",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Knock knock, door 23"
+        }
+      ],
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      },
+      "reveal": {
+        "byte": "gigi",
+        "term": "Port and socket",
+        "text": "Each door has a number called a port. Address plus port is a socket: the exact place a message is going."
+      }
+    },
+    {
+      "id": 3,
+      "name": "Lock the gate",
+      "goal": "Set each door's rule: friends in, attackers out",
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
+      "slots": [
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 160,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 290,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 128,
+          "y": 130,
+          "fixed": "house",
+          "address": 10,
+          "service": "mail"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "photos"
+        },
+        {
+          "id": "h12",
+          "x": 272,
+          "y": 100,
+          "fixed": "house",
+          "address": 12,
+          "service": "games"
+        },
+        {
+          "id": "h13",
+          "x": 244,
+          "y": 236,
+          "fixed": "house",
+          "address": 13,
+          "service": "home"
+        }
+      ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 1
+        }
+      ],
+      "doors": [
+        {
+          "port": 80
+        },
+        {
+          "port": 443
+        },
+        {
+          "port": 8080
+        },
+        {
+          "port": 23
+        }
+      ],
+      "ruleOptions": [
+        "everyone",
+        "friends",
+        "closed"
+      ],
+      "traffic": [
+        {
+          "id": "p3-1",
+          "to": 10,
+          "port": 443,
+          "from": "luca",
+          "friend": true,
+          "kind": "safe",
+          "label": "Luca's message"
+        },
+        {
+          "id": "p3-2",
+          "to": 11,
+          "port": 80,
+          "from": "mum",
+          "friend": true,
+          "kind": "safe",
+          "label": "Mum's photo"
+        },
+        {
+          "id": "p3-3",
+          "to": 11,
+          "port": 80,
+          "from": "town",
+          "friend": false,
+          "kind": "safe",
+          "label": "Town bulletin"
+        },
+        {
+          "id": "p3-4",
+          "to": 12,
+          "port": 8080,
+          "from": "marco",
+          "friend": true,
+          "kind": "safe",
+          "label": "Marco's game invite"
+        },
+        {
+          "id": "p3-5",
+          "to": 0,
+          "port": 23,
+          "from": "unknown",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Knock knock, door 23"
+        },
+        {
+          "id": "p3-6",
+          "to": 12,
+          "port": 8080,
+          "from": "unknown",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Stranger's game request"
+        },
+        {
+          "id": "p3-7",
+          "to": 10,
+          "port": 443,
+          "from": "luca-copy",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "phisher",
+          "label": "Luca's photo?"
+        }
+      ],
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      },
+      "reveal": {
+        "byte": "gigi",
+        "term": "Firewall",
+        "text": "These door rules have a real name: a firewall. Open only what you need, only for who needs it."
+      }
     }
   ]
 }

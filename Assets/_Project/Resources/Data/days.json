@@ -3,7 +3,28 @@
     {
       "day": 1,
       "mode": "tutorial",
-      "alertGroups": [ { "jobs": ["scout"] }, { "jobs": ["gigi"] }, { "jobs": ["twins"] }, { "jobs": ["patch"] } ],
+      "alertGroups": [
+        {
+          "jobs": [
+            "scout"
+          ]
+        },
+        {
+          "jobs": [
+            "gigi"
+          ]
+        },
+        {
+          "jobs": [
+            "twins"
+          ]
+        },
+        {
+          "jobs": [
+            "patch"
+          ]
+        }
+      ],
       "alertDelaySeconds": 8,
       "shifts": [
         {
@@ -48,8 +69,13 @@
           "timerSeconds": 45,
           "spawnIntervalSeconds": 4,
           "rules": {
-            "open": [80, 443],
-            "closed": [23],
+            "open": [
+              80,
+              443
+            ],
+            "closed": [
+              23
+            ],
             "strangers": "block"
           },
           "items": [
@@ -167,32 +193,367 @@
     {
       "day": 2,
       "mode": "shifts",
-      "alertGroups": [ { "jobs": ["scout", "gigi"] } ],
+      "alertGroups": [
+        {
+          "jobs": [
+            "scout",
+            "gigi"
+          ]
+        },
+        {
+          "jobs": [
+            "twins",
+            "patch"
+          ]
+        }
+      ],
       "alertDelaySeconds": 6,
       "waitPenaltyPerSecond": 0.5,
       "maxWaitPenalty": 0.5,
       "shifts": [
         {
-          "job": "scout", "timerSeconds": 50, "spawnIntervalSeconds": 3, "maxWrongBlocks": 3,
+          "job": "scout",
+          "timerSeconds": 55,
+          "spawnIntervalSeconds": 3.5,
+          "maxWrongBlocks": 3,
           "items": [
-            { "id": "s2-1", "kind": "safe", "title": "Post boat: Mum", "from": "mum@family.it", "body": "Dinner at 8?" },
-            { "id": "s2-2", "kind": "attack", "title": "Post boat: Coach", "from": "coach@c1ub-news.co", "body": "Training cancelled! Pay the fee here", "attacker": "phisher" }
+            {
+              "id": "s2-1",
+              "kind": "safe",
+              "title": "Post boat: Mum",
+              "from": "mum@family.it",
+              "body": "Can you pick up bread on the way home?"
+            },
+            {
+              "id": "s2-2",
+              "kind": "attack",
+              "title": "Post boat: Coach",
+              "from": "coach@c1ub-news.co",
+              "body": "Training fee overdue! Pay here within 1 hour or lose your spot.",
+              "attacker": "phisher"
+            },
+            {
+              "id": "s2-3",
+              "kind": "safe",
+              "title": "Post boat: School",
+              "from": "office@school.edu.it",
+              "body": "Storm warning: tomorrow's trip is cancelled. Stay safe!"
+            },
+            {
+              "id": "s2-4",
+              "kind": "attack",
+              "title": "Post boat: Luca",
+              "from": "luca@friends.it",
+              "body": "Is this really you in this video?? Open it quick before they delete it!",
+              "attacker": "phisher"
+            },
+            {
+              "id": "s2-5",
+              "kind": "safe",
+              "title": "Post boat: PIXEL CLUB!!!",
+              "from": "news@pixelclub.it",
+              "body": "Double points weekend starts Friday. See you in the game!"
+            },
+            {
+              "id": "s2-6",
+              "kind": "attack",
+              "title": "Post boat: Your Bank",
+              "from": "security@yourbank-help.co",
+              "body": "We saw a strange login. Confirm your password here right now.",
+              "attacker": "phisher"
+            },
+            {
+              "id": "s2-7",
+              "kind": "safe",
+              "title": "Post boat: Grandma",
+              "from": "nonna@family.it",
+              "body": "URGENT!!! I learned how to send messages. Love you!"
+            },
+            {
+              "id": "s2-8",
+              "kind": "attack",
+              "title": "Post boat: Parcel Service",
+              "from": "track@parcel-post.co",
+              "body": "Your parcel is stuck. Pay 1.99 now to release it.",
+              "attacker": "phisher"
+            }
           ]
         },
         {
-          "job": "gigi", "timerSeconds": 50, "spawnIntervalSeconds": 3, "maxWrongBlocks": 3,
-          "rules": { "open": [80, 443], "closed": [23], "strangers": "block", "known": ["Luca"] },
+          "job": "gigi",
+          "timerSeconds": 55,
+          "spawnIntervalSeconds": 3,
+          "maxWrongBlocks": 3,
+          "rules": {
+            "open": [
+              80,
+              443,
+              8080
+            ],
+            "closed": [
+              23
+            ],
+            "strangers": "block",
+            "known": [
+              "Luca",
+              "Sofia",
+              "Marco",
+              "Aisha"
+            ]
+          },
+          "ruleChange": {
+            "atSeconds": 20,
+            "close": [
+              8080
+            ],
+            "announce": "Door 8080 closes now! Game night is over."
+          },
           "items": [
-            { "id": "g2-1", "kind": "safe", "title": "Luca", "door": 443, "says": "Here for the group chat!" },
-            { "id": "g2-2", "kind": "attack", "title": "Stranger", "door": 443, "says": "Gigi knows me!", "attacker": "ram" }
+            {
+              "id": "g2-1",
+              "kind": "safe",
+              "title": "Luca",
+              "door": 443,
+              "says": "Here for the group chat!"
+            },
+            {
+              "id": "g2-2",
+              "kind": "safe",
+              "title": "Marco",
+              "door": 8080,
+              "says": "Game night! I'm on the list."
+            },
+            {
+              "id": "g2-3",
+              "kind": "attack",
+              "title": "Stranger",
+              "door": 443,
+              "says": "Gigi knows me! Just let me in.",
+              "attacker": "ram"
+            },
+            {
+              "id": "g2-4",
+              "kind": "safe",
+              "title": "Aisha",
+              "door": 80,
+              "says": "Bringing the class photo album."
+            },
+            {
+              "id": "g2-5",
+              "kind": "attack",
+              "title": "Unknown",
+              "door": 23,
+              "says": "Just a quick visit through the old door.",
+              "attacker": "ram"
+            },
+            {
+              "id": "g2-6",
+              "kind": "safe",
+              "title": "Sofia",
+              "door": 80,
+              "says": "Town bulletin, same as every day!"
+            },
+            {
+              "id": "g2-7",
+              "kind": "safe",
+              "title": "Luca",
+              "door": 443,
+              "says": "Forgot my charger. Back again!"
+            },
+            {
+              "id": "g2-8",
+              "kind": "attack",
+              "title": "Game Bot",
+              "door": 8080,
+              "says": "One more round on door 8080?",
+              "attacker": "ram"
+            }
+          ]
+        },
+        {
+          "job": "twins",
+          "timerSeconds": 55,
+          "spawnIntervalSeconds": 4,
+          "maxWrongBlocks": 3,
+          "items": [
+            {
+              "id": "t2-1",
+              "kind": "safe",
+              "title": "Mum's vault",
+              "passwordCorrect": true,
+              "phoneCode": "3318",
+              "visitorCode": "3318",
+              "codeExpired": false,
+              "ownerRequested": true
+            },
+            {
+              "id": "t2-2",
+              "kind": "attack",
+              "title": "Coach's vault",
+              "passwordCorrect": true,
+              "phoneCode": "5521",
+              "visitorCode": "5521",
+              "codeExpired": true,
+              "ownerRequested": true,
+              "attacker": "ram"
+            },
+            {
+              "id": "t2-3",
+              "kind": "safe",
+              "title": "Luca's vault",
+              "passwordCorrect": true,
+              "phoneCode": "7740",
+              "visitorCode": "7740",
+              "codeExpired": false,
+              "ownerRequested": true
+            },
+            {
+              "id": "t2-4",
+              "kind": "attack",
+              "title": "Grandma's vault",
+              "passwordCorrect": true,
+              "phoneCode": "2468",
+              "visitorCode": "2468",
+              "codeExpired": false,
+              "ownerRequested": false,
+              "attacker": "ram"
+            },
+            {
+              "id": "t2-5",
+              "kind": "safe",
+              "title": "Sofia's vault",
+              "passwordCorrect": true,
+              "phoneCode": "1205",
+              "visitorCode": "1205",
+              "codeExpired": false,
+              "ownerRequested": true
+            },
+            {
+              "id": "t2-6",
+              "kind": "attack",
+              "title": "Marco's vault",
+              "passwordCorrect": true,
+              "phoneCode": "8812",
+              "visitorCode": "8821",
+              "codeExpired": false,
+              "ownerRequested": true,
+              "attacker": "ram"
+            },
+            {
+              "id": "t2-7",
+              "kind": "safe",
+              "title": "Aisha's vault",
+              "passwordCorrect": true,
+              "phoneCode": "4407",
+              "visitorCode": "4407",
+              "codeExpired": false,
+              "ownerRequested": true
+            }
+          ]
+        },
+        {
+          "job": "patch",
+          "timerSeconds": 60,
+          "spawnIntervalSeconds": 4,
+          "maxWrongBlocks": 3,
+          "items": [
+            {
+              "id": "p2-1",
+              "kind": "safe",
+              "title": "New bricks",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": false,
+              "wormSpeed": 0
+            },
+            {
+              "id": "p2-2",
+              "kind": "safe",
+              "title": "Window glass",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": true,
+              "wormSpeed": 0.8,
+              "attacker": "worm"
+            },
+            {
+              "id": "p2-3",
+              "kind": "attack",
+              "title": "NEW PARTS!!",
+              "from": "b1lders@town.co",
+              "type": "fakeCrate",
+              "worm": true,
+              "wormSpeed": 0.7,
+              "attacker": "worm"
+            },
+            {
+              "id": "p2-4",
+              "kind": "safe",
+              "title": "Crack by the gate",
+              "from": "town",
+              "type": "crack",
+              "worm": false,
+              "wormSpeed": 0
+            },
+            {
+              "id": "p2-5",
+              "kind": "safe",
+              "title": "Roof tiles",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": true,
+              "wormSpeed": 1.0,
+              "attacker": "worm"
+            },
+            {
+              "id": "p2-6",
+              "kind": "attack",
+              "title": "Free super bricks",
+              "from": "bricks-free.co",
+              "type": "fakeCrate",
+              "worm": false,
+              "wormSpeed": 0,
+              "attacker": "worm"
+            },
+            {
+              "id": "p2-7",
+              "kind": "safe",
+              "title": "URGENT parts",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": false,
+              "wormSpeed": 0
+            },
+            {
+              "id": "p2-8",
+              "kind": "safe",
+              "title": "Door hinges",
+              "from": "builders@town.it",
+              "type": "crate",
+              "worm": true,
+              "wormSpeed": 1.2,
+              "attacker": "worm"
+            }
           ]
         }
       ]
     },
-    { "day": 3, "mode": "build" }
+    {
+      "day": 3,
+      "mode": "build"
+    }
   ],
   "fallbackDay3": {
-    "alertGroups": [ { "jobs": ["scout", "gigi", "twins", "patch"] } ],
+    "alertGroups": [
+      {
+        "jobs": [
+          "scout",
+          "gigi",
+          "twins",
+          "patch"
+        ]
+      }
+    ],
     "itemsPerShift": 5,
     "sourceDay": 2,
     "timerSeconds": 35
