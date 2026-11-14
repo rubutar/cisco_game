@@ -16,6 +16,7 @@ namespace ByteWorld
         public BuildFile Build { get; private set; }
         public FlagsFile Flags { get; private set; }
         public HuntFile Hunt { get; private set; }
+        public CheckpointsFile Checkpoints { get; private set; }
 
         public static DataLoader Instance { get; private set; }
 
@@ -58,6 +59,7 @@ namespace ByteWorld
             Build = ResourcesGameData.Load<BuildFile>("build");
             Flags = ResourcesGameData.Load<FlagsFile>("flags");
             Hunt = ResourcesGameData.Load<HuntFile>("hunt");
+            Checkpoints = ResourcesGameData.Load<CheckpointsFile>("checkpoints");
         }
 
         /// <summary>
