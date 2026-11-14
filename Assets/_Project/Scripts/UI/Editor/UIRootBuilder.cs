@@ -24,11 +24,16 @@ namespace ByteWorld.EditorTools
                 BuildCanvas(root);
                 BuildEventSystem(root.transform);
                 BuildTitleScreen(root.transform);
+                BuildIntroScreen(root.transform);
                 var safe = NewRect("SafeArea", root.transform);
                 Stretch(safe);
                 safe.gameObject.AddComponent<SafeArea>();
                 BuildTopBar(safe);
+                BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
+                BuildJobScreens(root.transform);
+                BuildDayCards(root.transform);
+                BuildCollapseScreen(root.transform);
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out var ok);
                 if (ok) Debug.Log($"[UIRootBuilder] Saved {PrefabPath}");
@@ -119,6 +124,284 @@ namespace ByteWorld.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // ---------- Job intro, success and snatched ----------
+
+        static void BuildJobScreens(Transform parent)
+        {
+            var host = NewRect("JobScreens", parent);
+            Stretch(host);
+            var screens = host.gameObject.AddComponent<JobScreens>();
+
+            // Place banner for the job intro: a tag under the top bar. Doesn't block taps.
+            var banner = NewRect("PlaceBanner", host);
+            banner.anchorMin = banner.anchorMax = new Vector2(0.5f, 1);
+            banner.pivot = new Vector2(0.5f, 1);
+            banner.anchoredPosition = new Vector2(0, -150);
+            banner.sizeDelta = new Vector2(0, 96);
+            AddImage(banner.gameObject, Palette.SignalBlue, false);
+            AddOutline(banner.gameObject, 8);
+            var bannerLayout = banner.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bannerLayout.padding = new RectOffset(56, 56, 0, 0);
+            bannerLayout.childAlignment = TextAnchor.MiddleCenter;
+            bannerLayout.childControlWidth = true;
+            bannerLayout.childControlHeight = true;
+            bannerLayout.childForceExpandWidth = false;
+            bannerLayout.childForceExpandHeight = true;
+            banner.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var place = NewText("Place", banner, 52, Palette.ByteCream, TextAlignmentOptions.Center);
+            place.fontStyle = FontStyles.Bold;
+
+            // Result card: dims the whole screen and blocks taps until the button is pressed.
+            var overlay = NewRect("Overlay", host);
+            Stretch(overlay);
+            var dim = (Color)Palette.Ink;
+            dim.a = 0.75f;
+            AddImage(overlay.gameObject, dim, true);
+
+            var card = NewRect("Card", overlay);
+            card.anchorMin = card.anchorMax = new Vector2(0.5f, 0.5f);
+            card.pivot = new Vector2(0.5f, 0.5f);
+            card.sizeDelta = new Vector2(1100, 0);
+            AddImage(card.gameObject, Palette.ByteCream, true);
+            AddOutline(card.gameObject, 10);
+            var layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(64, 64, 56, 56);
+            layout.spacing = 28;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var title = NewText("Title", card, 68, Palette.SignalBlue, TextAlignmentOptions.Center);
+            title.fontStyle = FontStyles.Bold;
+            title.textWrappingMode = TextWrappingModes.Normal;
+            var line = NewText("Line", card, 46, Palette.Ink, TextAlignmentOptions.Center);
+            line.fontStyle = FontStyles.Italic;
+            line.textWrappingMode = TextWrappingModes.Normal;
+            var line2 = NewText("Line2", card, 42, Palette.SignalBlue, TextAlignmentOptions.Center);
+            line2.textWrappingMode = TextWrappingModes.Normal;
+            var note = NewText("Note", card, 34, Palette.CliffLight, TextAlignmentOptions.Center);
+            note.textWrappingMode = TextWrappingModes.Normal;
+
+            var buttonRow = NewRect("ButtonRow", card);
+            var rowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.padding = new RectOffset(0, 0, 12, 0);
+            rowLayout.childAlignment = TextAnchor.MiddleCenter;
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var button = NewButton("Button", buttonRow, Palette.AlertPink, out var buttonLabel);
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 560;
+            element.preferredWidth = 560;
+            buttonLabel.fontSize = 44;
+
+            var so = new SerializedObject(screens);
+            so.FindProperty("placeBanner").objectReferenceValue = banner.gameObject;
+            so.FindProperty("placeText").objectReferenceValue = place;
+            so.FindProperty("overlay").objectReferenceValue = overlay.gameObject;
+            so.FindProperty("cardTitle").objectReferenceValue = title;
+            so.FindProperty("cardLine").objectReferenceValue = line;
+            so.FindProperty("cardLine2").objectReferenceValue = line2;
+            so.FindProperty("cardNote").objectReferenceValue = note;
+            so.FindProperty("cardButton").objectReferenceValue = button;
+            so.FindProperty("cardButtonLabel").objectReferenceValue = buttonLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Day end and day start ----------
+
+        static void BuildDayCards(Transform parent)
+        {
+            var host = NewRect("DayCards", parent);
+            Stretch(host);
+            var cards = host.gameObject.AddComponent<DayCards>();
+
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            var backdrop = AddImage(screen.gameObject, Palette.Ink, true); // colour set per card at runtime
+
+            var content = NewRect("Content", screen);
+            content.anchorMin = content.anchorMax = new Vector2(0.5f, 0.5f);
+            content.pivot = new Vector2(0.5f, 0.5f);
+            content.sizeDelta = new Vector2(1400, 0);
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 36;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var title = NewText("Title", content, 140, Palette.ByteCream, TextAlignmentOptions.Center);
+            title.fontStyle = FontStyles.Bold;
+
+            var tag = NewRect("SpeakerTag", content);
+            AddImage(tag.gameObject, Palette.NeonCyan, false);
+            AddOutline(tag.gameObject, 6);
+            var tagLayout = tag.gameObject.AddComponent<HorizontalLayoutGroup>();
+            tagLayout.padding = new RectOffset(40, 40, 10, 10);
+            tagLayout.childControlWidth = true;
+            tagLayout.childControlHeight = true;
+            tagLayout.childForceExpandWidth = false; // hug the name instead of filling the row
+            tagLayout.childForceExpandHeight = false;
+            var speaker = NewText("Name", tag, 40, Palette.Ink, TextAlignmentOptions.Center);
+
+            var line = NewText("Line", content, 56, Palette.ByteCream, TextAlignmentOptions.Center);
+            line.fontStyle = FontStyles.Italic;
+            line.textWrappingMode = TextWrappingModes.Normal;
+            var lineElement = line.gameObject.AddComponent<LayoutElement>();
+            lineElement.preferredWidth = 1400;
+
+            var buttonRow = NewRect("ButtonRow", content);
+            var rowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.padding = new RectOffset(0, 0, 24, 0);
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var button = NewButton("Button", buttonRow, Palette.AlertPink, out var label);
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 520;
+            element.preferredWidth = 520;
+            element.preferredHeight = 120;
+            label.fontSize = 48;
+
+            var so = new SerializedObject(cards);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("backdrop").objectReferenceValue = backdrop;
+            so.FindProperty("titleText").objectReferenceValue = title;
+            so.FindProperty("speakerTag").objectReferenceValue = tag.gameObject;
+            so.FindProperty("speakerText").objectReferenceValue = speaker;
+            so.FindProperty("lineText").objectReferenceValue = line;
+            so.FindProperty("button").objectReferenceValue = button;
+            so.FindProperty("buttonLabel").objectReferenceValue = label;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Collapse ----------
+
+        static void BuildCollapseScreen(Transform parent)
+        {
+            var host = NewRect("CollapseScreen", parent);
+            Stretch(host);
+            var collapse = host.gameObject.AddComponent<CollapseScreen>();
+
+            // Dim mood (PRD 6.6): the whole town greys out.
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            AddImage(screen.gameObject, Palette.GridDim[1], true);
+
+            var content = NewRect("Content", screen);
+            content.anchorMin = content.anchorMax = new Vector2(0.5f, 0.5f);
+            content.pivot = new Vector2(0.5f, 0.5f);
+            content.sizeDelta = new Vector2(1400, 0);
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 64;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var line = NewText("Line", content, 64, Palette.GridDim[4], TextAlignmentOptions.Center);
+            line.textWrappingMode = TextWrappingModes.Normal;
+            line.gameObject.AddComponent<LayoutElement>().preferredWidth = 1400;
+
+            var buttonRow = NewRect("ButtonRow", content);
+            var rowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+            var button = NewButton("Button", buttonRow, Palette.AlertPink, out var label);
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 520;
+            element.preferredWidth = 520;
+            element.preferredHeight = 120;
+            label.fontSize = 48;
+
+            var so = new SerializedObject(collapse);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("lineText").objectReferenceValue = line;
+            so.FindProperty("button").objectReferenceValue = button;
+            so.FindProperty("buttonLabel").objectReferenceValue = label;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Intro panels ----------
+
+        static void BuildIntroScreen(Transform parent)
+        {
+            var host = NewRect("IntroScreen", parent);
+            Stretch(host);
+            var intro = host.gameObject.AddComponent<IntroScreen>();
+
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            AddImage(screen.gameObject, Palette.Ink, true);
+
+            var text = NewText("PanelText", screen, 76, Palette.ByteCream, TextAlignmentOptions.Center);
+            text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            text.rectTransform.anchoredPosition = new Vector2(0, 60);
+            text.rectTransform.sizeDelta = new Vector2(1500, 500);
+            text.textWrappingMode = TextWrappingModes.Normal;
+
+            var dots = NewRect("Dots", screen);
+            dots.anchorMin = dots.anchorMax = new Vector2(0.5f, 0);
+            dots.pivot = new Vector2(0.5f, 0);
+            dots.anchoredPosition = new Vector2(0, 120);
+            dots.sizeDelta = new Vector2(600, 40);
+            var dotsLayout = dots.gameObject.AddComponent<HorizontalLayoutGroup>();
+            dotsLayout.spacing = 24;
+            dotsLayout.childAlignment = TextAnchor.MiddleCenter;
+            dotsLayout.childControlWidth = false;
+            dotsLayout.childControlHeight = false;
+            dotsLayout.childForceExpandWidth = false;
+            dotsLayout.childForceExpandHeight = false;
+
+            var next = NewRect("NextButton", screen);
+            next.anchorMin = next.anchorMax = new Vector2(1, 0);
+            next.pivot = new Vector2(1, 0);
+            next.anchoredPosition = new Vector2(-96, 80);
+            next.sizeDelta = new Vector2(360, 120);
+            var nextImage = AddImage(next.gameObject, Palette.AlertPink, true);
+            var nextOutline = next.gameObject.AddComponent<Outline>();
+            nextOutline.effectColor = Palette.ByteCream;
+            nextOutline.effectDistance = new Vector2(6, -6);
+            var nextButton = next.gameObject.AddComponent<Button>();
+            nextButton.targetGraphic = nextImage;
+            var nextLabel = NewText("Label", next, 52, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(nextLabel.rectTransform);
+
+            // Skip: a quiet text button in the corner (still a big tap area for phones).
+            var skip = NewRect("SkipButton", screen);
+            skip.anchorMin = skip.anchorMax = new Vector2(1, 1);
+            skip.pivot = new Vector2(1, 1);
+            skip.anchoredPosition = new Vector2(-64, -48);
+            skip.sizeDelta = new Vector2(240, 96);
+            var skipImage = AddImage(skip.gameObject, new Color(0, 0, 0, 0), true);
+            var skipButton = skip.gameObject.AddComponent<Button>();
+            skipButton.targetGraphic = skipImage;
+            var skipLabel = NewText("Label", skip, 40, Palette.NeonCyan, TextAlignmentOptions.Center);
+            Stretch(skipLabel.rectTransform);
+
+            var so = new SerializedObject(intro);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("panelText").objectReferenceValue = text;
+            so.FindProperty("dots").objectReferenceValue = dots;
+            so.FindProperty("nextButton").objectReferenceValue = nextButton;
+            so.FindProperty("nextLabel").objectReferenceValue = nextLabel;
+            so.FindProperty("skipButton").objectReferenceValue = skipButton;
+            so.FindProperty("skipLabel").objectReferenceValue = skipLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         // ---------- Top bar ----------
 
         static void BuildTopBar(RectTransform parent)
@@ -192,6 +475,99 @@ namespace ByteWorld.EditorTools
             layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
+        }
+
+        // ---------- Inspect panel ----------
+
+        static void BuildInspectPanel(RectTransform parent)
+        {
+            var host = NewRect("InspectPanel", parent);
+            Stretch(host);
+            var panel = host.gameObject.AddComponent<InspectPanel>();
+
+            // Card on the right, under the top bar; grows downwards with its content.
+            var card = NewRect("Card", host);
+            card.anchorMin = card.anchorMax = new Vector2(1, 1);
+            card.pivot = new Vector2(1, 1);
+            card.anchoredPosition = new Vector2(-60, -150);
+            card.sizeDelta = new Vector2(760, 0);
+            AddImage(card.gameObject, Palette.ByteCream, true);
+            AddOutline(card.gameObject, 8);
+            var layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(44, 44, 40, 40);
+            layout.spacing = 22;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var title = NewText("Title", card, 50, Palette.Ink, TextAlignmentOptions.TopLeft);
+            title.fontStyle = FontStyles.Bold;
+            title.textWrappingMode = TextWrappingModes.Normal;
+
+            var so = new SerializedObject(panel);
+            var rows = so.FindProperty("fieldRows");
+            var labels = so.FindProperty("fieldLabels");
+            var values = so.FindProperty("fieldValues");
+            rows.arraySize = labels.arraySize = values.arraySize = InspectPanel.MaxFields;
+            for (var i = 0; i < InspectPanel.MaxFields; i++)
+            {
+                var row = NewRect($"Field{i}", card);
+                var rowLayout = row.gameObject.AddComponent<VerticalLayoutGroup>();
+                rowLayout.spacing = 4;
+                rowLayout.childControlWidth = true;
+                rowLayout.childControlHeight = true;
+                rowLayout.childForceExpandWidth = true;
+                rowLayout.childForceExpandHeight = false;
+
+                var label = NewText("Label", row, 30, Palette.SignalBlue, TextAlignmentOptions.TopLeft);
+                var value = NewText("Value", row, 42, Palette.Ink, TextAlignmentOptions.TopLeft);
+                value.textWrappingMode = TextWrappingModes.Normal;
+
+                rows.GetArrayElementAtIndex(i).objectReferenceValue = row.gameObject;
+                labels.GetArrayElementAtIndex(i).objectReferenceValue = label;
+                values.GetArrayElementAtIndex(i).objectReferenceValue = value;
+            }
+
+            var buttons = NewRect("Buttons", card);
+            var buttonLayout = buttons.gameObject.AddComponent<HorizontalLayoutGroup>();
+            buttonLayout.spacing = 28;
+            buttonLayout.padding = new RectOffset(0, 0, 16, 0);
+            buttonLayout.childControlWidth = true;
+            buttonLayout.childControlHeight = true;
+            buttonLayout.childForceExpandWidth = true;
+            buttonLayout.childForceExpandHeight = false;
+
+            // Same weight for both choices: the colour must not hint which one is right.
+            var primary = NewButton("Primary", buttons, Palette.SignalBlue, out var primaryLabel);
+            var secondary = NewButton("Secondary", buttons, Palette.SignalBlue, out var secondaryLabel);
+
+            so.FindProperty("card").objectReferenceValue = card.gameObject;
+            so.FindProperty("titleText").objectReferenceValue = title;
+            so.FindProperty("primaryButton").objectReferenceValue = primary;
+            so.FindProperty("primaryLabel").objectReferenceValue = primaryLabel;
+            so.FindProperty("secondaryButton").objectReferenceValue = secondary;
+            so.FindProperty("secondaryLabel").objectReferenceValue = secondaryLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static Button NewButton(string name, Transform parent, Color color, out TextMeshProUGUI label)
+        {
+            var rect = NewRect(name, parent);
+            var image = AddImage(rect.gameObject, color, true);
+            AddOutline(rect.gameObject, 6);
+            var element = rect.gameObject.AddComponent<LayoutElement>();
+            element.minHeight = 104;
+            element.preferredHeight = 104;
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            label = NewText("Label", rect, 38, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(label.rectTransform);
+            label.rectTransform.offsetMin = new Vector2(12, 0);
+            label.rectTransform.offsetMax = new Vector2(-12, 0);
+            label.textWrappingMode = TextWrappingModes.Normal;
+            return button;
         }
 
         // ---------- Dialogue bubble ----------
