@@ -135,6 +135,54 @@ namespace ByteWorld
 
         public bool ReachesRouter(string id) => PathFromRouter(id) != null;
 
+        /// <summary>The router's slot id, or null.</summary>
+        public string Router
+        {
+            get
+            {
+                foreach (var pair in pieces)
+                    if (pair.Value.kind == PieceKind.Router) return pair.Key;
+                return null;
+            }
+        }
+
+        /// <summary>Every piece cabled straight to <paramref name="id"/>.</summary>
+        public List<string> Neighbours(string id)
+        {
+            var list = new List<string>();
+            foreach (var c in cables)
+                if (c.Touches(id)) list.Add(c.Other(id));
+            return list;
+        }
+
+        /// <summary>
+        /// Shortest cable path from <paramref name="from"/> to <paramref name="to"/> that never passes through
+        /// another house, optionally also avoiding the router (traffic that stays inside one switch). Null if none.
+        /// </summary>
+        public List<string> PathBetween(string from, string to, bool avoidRouter)
+        {
+            if (!pieces.ContainsKey(from) || !pieces.ContainsKey(to)) return null;
+            if (from == to) return new List<string> { from };
+            var cameFrom = new Dictionary<string, string> { [from] = null };
+            var queue = new Queue<string>();
+            queue.Enqueue(from);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                foreach (var c in cables)
+                {
+                    if (!c.Touches(current)) continue;
+                    var next = c.Other(current);
+                    if (cameFrom.ContainsKey(next)) continue;
+                    if (avoidRouter && pieces[next].kind == PieceKind.Router) continue;
+                    cameFrom[next] = current;
+                    if (next == to) return Walk(cameFrom, to);
+                    if (pieces[next].kind != PieceKind.House) queue.Enqueue(next);
+                }
+            }
+            return null;
+        }
+
         static List<string> Walk(Dictionary<string, string> cameFrom, string end)
         {
             var path = new List<string>();

@@ -401,8 +401,13 @@ namespace ByteWorld.EditorTools
             // Blueprint backdrop: blocks taps to anything behind and sets the build-day mood.
             AddImage(view.gameObject, Palette.CliffDark, true);
 
-            // The board keeps the map's 16:9 shape and scales to fit; slots are placed by map coordinates.
-            var board = NewRect("Board", view);
+            // The board keeps the map's 16:9 shape and scales to fit between the top bar and the tray / Run row,
+            // so no piece hides under a button; slots are placed by map coordinates.
+            var area = NewRect("BoardArea", view);
+            Stretch(area);
+            area.offsetMin = new Vector2(0, 170);
+            area.offsetMax = new Vector2(0, -120);
+            var board = NewRect("Board", area);
             Stretch(board);
             var fitter = board.gameObject.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
@@ -448,6 +453,132 @@ namespace ByteWorld.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             BuildRunnerParts(host.gameObject.AddComponent<BuildRunner>(), view, packets);
+            BuildRulesPanel(host.gameObject.AddComponent<RulesPanel>(), manager, view);
+            BuildSiegeParts(host.gameObject.AddComponent<SiegeRunner>(), view);
+        }
+
+        // Doors and rules (Quests 3 and 4), top right under the top bar. Rows are made at runtime per puzzle.
+        static void BuildRulesPanel(RulesPanel rules, BuildManager manager, RectTransform view)
+        {
+            var panel = NewRect("RulesPanel", view);
+            Place(panel, new Vector2(1, 1), new Vector2(-40, -140), new Vector2(680, 0));
+            AddImage(panel.gameObject, UiStyle.Dim(0.85f), true);
+            AddOutline(panel.gameObject, UiStyle.Border);
+            var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(20, 20, 20, 20);
+            layout.spacing = 14;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            panel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var doors = NewList("Doors", panel);
+            var header = NewRect("RulesHeader", panel);
+            AddImage(header.gameObject, Palette.NeonCyan, false);
+            header.gameObject.AddComponent<LayoutElement>().preferredHeight = 6;
+            var list = NewList("Rules", panel);
+
+            var so = new SerializedObject(rules);
+            so.FindProperty("manager").objectReferenceValue = manager;
+            so.FindProperty("panel").objectReferenceValue = panel.gameObject;
+            so.FindProperty("doorList").objectReferenceValue = doors;
+            so.FindProperty("ruleList").objectReferenceValue = list;
+            so.FindProperty("ruleHeader").objectReferenceValue = header.gameObject;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static RectTransform NewList(string name, Transform parent)
+        {
+            var list = NewRect(name, parent);
+            var layout = list.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 10;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            return list;
+        }
+
+        // Quest 4 siege: call indicator top left, Call in the middle, Priority and Run again bottom right.
+        static void BuildSiegeParts(SiegeRunner siege, RectTransform view)
+        {
+            var indicator = NewRect("CallIndicator", view);
+            Place(indicator, new Vector2(0, 1), new Vector2(40, -140), new Vector2(0, 0));
+            AddImage(indicator.gameObject, UiStyle.Dim(0.9f), false);
+            AddOutline(indicator.gameObject, UiStyle.Border);
+            var row = indicator.gameObject.AddComponent<HorizontalLayoutGroup>();
+            row.padding = new RectOffset(20, 24, 20, 20);
+            ConfigureRow(row, 20, TextAnchor.MiddleLeft);
+            FitBoth(indicator.gameObject);
+
+            // Video tile with the caller's pod number; a pause mark when the picture freezes.
+            var tile = NewRect("Video", row.transform);
+            var tileImage = AddImage(tile.gameObject, Palette.SignalBlue, false);
+            AddOutline(tile.gameObject, 4);
+            var tileElement = tile.gameObject.AddComponent<LayoutElement>();
+            tileElement.minWidth = tileElement.preferredWidth = 200;
+            tileElement.minHeight = tileElement.preferredHeight = 120;
+            var caller = NewText("Caller", tile, UiStyle.Heading, Palette.ByteCream, TextAlignmentOptions.Center, UiFont.Title);
+            Stretch(caller.rectTransform);
+            var frozen = NewRect("Frozen", tile);
+            Stretch(frozen);
+            AddImage(frozen.gameObject, UiStyle.Dim(0.55f), false);
+            foreach (var x in new[] { -16f, 16f })
+            {
+                var bar = NewRect("Pause", frozen);
+                bar.sizeDelta = new Vector2(16, 52);
+                bar.anchoredPosition = new Vector2(x, 0);
+                AddImage(bar.gameObject, Palette.ByteCream, false);
+            }
+
+            var column = NewRect("Signal", row.transform);
+            var columnLayout = column.gameObject.AddComponent<VerticalLayoutGroup>();
+            columnLayout.spacing = 12;
+            columnLayout.childControlWidth = true;
+            columnLayout.childControlHeight = true;
+            columnLayout.childForceExpandWidth = false;
+            columnLayout.childForceExpandHeight = false;
+            var barRow = NewRect("Bars", column);
+            ConfigureRow(barRow.gameObject.AddComponent<HorizontalLayoutGroup>(), 8, TextAnchor.LowerLeft);
+            var so = new SerializedObject(siege);
+            var bars = so.FindProperty("bars");
+            bars.arraySize = 4;
+            for (var i = 0; i < 4; i++)
+            {
+                var bar = NewRect($"Bar{i}", barRow);
+                var image = AddImage(bar.gameObject, UiStyle.Done, false);
+                var e = bar.gameObject.AddComponent<LayoutElement>();
+                e.minWidth = e.preferredWidth = 18;
+                e.minHeight = e.preferredHeight = 18 + i * 14;
+                bars.GetArrayElementAtIndex(i).objectReferenceValue = image;
+            }
+            var stats = NewText("Stats", column, UiStyle.Small, Palette.NeonCyan, TextAlignmentOptions.MidlineLeft, UiFont.Mono);
+
+            var call = NewButton("CallButton", view, ButtonStyle.Main, out var callLabel);
+            Place((RectTransform)call.transform, new Vector2(0.5f, 0), new Vector2(0, 60), new Vector2(480, 140));
+            callLabel.fontSize = 60;
+
+            var priority = NewButton("PriorityButton", view, ButtonStyle.Secondary, out var priorityLabel);
+            Place((RectTransform)priority.transform, new Vector2(1, 0), new Vector2(-400, 48), new Vector2(360, 128));
+
+            var runAgain = NewButton("RunAgainButton", view, ButtonStyle.Main, out var runAgainLabel);
+            Place((RectTransform)runAgain.transform, new Vector2(1, 0), new Vector2(-48, 48), new Vector2(320, 128));
+            runAgainLabel.fontSize = 60;
+
+            so.FindProperty("indicator").objectReferenceValue = indicator.gameObject;
+            so.FindProperty("videoTile").objectReferenceValue = tileImage;
+            so.FindProperty("frozenMark").objectReferenceValue = frozen.gameObject;
+            so.FindProperty("statsText").objectReferenceValue = stats;
+            so.FindProperty("callerText").objectReferenceValue = caller;
+            so.FindProperty("callButton").objectReferenceValue = call;
+            so.FindProperty("callLabel").objectReferenceValue = callLabel;
+            so.FindProperty("priorityButton").objectReferenceValue = priority;
+            so.FindProperty("priorityFill").objectReferenceValue = priority.targetGraphic;
+            so.FindProperty("priorityLabel").objectReferenceValue = priorityLabel;
+            so.FindProperty("runAgainButton").objectReferenceValue = runAgain;
+            so.FindProperty("runAgainLabel").objectReferenceValue = runAgainLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         static void BuildRunnerParts(BuildRunner runner, RectTransform view, RectTransform packets)
@@ -1100,15 +1231,15 @@ namespace ByteWorld.EditorTools
 
             var dayLabel = NewText("DayLabel", bar, 44, Palette.ByteCream, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             dayLabel.rectTransform.anchorMin = new Vector2(0, 0);
-            dayLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
+            dayLabel.rectTransform.anchorMax = new Vector2(0.30f, 1);
             dayLabel.rectTransform.offsetMin = new Vector2(136, 0); // room for the pause button on the left
             dayLabel.rectTransform.offsetMax = Vector2.zero;
 
             // Day 3 goal line in the free middle of the bar; shrinks to fit long goals.
             var goal = NewText("Goal", bar, 36, Palette.PacketYellow, TextAlignmentOptions.Center);
-            goal.rectTransform.anchorMin = goal.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            goal.rectTransform.anchoredPosition = new Vector2(-150, 0);
-            goal.rectTransform.sizeDelta = new Vector2(720, 96);
+            goal.rectTransform.anchorMin = new Vector2(0.30f, 0);
+            goal.rectTransform.anchorMax = new Vector2(0.64f, 1);
+            goal.rectTransform.offsetMin = goal.rectTransform.offsetMax = Vector2.zero;
             goal.enableAutoSizing = true;
             goal.fontSizeMin = UiStyle.MinText;
             goal.fontSizeMax = 38;

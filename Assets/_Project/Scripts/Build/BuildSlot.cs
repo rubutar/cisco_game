@@ -122,6 +122,26 @@ namespace ByteWorld
             SetDots(sockets, used, kind == PieceKind.Switch ? Palette.SignalBlue : Palette.NeonCyan);
         }
 
+        Image laneBar;
+
+        /// <summary>Quest 3: a coloured bar under a pod shows the lane it belongs to (null hides it).</summary>
+        public void ShowLane(Color? color)
+        {
+            if (laneBar == null)
+            {
+                laneBar = NewImage("Lane", rect, new Vector2(112, 14), Vector2.zero);
+                var r = laneBar.rectTransform;
+                r.anchorMin = r.anchorMax = new Vector2(0.5f, 0);
+                r.pivot = new Vector2(0.5f, 1);
+                r.anchoredPosition = new Vector2(0, -10);
+                var o = laneBar.gameObject.AddComponent<Outline>();
+                o.effectColor = Palette.Ink;
+                o.effectDistance = new Vector2(3, -3);
+            }
+            laneBar.gameObject.SetActive(color.HasValue);
+            if (color.HasValue) laneBar.color = color.Value;
+        }
+
         /// <summary>A quick pink blink when a tap can't do anything here (no free socket, etc.).</summary>
         public void Flash()
         {
