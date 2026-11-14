@@ -1,0 +1,321 @@
+// Stream B. Builds Resources/UI/UIRoot.prefab through the Editor API, so the prefab YAML is never
+// written by hand. Re-running replaces the prefab. Colours come from Palette; no game text here
+// (every label is filled at runtime from dialogue.json).
+// Menu: Byte World > UI > Build UIRoot Prefab
+using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
+
+namespace ByteWorld.EditorTools
+{
+    public static class UIRootBuilder
+    {
+        public const string PrefabPath = "Assets/_Project/Resources/UI/UIRoot.prefab";
+
+        [MenuItem("Byte World/UI/Build UIRoot Prefab")]
+        public static void Build()
+        {
+            var root = new GameObject("UIRoot", typeof(RectTransform));
+            try
+            {
+                BuildCanvas(root);
+                BuildEventSystem(root.transform);
+                BuildTitleScreen(root.transform);
+                var safe = NewRect("SafeArea", root.transform);
+                Stretch(safe);
+                safe.gameObject.AddComponent<SafeArea>();
+                BuildTopBar(safe);
+                BuildDialogueBubble(safe);
+
+                PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out var ok);
+                if (ok) Debug.Log($"[UIRootBuilder] Saved {PrefabPath}");
+                else Debug.LogError($"[UIRootBuilder] Could not save {PrefabPath}");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        static void BuildCanvas(GameObject root)
+        {
+            var canvas = root.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 100;
+            canvas.pixelPerfect = true;
+
+            var scaler = root.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5f;
+
+            root.AddComponent<GraphicRaycaster>();
+        }
+
+        static void BuildEventSystem(Transform parent)
+        {
+            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+            go.transform.SetParent(parent, false);
+            go.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
+        }
+
+        // ---------- Title screen ----------
+
+        static void BuildTitleScreen(Transform parent)
+        {
+            var host = NewRect("TitleScreen", parent);
+            Stretch(host);
+            var title = host.gameObject.AddComponent<TitleScreen>();
+
+            // Full-screen backdrop: covers the whole screen (not just the safe area) and blocks world taps.
+            var screen = NewRect("Screen", host);
+            Stretch(screen);
+            AddImage(screen.gameObject, Palette.Ink, true);
+
+            // Blue copy offset behind the title: a chunky pixel drop shadow (uGUI Shadow doesn't affect TMP).
+            var logoShadow = NewText("LogoShadow", screen, 180, Palette.SignalBlue, TextAlignmentOptions.Center);
+            logoShadow.rectTransform.anchorMin = logoShadow.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            logoShadow.rectTransform.anchoredPosition = new Vector2(12, 158);
+            logoShadow.rectTransform.sizeDelta = new Vector2(1600, 240);
+            logoShadow.fontStyle = FontStyles.Bold;
+
+            var logo = NewText("Logo", screen, 180, Palette.ByteCream, TextAlignmentOptions.Center);
+            logo.rectTransform.anchorMin = logo.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            logo.rectTransform.anchoredPosition = new Vector2(0, 170);
+            logo.rectTransform.sizeDelta = new Vector2(1600, 240);
+            logo.fontStyle = FontStyles.Bold;
+            logo.raycastTarget = true; // tappable for the 5-tap debug menu
+            logo.gameObject.AddComponent<SecretTaps>();
+
+            var tagline = NewText("Tagline", screen, 52, Palette.NeonCyan, TextAlignmentOptions.Center);
+            tagline.rectTransform.anchorMin = tagline.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            tagline.rectTransform.anchoredPosition = new Vector2(0, 20);
+            tagline.rectTransform.sizeDelta = new Vector2(1600, 80);
+
+            var play = NewRect("PlayButton", screen);
+            play.anchorMin = play.anchorMax = new Vector2(0.5f, 0.5f);
+            play.anchoredPosition = new Vector2(0, -190);
+            play.sizeDelta = new Vector2(440, 130);
+            var playImage = AddImage(play.gameObject, Palette.AlertPink, true);
+            var playOutline = play.gameObject.AddComponent<Outline>();
+            playOutline.effectColor = Palette.ByteCream;
+            playOutline.effectDistance = new Vector2(8, -8);
+            var button = play.gameObject.AddComponent<Button>();
+            button.targetGraphic = playImage;
+            var playLabel = NewText("Label", play, 64, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(playLabel.rectTransform);
+
+            var so = new SerializedObject(title);
+            so.FindProperty("screen").objectReferenceValue = screen.gameObject;
+            so.FindProperty("titleText").objectReferenceValue = logo;
+            so.FindProperty("titleShadow").objectReferenceValue = logoShadow;
+            so.FindProperty("taglineText").objectReferenceValue = tagline;
+            so.FindProperty("playButton").objectReferenceValue = button;
+            so.FindProperty("playLabel").objectReferenceValue = playLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Top bar ----------
+
+        static void BuildTopBar(RectTransform parent)
+        {
+            var host = NewRect("TopBar", parent);
+            Stretch(host);
+            var topBar = host.gameObject.AddComponent<TopBar>();
+
+            var bar = NewRect("Bar", host);
+            bar.anchorMin = new Vector2(0, 1);
+            bar.anchorMax = new Vector2(1, 1);
+            bar.pivot = new Vector2(0.5f, 1);
+            bar.sizeDelta = new Vector2(0, 110);
+            var barColor = (Color)Palette.Ink;
+            barColor.a = 0.85f;
+            AddImage(bar.gameObject, barColor, false);
+
+            var dayLabel = NewText("DayLabel", bar, 44, Palette.ByteCream, TextAlignmentOptions.MidlineLeft);
+            dayLabel.rectTransform.anchorMin = new Vector2(0, 0);
+            dayLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
+            dayLabel.rectTransform.offsetMin = new Vector2(48, 0);
+            dayLabel.rectTransform.offsetMax = Vector2.zero;
+
+            var right = NewRect("Right", bar);
+            right.anchorMin = new Vector2(1, 0);
+            right.anchorMax = new Vector2(1, 1);
+            right.pivot = new Vector2(1, 0.5f);
+            right.anchoredPosition = new Vector2(-48, 0);
+            right.sizeDelta = new Vector2(0, 0);
+            var rightLayout = right.gameObject.AddComponent<HorizontalLayoutGroup>();
+            ConfigureRow(rightLayout, 64, TextAnchor.MiddleRight);
+            right.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            BuildMeter(right, "Backups", out var backupsLabel, out var backupPips);
+            var complaints = BuildMeter(right, "Complaints", out var complaintsLabel, out var complaintPips);
+
+            var so = new SerializedObject(topBar);
+            so.FindProperty("bar").objectReferenceValue = bar.gameObject;
+            so.FindProperty("dayLabel").objectReferenceValue = dayLabel;
+            so.FindProperty("backupsLabel").objectReferenceValue = backupsLabel;
+            so.FindProperty("backupPips").objectReferenceValue = backupPips;
+            so.FindProperty("complaintsGroup").objectReferenceValue = complaints.gameObject;
+            so.FindProperty("complaintsLabel").objectReferenceValue = complaintsLabel;
+            so.FindProperty("complaintPips").objectReferenceValue = complaintPips;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static RectTransform BuildMeter(RectTransform parent, string name, out TMP_Text label, out RectTransform pips)
+        {
+            var group = NewRect(name, parent);
+            ConfigureRow(group.gameObject.AddComponent<HorizontalLayoutGroup>(), 18, TextAnchor.MiddleLeft);
+
+            label = NewText("Label", group, 32, Palette.ByteCream, TextAlignmentOptions.MidlineRight);
+
+            pips = NewRect("Pips", group);
+            var pipLayout = pips.gameObject.AddComponent<HorizontalLayoutGroup>();
+            pipLayout.spacing = 14;
+            pipLayout.childAlignment = TextAnchor.MiddleLeft;
+            pipLayout.childControlWidth = false;
+            pipLayout.childControlHeight = false;
+            pipLayout.childForceExpandWidth = false;
+            pipLayout.childForceExpandHeight = false;
+            return group;
+        }
+
+        static void ConfigureRow(HorizontalLayoutGroup layout, float spacing, TextAnchor alignment)
+        {
+            layout.spacing = spacing;
+            layout.childAlignment = alignment;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+        }
+
+        // ---------- Dialogue bubble ----------
+
+        static void BuildDialogueBubble(RectTransform parent)
+        {
+            var host = NewRect("DialogueBubble", parent);
+            Stretch(host);
+            var bubble = host.gameObject.AddComponent<DialogueBubble>();
+
+            var catcher = NewRect("TapCatcher", host);
+            Stretch(catcher);
+            AddImage(catcher.gameObject, new Color(0, 0, 0, 0), true);
+
+            var panel = NewRect("Panel", host);
+            // Stretches with the screen, 120 px margin each side, so it fits any landscape aspect.
+            panel.anchorMin = new Vector2(0, 0);
+            panel.anchorMax = new Vector2(1, 0);
+            panel.pivot = new Vector2(0.5f, 0);
+            panel.anchoredPosition = new Vector2(0, 40);
+            panel.sizeDelta = new Vector2(-240, 280);
+            AddImage(panel.gameObject, Palette.ByteCream, true);
+            AddOutline(panel.gameObject, 8);
+
+            var nameTag = NewRect("NameTag", panel);
+            nameTag.anchorMin = nameTag.anchorMax = new Vector2(0, 1);
+            nameTag.pivot = new Vector2(0, 0.5f);
+            nameTag.anchoredPosition = new Vector2(40, 0);
+            nameTag.sizeDelta = new Vector2(380, 68);
+            AddImage(nameTag.gameObject, Palette.SignalBlue, false);
+            AddOutline(nameTag.gameObject, 6);
+            var nameText = NewText("Name", nameTag, 36, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(nameText.rectTransform);
+
+            var body = NewText("Body", panel, 44, Palette.Ink, TextAlignmentOptions.TopLeft);
+            Stretch(body.rectTransform);
+            body.rectTransform.offsetMin = new Vector2(56, 100);
+            body.rectTransform.offsetMax = new Vector2(-56, -52);
+            body.textWrappingMode = TextWrappingModes.Normal;
+
+            var cont = NewRect("ContinueIcon", panel);
+            cont.anchorMin = cont.anchorMax = new Vector2(1, 0);
+            cont.pivot = new Vector2(0.5f, 0.5f);
+            cont.anchoredPosition = new Vector2(-40, 36);
+            cont.sizeDelta = new Vector2(28, 28);
+            cont.localRotation = Quaternion.Euler(0, 0, 45);
+            AddImage(cont.gameObject, Palette.SignalBlue, false);
+
+            var retry = NewRect("RetryButton", panel);
+            retry.anchorMin = retry.anchorMax = new Vector2(1, 0);
+            retry.pivot = new Vector2(1, 0);
+            retry.anchoredPosition = new Vector2(-32, 24);
+            retry.sizeDelta = new Vector2(320, 84);
+            var retryImage = AddImage(retry.gameObject, Palette.AlertPink, true);
+            AddOutline(retry.gameObject, 6);
+            var button = retry.gameObject.AddComponent<Button>();
+            button.targetGraphic = retryImage;
+            var retryLabel = NewText("Label", retry, 36, Palette.ByteCream, TextAlignmentOptions.Center);
+            Stretch(retryLabel.rectTransform);
+
+            var pointer = NewRect("Pointer", host);
+            pointer.anchorMin = pointer.anchorMax = new Vector2(0.5f, 0.5f);
+            pointer.pivot = new Vector2(0.5f, 0.5f);
+            pointer.sizeDelta = new Vector2(44, 44);
+            pointer.localRotation = Quaternion.Euler(0, 0, 45);
+            AddImage(pointer.gameObject, Palette.AlertPink, false);
+            AddOutline(pointer.gameObject, 6);
+
+            var so = new SerializedObject(bubble);
+            so.FindProperty("tapCatcher").objectReferenceValue = catcher.gameObject;
+            so.FindProperty("panel").objectReferenceValue = panel;
+            so.FindProperty("nameTag").objectReferenceValue = nameTag.gameObject;
+            so.FindProperty("nameText").objectReferenceValue = nameText;
+            so.FindProperty("bodyText").objectReferenceValue = body;
+            so.FindProperty("continueIcon").objectReferenceValue = cont.gameObject;
+            so.FindProperty("retryButton").objectReferenceValue = button;
+            so.FindProperty("retryLabel").objectReferenceValue = retryLabel;
+            so.FindProperty("pointer").objectReferenceValue = pointer;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------- Helpers ----------
+
+        static RectTransform NewRect(string name, Transform parent)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            return (RectTransform)go.transform;
+        }
+
+        static void Stretch(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
+        static Image AddImage(GameObject go, Color color, bool raycast)
+        {
+            var image = go.AddComponent<Image>();
+            image.color = color;
+            image.raycastTarget = raycast;
+            return image;
+        }
+
+        static void AddOutline(GameObject go, float size)
+        {
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = Palette.Ink;
+            outline.effectDistance = new Vector2(size, -size);
+        }
+
+        static TextMeshProUGUI NewText(string name, Transform parent, float size, Color color, TextAlignmentOptions align)
+        {
+            var rect = NewRect(name, parent);
+            var text = rect.gameObject.AddComponent<TextMeshProUGUI>();
+            if (TMP_Settings.defaultFontAsset != null) text.font = TMP_Settings.defaultFontAsset;
+            text.fontSize = size;
+            text.color = color;
+            text.alignment = align;
+            text.raycastTarget = false;
+            text.text = "";
+            return text;
+        }
+    }
+}
