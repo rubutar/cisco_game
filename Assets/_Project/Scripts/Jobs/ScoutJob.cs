@@ -90,11 +90,26 @@ namespace ByteWorld
             nextMooring = 0;
         }
 
-        protected override InspectField[] InspectFields(ItemData item) => new[]
+        // v2 (PRD-v2 4.5): From, Reply-To, Sender check, Link; the message itself last. Fields without data are left out.
+        protected override InspectField[] InspectFields(ItemData item)
         {
-            new InspectField(FieldLabel(0, "From"), item.from),
-            new InspectField(FieldLabel(1, "Cargo"), item.body),
-        };
+            var hasReplyTo = !string.IsNullOrEmpty(item.replyTo);
+            var hasCheck = !string.IsNullOrEmpty(item.senderCheck);
+            var hasLink = !string.IsNullOrEmpty(item.link);
+            // The inspect panel shows up to four fields. With all five, Reply-To shares the From line so the
+            // message (often the clue: urgency, a prize) always stays visible.
+            var crowded = hasReplyTo && hasCheck && hasLink;
+            var from = crowded ? $"{item.from}\n{FieldLabel(2, "Reply-To")}: {item.replyTo}" : item.from;
+            var fields = new System.Collections.Generic.List<InspectField> { new(FieldLabel(0, "From"), from) };
+            if (hasReplyTo && !crowded) fields.Add(new InspectField(FieldLabel(2, "Reply-To"), item.replyTo));
+            if (hasCheck) fields.Add(new InspectField(FieldLabel(3, "Sender check"), item.senderCheck));
+            if (hasLink) fields.Add(new InspectField(FieldLabel(4, "Link"), item.link));
+            fields.Add(new InspectField(FieldLabel(1, "Message"), item.body));
+            return fields.ToArray();
+        }
+
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"harbour from={item.from} link={(string.IsNullOrEmpty(item.link) ? "-" : item.link)} action={(allowed ? "dock" : "quarantine")}";
 
         /// <summary>The name painted on the boat: the title without the "Post boat:" prefix.</summary>
         static string ShortName(ItemData item)
