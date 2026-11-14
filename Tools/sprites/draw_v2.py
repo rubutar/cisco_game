@@ -150,3 +150,181 @@ for name, f in (("station_harbour", harbour), ("station_gate", gate), ("station_
                 ("station_observatory", observatory), ("station_switchyard", switchyard), ("station_tower", tower)):
     save(name, "Props", f(), "normal dim")
 print("v2 grids written")
+
+
+# ---------- Pax, Should animations (PRD-v2 6.6): walk up / down, interact, cheer, worried
+def pax_front(leg=0, arms="down", mouth="smile", brows=None, sweat=False, back=False, bob=0):
+    """Pax facing the camera (or away, back=True): legs step on frames 0 and 2."""
+    c = C(32, 32)
+    y0 = 6 + bob
+    step = [(-1, 1), (0, 0), (1, -1), (0, 0)][leg]
+    c.rect(12, y0 + 17 + max(0, step[0]), 3, 6 - abs(step[0]), "2"); c.rect(17, y0 + 17 + max(0, step[1]), 3, 6 - abs(step[1]), "2")
+    c.rect(11, y0 + 23, 4, 2, "1"); c.rect(17, y0 + 23, 4, 2, "1")
+    c.ell(16, y0 + 13, 6, 5.5, "y"); c.rect(10, y0 + 12, 12, 6, "y"); c.rect(10, y0 + 16, 12, 2, "o")
+    if arms == "up":
+        c.rect(7, y0 + 5, 2, 7, "y"); c.rect(23, y0 + 5, 2, 7, "y"); c.rect(7, y0 + 3, 2, 2, "4"); c.rect(23, y0 + 3, 2, 2, "4")
+    else:
+        swing = [1, 0, -1, 0][leg]
+        c.rect(8, y0 + 11 + swing, 2, 6, "y"); c.rect(22, y0 + 11 - swing, 2, 6, "y")
+        c.rect(8, y0 + 17 + swing, 2, 2, "4"); c.rect(22, y0 + 17 - swing, 2, 2, "4")
+    c.ell(16, y0 + 4, 5.5, 5, "4")
+    if back:
+        c.ell(16, y0 + 3, 6, 5, "1", only=lambda x, y: y <= y0 + 6)        # back of the head: all hair
+        c.rect(10, y0 + 3, 1, 4, "C"); c.rect(21, y0 + 3, 1, 4, "C"); c.rect(11, y0 - 1, 10, 1, "C")  # headset band
+        return c
+    c.ell(16, y0 + 1, 6, 3.5, "1", only=lambda x, y: y <= y0 + 2)
+    c.rect(13, y0 + 4, 2, 2, "1"); c.rect(18, y0 + 4, 2, 2, "1")
+    if brows == "worried": c.put(13, y0 + 2, "1"); c.put(19, y0 + 2, "1")
+    if mouth == "smile": c.rect(15, y0 + 7, 3, 1, "5")
+    elif mouth == "open": c.rect(15, y0 + 7, 3, 2, "1"); c.put(16, y0 + 8, "5")
+    elif mouth == "wavy": c.put(14, y0 + 8, "1"); c.put(15, y0 + 7, "1"); c.put(16, y0 + 8, "1"); c.put(17, y0 + 7, "1")
+    c.put(12, y0 + 6, "a"); c.put(20, y0 + 6, "a")
+    c.rect(10, y0 + 3, 1, 4, "C"); c.rect(21, y0 + 3, 1, 4, "C"); c.rect(10, y0 + 7, 3, 1, "C"); c.put(13, y0 + 7, "3")
+    c.put(14, y0 + 9, "1"); c.put(18, y0 + 9, "1"); c.rect(15, y0 + 10, 3, 1, "1"); c.rect(15, y0 + 11, 3, 4, "3")  # Visitor Pass
+    if sweat: c.ell(23, y0 + 1, 1.2, 1.6, "k")
+    return c
+
+
+for i in range(4):
+    save(f"pax_walk_down_{i}", "Characters", pax_front(leg=i, bob=1 if i % 2 else 0))
+    save(f"pax_walk_up_{i}", "Characters", pax_front(leg=i, back=True, bob=1 if i % 2 else 0))
+save("pax_interact_side_0", "Characters", pax("side", leg=1))
+lean = pax("side", leg=1, bob=1); lean.rect(19, 15, 4, 2, "4")             # reaching toward the station
+save("pax_interact_side_1", "Characters", lean)
+save("pax_cheer_down_0", "Characters", pax_front(arms="up", mouth="open"))
+save("pax_cheer_down_1", "Characters", pax_front(arms="up", mouth="open", bob=-1))
+save("pax_worried_down_0", "Characters", pax_front(mouth="wavy", brows="worried", sweat=True))
+
+
+# ---------- Pax portraits, 48 x 48, head and shoulders (UI)
+def portrait(mood):
+    c = C(48, 48)
+    c.ell(24, 46, 18, 12, "y"); c.rect(6, 40, 36, 8, "y"); c.rect(21, 36, 6, 4, "4")            # hoodie and neck
+    c.rect(19, 38, 1, 6, "1"); c.rect(28, 38, 1, 6, "1"); c.rect(20, 42, 8, 6, "3"); c.rect(22, 43, 4, 1, "2")  # lanyard + pass
+    c.ell(24, 22, 13, 14, "4"); c.ell(24, 22, 13, 14, "p", only=lambda x, y: x >= 33)              # face
+    c.ell(24, 13, 14, 8, "1", only=lambda x, y: y <= 15); c.rect(11, 12, 4, 10, "1")               # hair
+    c.rect(9, 18, 3, 10, "C"); c.rect(36, 18, 3, 10, "C"); c.ell(24, 13, 14, 9, "C", only=lambda x, y: y <= 6 and y >= 4)  # headset band over the hair
+    c.rect(9, 28, 6, 2, "C"); c.rect(15, 28, 2, 2, "3")
+    eyes = {"neutral": "open", "happy": "happy", "surprised": "wide", "worried": "open", "determined": "narrow"}[mood]
+    for ex in (17, 28):
+        if eyes == "open": c.rect(ex, 19, 3, 4, "1"); c.put(ex, 19, "4")
+        elif eyes == "happy": c.put(ex, 21, "1"); c.put(ex + 1, 20, "1"); c.put(ex + 2, 21, "1")
+        elif eyes == "wide": c.rect(ex, 18, 4, 5, "1"); c.rect(ex + 1, 19, 1, 2, "4")
+        elif eyes == "narrow": c.rect(ex, 20, 3, 2, "1"); c.put(ex, 20, "4")
+    if mood == "worried": c.put(17, 16, "1"); c.put(18, 16, "1"); c.put(19, 17, "1"); c.put(28, 17, "1"); c.put(29, 16, "1"); c.put(30, 16, "1")
+    if mood == "determined": c.put(17, 17, "1"); c.put(18, 17, "1"); c.put(19, 18, "1"); c.put(28, 18, "1"); c.put(29, 17, "1"); c.put(30, 17, "1")
+    if mood == "surprised": c.rect(17, 15, 3, 1, "1"); c.rect(28, 15, 3, 1, "1")
+    mouth = {"neutral": "smile", "happy": "open", "surprised": "o", "worried": "wavy", "determined": "flat"}[mood]
+    if mouth == "smile": c.rect(22, 28, 4, 1, "5"); c.put(21, 27, "5"); c.put(26, 27, "5")
+    elif mouth == "open": c.ell(24, 28, 3, 2, "1"); c.rect(23, 29, 2, 1, "5")
+    elif mouth == "o": c.ell(24, 29, 1.6, 2, "1")
+    elif mouth == "wavy": [c.put(21 + i, 28 + (i % 2), "1") for i in range(6)]
+    elif mouth == "flat": c.rect(21, 28, 6, 1, "1")
+    c.rect(14, 25, 3, 1, "a"); c.rect(31, 25, 3, 1, "a")
+    if mood == "worried": c.ell(37, 15, 1.5, 2.2, "k")
+    return c
+
+
+for mood in ("neutral", "happy", "surprised", "worried", "determined"):
+    save(f"pax_portrait_{mood}", "UI", portrait(mood))
+print("pax extras written")
+
+
+# ---------- Station Bytes on the map, 16 x 16, holding their props (PRD-v2 6.6), and their faces
+def byte16(face="smile", ant=(8,), extra=None):
+    c = C(16, 16)
+    c.rect(4, 14, 3, 1, "2"); c.rect(9, 14, 3, 1, "2")
+    c.ell(8, 9, 6, 5.5, "4"); c.ell(8, 9, 6, 5.5, "p", only=lambda x, y: x >= 11)
+    c.ell(8, 9, 6, 5.5, "3", only=lambda x, y: y >= 11)
+    for ax in ant: c.rect(ax, 2, 1, 2, "1"); c.put(ax, 1, "5")
+    if face == "worried":
+        c.rect(5, 7, 1, 2, "1"); c.rect(10, 7, 1, 2, "1"); c.put(4, 6, "1"); c.put(11, 6, "1"); c.put(7, 10, "2"); c.put(8, 11, "2"); c.put(9, 10, "2")
+    elif face == "surprised":
+        c.rect(5, 6, 1, 3, "1"); c.rect(10, 6, 1, 3, "1"); c.rect(7, 10, 2, 2, "1")
+    elif face == "happy":
+        c.put(5, 7, "1"); c.put(4, 8, "1"); c.put(10, 7, "1"); c.put(11, 8, "1"); c.rect(7, 10, 2, 1, "1")
+    else:
+        c.rect(5, 7, 1, 2, "1"); c.rect(10, 7, 1, 2, "1"); c.rect(7, 10, 2, 1, "2")
+    c.put(4, 10, "a"); c.put(11, 10, "a")
+    if extra: extra(c)
+    return c
+def spyglass(c): c.rect(12, 6, 4, 2, "W"); c.put(15, 6, "k"); c.put(15, 7, "k")
+def clipboard(c): c.rect(12, 7, 4, 5, "4"); c.rect(13, 6, 2, 1, "W"); c.rect(13, 8, 2, 1, "2"); c.rect(13, 10, 2, 1, "2")
+def keys(c): c.ell(13.5, 9.5, 1.6, 1.6, "y"); c.rect(14, 10, 2, 1, "y"); c.put(15, 11, "y")
+def wrench(c): c.rect(13, 7, 1, 6, "c"); c.rect(12, 5, 3, 2, "c"); c.put(13, 5, ".")
+def cap(c): c.ell(8, 5, 5, 2.5, "2", only=lambda x, y: y <= 5); c.rect(3, 5, 10, 1, "2"); c.rect(11, 5, 4, 1, "2"); c.rect(5, 3, 5, 1, "3")
+def bow(c): c.rect(5, 0, 2, 2, "5"); c.rect(9, 0, 2, 2, "5"); c.put(7, 1, "5"); c.put(8, 1, "5")
+def hat(c): c.ell(8, 5, 5.5, 3, "y", only=lambda x, y: y <= 5); c.rect(2, 5, 12, 1, "y"); c.rect(7, 2, 2, 3, "o")
+J = "normal alert dim"
+save("map_scout", "Characters", byte16("smile", ant=(), extra=lambda c: (cap(c), spyglass(c))), J)
+save("map_gigi", "Characters", byte16("smile", extra=lambda c: (bow(c), clipboard(c))), J)
+save("map_uno", "Characters", byte16("smile", ant=(8,), extra=keys), J)
+save("map_due", "Characters", byte16("smile", ant=(5, 10), extra=keys), J)
+save("map_patch", "Characters", byte16("smile", ant=(), extra=lambda c: (hat(c), wrench(c))), J)
+for face in ("happy", "worried", "surprised"):
+    save(f"map_byte_{face}", "Characters", byte16(face))
+
+
+# ---------- Attackers on the map, 16 x 16
+def phisher16():
+    c = C(16, 16)
+    c.ell(6, 9, 4.5, 5.5, "2"); c.ell(6, 7, 3.5, 3, "C"); c.put(5, 7, "5"); c.put(8, 7, "5")
+    c.rect(11, 2, 1, 12, "W"); c.rect(12, 2, 3, 1, "1"); c.rect(14, 2, 1, 6, "1"); c.rect(13, 8, 2, 1, "5")
+    return c
+def ram16():
+    c = C(16, 16)
+    c.ell(8, 10, 6, 4.5, "2"); [c.rect(x, 13, 2, 2, "C") for x in (4, 7, 10)]
+    c.ell(3, 6, 2.5, 2.5, "p"); c.ell(13, 6, 2.5, 2.5, "p"); c.put(3, 6, "W"); c.put(13, 6, "W")
+    c.ell(8, 7, 3.5, 3, "c"); c.put(6, 7, "5"); c.put(10, 7, "5"); c.rect(6, 4, 5, 1, "4")
+    return c
+def worm16():
+    c = C(16, 16)
+    for i, (x, y) in enumerate(((3, 11), (6, 12), (9, 12))): c.ell(x, y, 2, 2, "2" if i % 2 else "c")
+    c.ell(12.5, 9, 3, 3, "2"); c.put(13, 8, "5")
+    return c
+save("map_phisher", "Characters", phisher16())
+save("map_ram", "Characters", ram16())
+save("map_worm", "Characters", worm16())
+
+
+# ---------- Visitor Pass and the seven tool badges (UI), one colour per tool (PRD-v2 4.2a, 6.6)
+def badge(symbol, ring):
+    c = C(16, 16)
+    c.ell(8, 8, 7.5, 7.5, ring); c.ell(8, 8, 6, 6, "4")
+    symbol(c)
+    return c
+def umbrella(c): c.ell(8, 7, 5, 3.5, "3", only=lambda x, y: y <= 7); c.rect(8, 7, 1, 5, "1"); c.put(7, 12, "1")
+def firewall(c):
+    for y in (5, 8, 11): c.rect(3, y, 10, 2, "5")
+    for x, y in ((6, 5), (9, 8), (6, 11)): c.put(x, y, "4")
+def duo(c): c.rect(5, 3, 6, 10, "1"); c.rect(6, 4, 4, 7, "G"); c.put(7, 8, "4"); c.put(8, 9, "4"); c.put(9, 7, "4")
+def endpoint(c):  # a shield with a tick
+    for y in range(3, 13):
+        half = 5 if y < 9 else 5 - (y - 8)
+        c.rect(8 - half, y, half * 2 + 1, 1, "2")
+    c.put(5, 7, "4"); c.put(6, 8, "4"); c.put(7, 9, "4"); c.put(8, 8, "4"); c.put(9, 7, "4"); c.put(10, 6, "4")
+def splunk(c):
+    for i, h in enumerate((3, 6, 4, 8)): c.rect(4 + i * 2, 12 - h, 1, h, "o")
+def catalyst(c):
+    for y in (5, 8, 11): c.rect(3, y, 10, 1, "K")
+    for x, y in ((5, 5), (10, 8), (7, 11)): c.rect(x, y - 1, 2, 3, "1")
+def thousandeyes(c): c.ell(8, 8, 5, 3, "4"); c.ell(8, 8, 5, 3, "1", only=lambda x, y: abs(((x + .5 - 8) / 5) ** 2 + ((y + .5 - 8) / 3) ** 2 - 1) < .45); c.ell(8, 8, 2, 2, "K"); c.put(8, 8, "1")
+for name, sym, ring in (("umbrella", umbrella, "3"), ("firewall", firewall, "5"), ("duo", duo, "G"), ("endpoint", endpoint, "2"),
+                        ("splunk", splunk, "o"), ("catalyst", catalyst, "K"), ("thousandeyes", thousandeyes, "y")):
+    save(f"badge_{name}", "UI", badge(sym, ring), "normal dim")
+
+def visitor_pass():
+    c = C(48, 64)
+    c.rect(22, 0, 4, 8, "2")                                                    # lanyard
+    c.rect(4, 8, 40, 54, "4"); c.rect(4, 8, 40, 12, "3"); c.rect(18, 10, 12, 4, "1")  # card and cyan header
+    c.rect(14, 22, 20, 18, "k")                                                 # photo background
+    c.ell(24, 40, 8, 5, "y", only=lambda x, y: y <= 39)                          # hoodie shoulders
+    c.ell(24, 30, 5, 5.5, "4")                                                  # face
+    c.ell(24, 27, 5.5, 3.5, "1", only=lambda x, y: y <= 27)                     # hair
+    c.put(22, 30, "1"); c.put(26, 30, "1"); c.rect(23, 33, 3, 1, "5")           # eyes, smile
+    for i in range(7):                                                          # seven badge slots
+        x = 8 + (i % 4) * 9; y = 42 + (i // 4) * 9
+        c.rect(x, y, 7, 7, "P"); c.rect(x + 1, y + 1, 5, 5, "p")
+    return c
+save("visitor_pass", "UI", visitor_pass())
+print("bytes, attackers, badges written")
