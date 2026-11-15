@@ -38,6 +38,7 @@ namespace ByteWorld
         Image withoutTint;
         string openFor;
         bool overShift;
+        int homeSibling = -1;   // where the panel sits among the UI layers while closed
         string url;
         Coroutine slide;
 
@@ -73,6 +74,9 @@ namespace ByteWorld
             if (c == null) return;
             openFor = id;
             Fill(id);
+            // On top of every other layer while open (the chat bubble included); back in place on close.
+            if (homeSibling < 0) homeSibling = transform.GetSiblingIndex();
+            transform.SetAsLastSibling();
             panel.gameObject.SetActive(true);
             ring.gameObject.SetActive(true);
             slider.SetValueWithoutNotify(0.5f);
@@ -104,6 +108,11 @@ namespace ByteWorld
             panel.gameObject.SetActive(false);
             ring.gameObject.SetActive(false);
             openFor = null;
+            if (homeSibling >= 0)
+            {
+                transform.SetSiblingIndex(homeSibling);
+                homeSibling = -1;
+            }
             if (!overShift) return;
             overShift = false;
             GameEvents.RaiseUiAction(UiAction.Resume);
