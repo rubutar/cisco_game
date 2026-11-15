@@ -355,8 +355,14 @@ namespace ByteWorld
             fieldCard = cardRect.gameObject;
             cardTerm = UiKit.Text("Term", cardRect, UiStyle.Body, Palette.SignalBlue, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             cardText = UiKit.Text("Text", cardRect, UiStyle.Small, UiStyle.Ink);
+            // The tags stack, one full-width line each, so long words (Italian) wrap instead of running into
+            // each other (A, at Rudi's request).
             var chips = UiKit.Rect("Chips", cardRect);
-            UiKit.Row(chips.gameObject, 12);
+            var stack = chips.gameObject.AddComponent<VerticalLayoutGroup>();
+            stack.spacing = 8;
+            stack.childControlWidth = stack.childControlHeight = true;
+            stack.childForceExpandWidth = true;
+            stack.childForceExpandHeight = false;
             cardTool = Chip(chips, Palette.SignalBlue, Palette.ByteCream, UiFont.Title);
             cardConcept = Chip(chips, Palette.NeonCyan, Palette.Ink, UiFont.Body);
             cardRole = Chip(chips, Palette.PacketYellow, Palette.Ink, UiFont.Body);
@@ -368,8 +374,9 @@ namespace ByteWorld
             UiKit.Image(chip.gameObject, fill);
             UiKit.Border(chip.gameObject, 3);
             UiKit.Row(chip.gameObject, 0, new RectOffset(14, 14, 4, 6));
-            var label = UiKit.Text("Text", chip, UiStyle.Small, text, TextAlignmentOptions.Center, font);
-            label.textWrappingMode = TextWrappingModes.NoWrap;
+            var label = UiKit.Text("Text", chip, UiStyle.Small, text, TextAlignmentOptions.MidlineLeft, font);
+            label.textWrappingMode = TextWrappingModes.Normal;
+            label.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
             return label;
         }
 

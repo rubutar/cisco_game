@@ -36,7 +36,7 @@
       "without": "Every link gets clicked",
       "with": "Bad domains blocked first",
       "materials": {
-        "what": "Cisco Umbrella checks the domain a device asks for and blocks malware and phishing sites before a connection is made.",
+        "what": "Every link starts with a lookup: your device asks for a name like bank.example before it can open the page. Cisco Umbrella checks that name first, against threat intelligence from Cisco Talos, and blocks known phishing and malware sites before any connection is made. In the game that's the harbour: a look-alike sender or a fake link should never get a boat into town.",
         "withoutLines": [
           "Look-alike domains get clicked",
           "One click can hand over a password",
@@ -47,7 +47,7 @@
           "Phishing pages never load",
           "The team sees every blocked request"
         ],
-        "realWorld": "Organisations use Umbrella so a wrong click on a phishing link never reaches the page.",
+        "realWorld": "Someone at school gets a message from \"bank-supp0rt\" and taps the link. With Umbrella the lookup is blocked, the fake login page never loads, and the security team sees which device tried to reach it.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -84,7 +84,7 @@
       "without": "Every door is open",
       "with": "Only the doors you need",
       "materials": {
-        "what": "Cisco Secure Firewall checks traffic against access control rules and only lets through what a rule allows.",
+        "what": "Every service on a network listens on a numbered door, its port: 443 for secure websites, 23 for Telnet. Cisco Secure Firewall checks each connection against access control rules, from the top down, and the first rule that matches decides. Anything no rule allows is dropped. In the game you're the rules: open only the doors the town needs, only for the people on the list.",
         "withoutLines": [
           "Old doors like Telnet stay open",
           "Anyone can knock on any door",
@@ -95,7 +95,7 @@
           "Rules say who may use each door",
           "Everything else is dropped"
         ],
-        "realWorld": "Organisations use Secure Firewall to control which traffic enters and leaves their network.",
+        "realWorld": "A company keeps its website open on 443 for everyone, lets staff use other services only from inside, and keeps Telnet (23) shut, because it sends passwords as plain text. Anything else that knocks is dropped and logged.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -135,7 +135,7 @@
       "without": "A stolen password opens it",
       "with": "A second step on your phone",
       "materials": {
-        "what": "Cisco Duo adds a second factor: after the password, the owner approves the login on their own phone.",
+        "what": "A password is one factor: something you know. If it's stolen or guessed, it opens everything. Cisco Duo adds a second factor, something you have: after the password, the owner approves the login on their own phone. Attackers try push bombing, sending approval after approval until someone taps Yes, so Verified Duo Push asks for a code shown on the login screen. If you didn't ask to log in, deny it and report it.",
         "withoutLines": [
           "A guessed password opens the vault",
           "Stolen logins look like the owner",
@@ -146,7 +146,7 @@
           "A stolen password alone fails",
           "Verified Push asks for a code"
         ],
-        "realWorld": "Organisations use Duo so staff confirm each login on their own phone.",
+        "realWorld": "A student's password leaks from an old game site. The attacker tries it on the school account, but the approval goes to the student's phone. They didn't ask, so they deny and report it, and the account stays safe.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -178,7 +178,7 @@
       "without": "Any update gets installed",
       "with": "Malware caught on the device",
       "materials": {
-        "what": "Cisco Secure Endpoint protects devices by preventing, detecting and responding to malware, including suspicious files.",
+        "what": "Updates fix the cracks attackers use, so real ones should go in fast. But a fake update is one of the easiest ways to slip malware onto a device. Cisco Secure Endpoint checks files on laptops and servers, watches how programs behave, and can quarantine a suspicious file or isolate an infected device. In the game: check the signature and the sender before you fit anything.",
         "withoutLines": [
           "A fake update installs malware",
           "Nobody notices the infected device",
@@ -189,7 +189,7 @@
           "Malware is detected and stopped",
           "The team can see every device"
         ],
-        "realWorld": "Organisations use Secure Endpoint to find and stop malware on laptops and servers.",
+        "realWorld": "A pop-up offers a \"free speed boost\" from a site that isn't the real maker. Secure Endpoint flags the file as malware and quarantines it before it runs, and the team can see which device downloaded it.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -225,7 +225,7 @@
       "without": "Logs in every house",
       "with": "One search for the town",
       "materials": {
-        "what": "Splunk, part of Cisco since 2024, collects logs from every system so one search can find patterns across all of them.",
+        "what": "Every system writes a log: who knocked, on which door, what was allowed. One log alone says little. Splunk, part of Cisco since 2024, collects the logs from every system in one place, and a search runs across all of them at once. That's how a slow scan shows up: one address trying door after door, too quietly for any single house to notice. This is threat hunting, the daily work of a SOC analyst.",
         "withoutLines": [
           "Each house keeps its own logs",
           "A slow scan goes unnoticed",
@@ -236,7 +236,7 @@
           "One search shows the scanner",
           "The trail leads back to the source"
         ],
-        "realWorld": "Security teams use Splunk to search logs from the whole organisation and spot attacks.",
+        "realWorld": "A security team sees nothing odd on any single server. One Splunk search across all the logs shows the same address probing port 8080 hundreds of times overnight, and the trail leads straight back to it.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -267,7 +267,7 @@
       "without": "One flat network",
       "with": "Separate lanes per group",
       "materials": {
-        "what": "Cisco Catalyst switches put devices into separate VLANs, so traffic between groups can be controlled.",
+        "what": "On a flat network every device can reach every other one, so one infection can spread everywhere. Cisco Catalyst switches can put groups of devices into separate lanes called VLANs. Traffic stays inside its own VLAN, and anything crossing between lanes has to pass through rules that decide what's allowed. This is segmentation: one infected device stays in its own lane.",
         "withoutLines": [
           "Every pod can reach the vault",
           "One infection spreads everywhere",
@@ -278,7 +278,7 @@
           "An infected pod stays in its lane",
           "Rules decide what crosses lanes"
         ],
-        "realWorld": "Organisations use Catalyst switches and VLANs to keep guests, staff and servers apart.",
+        "realWorld": "A school puts guests' phones, students' laptops and the servers with marks and records in separate VLANs. When a guest's phone is infected, it can't reach the servers, because no rule lets guests cross into that lane.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -313,7 +313,7 @@
       "without": "The call freezes, nobody knows why",
       "with": "The broken link shows up pink",
       "materials": {
-        "what": "Cisco ThousandEyes measures loss, latency and jitter hop by hop, so the team can see which link is failing.",
+        "what": "When a video call freezes, the problem could be anywhere along the path: the Wi-Fi, the router, the internet provider, or the app itself. Cisco ThousandEyes measures every hop of the path: packet loss (data that never arrives), latency (delay) and jitter (uneven delay), even across networks you don't own. The team fixes the link that's actually failing, instead of guessing.",
         "withoutLines": [
           "The Webex call freezes",
           "Every link looks the same",
@@ -324,7 +324,7 @@
           "The bad link is found first",
           "The call is moved to a good path"
         ],
-        "realWorld": "Organisations use ThousandEyes to find where the network is slowing down an app or a call.",
+        "realWorld": "A school's Webex lessons keep freezing. ThousandEyes shows the loss starts at one link at the internet provider, not inside the school, so the team calls the provider about that link instead of replacing the Wi-Fi.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }

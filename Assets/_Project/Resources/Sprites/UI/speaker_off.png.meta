@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 0b800723263314accb57b587adaac5f2
+guid: 682edad9eb2f64c2aadd11c33b3c4aa6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4918488259092185584
-    second: qr_netacad_0
+      213: 1298458759943343119
+    second: speaker_off_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -115,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: qr_netacad_0
+      name: speaker_off_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 232
-        height: 232
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,8 +130,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 01e71e4dcf40ebbb0800000000000000
-      internalID: -4918488259092185584
+      spriteID: f0ccae5dc5d050210800000000000000
+      internalID: 1298458759943343119
       vertices: []
       indices: 
       edges: []
