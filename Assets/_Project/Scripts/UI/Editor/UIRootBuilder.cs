@@ -30,10 +30,13 @@ namespace ByteWorld.EditorTools
                 safe.gameObject.AddComponent<SafeArea>();
                 BuildBuildView(safe);
                 BuildTopBar(safe);
-                BuildTownSpace(safe);
+                // Map UI, bottom to top: station bubbles, the comms dock, the station popup and card,
+                // then the materials panel over all of them.
                 var materials = BuildMaterialsPanel(safe);
-                BuildCheckpointMap(safe, materials);
-                materials.transform.SetAsLastSibling(); // the panel covers the bubbles and the card
+                var cardLayer = BuildCheckpointMap(safe, materials);
+                BuildTownSpace(safe);
+                cardLayer.SetAsLastSibling();
+                materials.transform.SetAsLastSibling();
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
                 BuildToolkit(safe);
@@ -412,7 +415,7 @@ namespace ByteWorld.EditorTools
             var area = NewRect("BoardArea", view);
             Stretch(area);
             area.offsetMin = new Vector2(0, 170);
-            area.offsetMax = new Vector2(0, -120);
+            area.offsetMax = new Vector2(0, -BuildTop); // below the top bar and the goal banner
             var board = NewRect("Board", area);
             Stretch(board);
             var fitter = board.gameObject.AddComponent<AspectRatioFitter>();
@@ -459,20 +462,27 @@ namespace ByteWorld.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             BuildRunnerParts(host.gameObject.AddComponent<BuildRunner>(), view, packets);
-            BuildRulesPanel(host.gameObject.AddComponent<RulesPanel>(), manager, view);
+            BuildRulesPanel(host.gameObject.AddComponent<RulesPanel>(), manager, view, area);
             BuildSiegeParts(host.gameObject.AddComponent<SiegeRunner>(), view);
+            // The run result card sits over everything on the board, the rules panel included.
+            view.Find("ResultCard")?.SetAsLastSibling();
         }
 
         // Doors and rules (Quests 3 and 4), top right under the top bar. Rows are made at runtime per puzzle.
-        static void BuildRulesPanel(RulesPanel rules, BuildManager manager, RectTransform view)
+        /// <summary>Build mode content starts this far below the top of the screen (top bar + goal banner).</summary>
+        const float BuildTop = 206;
+
+        // A right-hand column from under the goal banner down to just above the Run button; the board shrinks
+        // to its left while the panel shows (RulesPanel moves the board area).
+        static void BuildRulesPanel(RulesPanel rules, BuildManager manager, RectTransform view, RectTransform boardArea)
         {
             var panel = NewRect("RulesPanel", view);
-            Place(panel, new Vector2(1, 1), new Vector2(-40, -140), new Vector2(680, 0));
-            AddImage(panel.gameObject, UiStyle.Dim(0.85f), true);
+            Place(panel, new Vector2(1, 1), new Vector2(-24, -BuildTop), new Vector2(RulesPanel.Width, 0));
+            AddImage(panel.gameObject, UiStyle.Dim(0.9f), true);
             AddOutline(panel.gameObject, UiStyle.Border);
             var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(20, 20, 20, 20);
-            layout.spacing = 14;
+            layout.padding = new RectOffset(14, 14, 14, 14);
+            layout.spacing = 8;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -491,6 +501,7 @@ namespace ByteWorld.EditorTools
             so.FindProperty("doorList").objectReferenceValue = doors;
             so.FindProperty("ruleList").objectReferenceValue = list;
             so.FindProperty("ruleHeader").objectReferenceValue = header.gameObject;
+            so.FindProperty("boardArea").objectReferenceValue = boardArea;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -498,7 +509,7 @@ namespace ByteWorld.EditorTools
         {
             var list = NewRect(name, parent);
             var layout = list.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 10;
+            layout.spacing = 8;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -510,7 +521,7 @@ namespace ByteWorld.EditorTools
         static void BuildSiegeParts(SiegeRunner siege, RectTransform view)
         {
             var indicator = NewRect("CallIndicator", view);
-            Place(indicator, new Vector2(0, 1), new Vector2(40, -140), new Vector2(0, 0));
+            Place(indicator, new Vector2(0, 1), new Vector2(24, -BuildTop), new Vector2(0, 0));
             AddImage(indicator.gameObject, UiStyle.Dim(0.9f), false);
             AddOutline(indicator.gameObject, UiStyle.Border);
             var row = indicator.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -875,17 +886,22 @@ namespace ByteWorld.EditorTools
 
         // ---------- Checkpoint UI (B-14 to B-17) ----------
 
-        static void BuildCheckpointMap(RectTransform parent, MaterialsPanel materials)
+        /// <summary>Returns the popup/card layer, which the caller places above the comms dock.</summary>
+        static RectTransform BuildCheckpointMap(RectTransform parent, MaterialsPanel materials)
         {
             var host = NewRect("CheckpointMap", parent);
             Stretch(host);
             var map = host.gameObject.AddComponent<CheckpointMap>();
             var layer = NewRect("Layer", host);
             Stretch(layer);
+            var cardLayer = NewRect("CheckpointCards", parent);
+            Stretch(cardLayer);
             var so = new SerializedObject(map);
             so.FindProperty("layer").objectReferenceValue = layer;
+            so.FindProperty("cardLayer").objectReferenceValue = cardLayer;
             so.FindProperty("materials").objectReferenceValue = materials;
             so.ApplyModifiedPropertiesWithoutUndo();
+            return cardLayer;
         }
 
         static MaterialsPanel BuildMaterialsPanel(RectTransform parent)
@@ -1397,14 +1413,19 @@ namespace ByteWorld.EditorTools
             dayLabel.fontSizeMax = 44;
             dayLabel.overflowMode = TextOverflowModes.Ellipsis;
 
-            // Day 3 goal line in the free middle of the bar; shrinks to fit long goals.
-            var goal = NewText("Goal", bar, 36, Palette.PacketYellow, TextAlignmentOptions.Center);
-            goal.rectTransform.anchorMin = new Vector2(0.30f, 0);
-            goal.rectTransform.anchorMax = new Vector2(0.58f, 1);
-            goal.rectTransform.offsetMin = goal.rectTransform.offsetMax = Vector2.zero;
-            goal.enableAutoSizing = true;
-            goal.fontSizeMin = UiStyle.MinText;
-            goal.fontSizeMax = 38;
+            // Day 3 goal line: its own banner under the bar, so long goals read in full.
+            var banner = NewRect("GoalBanner", host);
+            banner.anchorMin = banner.anchorMax = new Vector2(0.5f, 1);
+            banner.pivot = new Vector2(0.5f, 1);
+            banner.anchoredPosition = new Vector2(0, -122);
+            AddImage(banner.gameObject, UiStyle.Dim(0.92f), false);
+            AddOutline(banner.gameObject, UiStyle.Border);
+            var bannerLayout = banner.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bannerLayout.padding = new RectOffset(32, 32, 12, 14);
+            ConfigureRow(bannerLayout, 0, TextAnchor.MiddleCenter);
+            FitBoth(banner.gameObject);
+            var goal = NewText("Goal", banner, UiStyle.Body, Palette.PacketYellow, TextAlignmentOptions.Center);
+            goal.textWrappingMode = TextWrappingModes.NoWrap;
 
             var right = NewRect("Right", bar);
             right.anchorMin = new Vector2(1, 0);
@@ -1426,6 +1447,7 @@ namespace ByteWorld.EditorTools
             so.FindProperty("bar").objectReferenceValue = bar.gameObject;
             so.FindProperty("dayLabel").objectReferenceValue = dayLabel;
             so.FindProperty("goalText").objectReferenceValue = goal;
+            so.FindProperty("goalBanner").objectReferenceValue = banner.gameObject;
             so.FindProperty("backupsLabel").objectReferenceValue = backupsLabel;
             so.FindProperty("backupPips").objectReferenceValue = backupPips;
             so.FindProperty("complaintsGroup").objectReferenceValue = complaints.gameObject;

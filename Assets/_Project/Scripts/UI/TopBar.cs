@@ -11,7 +11,8 @@ namespace ByteWorld
     {
         [SerializeField] GameObject bar;
         [SerializeField] TMP_Text dayLabel;
-        [SerializeField] TMP_Text goalText; // Day 3: the puzzle's goal line, in the middle of the bar
+        [SerializeField] TMP_Text goalText; // Day 3: the puzzle's goal line, in a banner under the bar
+        [SerializeField] GameObject goalBanner;
         [SerializeField] TMP_Text backupsLabel;
         [SerializeField] RectTransform backupPips;
         [SerializeField] GameObject complaintsGroup;
@@ -77,6 +78,8 @@ namespace ByteWorld
         {
             var show = inGame && !HuntScreen.IsOpen;
             if (bar != null && bar.activeSelf != show) bar.SetActive(show);
+            var goal = show && goalText != null && !string.IsNullOrEmpty(goalText.text);
+            if (goalBanner != null && goalBanner.activeSelf != goal) goalBanner.SetActive(goal);
             var map = Stations.IsMapState(Services.Flow.State);
             if (toolkitSpace != null && toolkitSpace.activeSelf != map) toolkitSpace.SetActive(map);
         }

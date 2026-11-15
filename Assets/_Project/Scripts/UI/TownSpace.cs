@@ -59,6 +59,7 @@ namespace ByteWorld
         Outline panelBorder;
         Image chatTabFill, logTabFill;
         TMP_Text chatTabText, logTabText, expandText;
+        GameObject expandButton;
         GameObject chatDot, logDot;
 
         void Awake()
@@ -78,6 +79,7 @@ namespace ByteWorld
             GameEvents.StateChanged += OnStateChanged;
             GameEvents.AlertRaised += OnAlertRaised;
             GameEvents.ItemResolved += OnItemResolved;
+            GameEvents.JobEntered += OnJobEntered;
         }
 
         void OnDisable()
@@ -85,6 +87,15 @@ namespace ByteWorld
             GameEvents.StateChanged -= OnStateChanged;
             GameEvents.AlertRaised -= OnAlertRaised;
             GameEvents.ItemResolved -= OnItemResolved;
+            GameEvents.JobEntered -= OnJobEntered;
+        }
+
+        // Each station keeps its own Splunk log: a new station starts with a clean one.
+        void OnJobEntered(JobContext ctx)
+        {
+            log.Clear();
+            unreadLog = false;
+            dirty = true;
         }
 
         /// <summary>Adds a chat post (speaker is a job key, or "" for the town / alert bot).</summary>
@@ -117,6 +128,8 @@ namespace ByteWorld
                 Webex.ResetClock();
                 dirty = true;
             }
+            // Inside a station the Splunk log is what matters; back on the map, the town's chat.
+            if (to == GameState.JobShift && log.Count > 0) Show(Tab.Log);
             // Back on the map the town's chat is what matters; the log is one tap away.
             if (Stations.IsMapState(to) && !Stations.IsMapState(from) && chat.Count > 0) Show(Tab.Chat);
             if (to == GameState.WorldPeace) BriefIfNew(Services.Flow.Day);
@@ -193,8 +206,12 @@ namespace ByteWorld
 
         void LateUpdate()
         {
-            var has = chat.Count > 0 || log.Count > 0;
-            var show = has && Shows(Services.Flow.State) && !Services.Dialogue.IsShowing && !HuntScreen.IsOpen;
+            // Inside a station only the log belongs: the dock waits for the first decision.
+            var inShift = Services.Flow.State == GameState.JobShift;
+            var has = inShift ? log.Count > 0 : chat.Count > 0 || log.Count > 0;
+            if (inShift && has && tab != Tab.Log) Show(Tab.Log);
+            var show = has && Shows(Services.Flow.State) && !Services.Dialogue.IsShowing && !HuntScreen.IsOpen
+                       && !CheckpointMap.CardShowing;
             if (panel.gameObject.activeSelf != show)
             {
                 panel.gameObject.SetActive(show);
@@ -222,13 +239,14 @@ namespace ByteWorld
             StyleTab(chatTabFill, chatTabText, tab == Tab.Chat, Palette.SignalBlue, Palette.ByteCream);
             StyleTab(logTabFill, logTabText, tab == Tab.Log, Palette.Ink, Palette.PacketYellow);
             // A tab appears once it has something in it.
-            chatTabFill.gameObject.SetActive(chat.Count > 0);
+            chatTabFill.gameObject.SetActive(chat.Count > 0 && Services.Flow.State != GameState.JobShift);
             logTabFill.gameObject.SetActive(log.Count > 0);
             chatDot.SetActive(unreadChat && tab != Tab.Chat);
             logDot.SetActive(unreadLog && tab != Tab.Log);
             var items = tab == Tab.Chat ? chat : log;
-            expandText.text = expanded ? "▼" : "▲";
-            expandText.gameObject.SetActive(items.Count > 1);
+            // "▲ 4": four earlier messages to open; "▼" folds them away again.
+            expandText.text = expanded ? "▼" : $"▲ {items.Count - 1}";
+            expandButton.SetActive(items.Count > 1);
 
             // Newest at the bottom, like a chat. Collapsed: only the newest.
             var count = expanded ? items.Count : Mathf.Min(1, items.Count);
@@ -297,8 +315,17 @@ namespace ByteWorld
             NewTab(tabs, "LogTab", UiFont.Mono, out logTabFill, out logTabText, out logDot, () => { Show(Tab.Log); });
             var spacer = UiKit.Rect("Spacer", tabs);
             spacer.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
-            expandText = UiKit.Text("Expand", tabs, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.Center, UiFont.Mono);
-            UiKit.Size(expandText.gameObject, 48, 48);
+            var expand = UiKit.Rect("Expand", tabs);
+            var expandFill = UiKit.Image(expand.gameObject, UiStyle.Panel, true);
+            UiKit.Border(expand.gameObject, 3, UiStyle.Ink);
+            UiKit.Row(expand.gameObject, 0, new RectOffset(16, 16, 2, 4), TextAnchor.MiddleCenter);
+            UiKit.Size(expand.gameObject, 96, 52);
+            var expandTap = expand.gameObject.AddComponent<Button>();
+            expandTap.targetGraphic = expandFill;
+            expandTap.onClick.AddListener(Toggle);
+            expandText = UiKit.Text("Text", expand, UiStyle.Small, UiStyle.Ink, TextAlignmentOptions.Center, UiFont.Mono);
+            expandText.textWrappingMode = TextWrappingModes.NoWrap;
+            expandButton = expand.gameObject;
 
             for (var i = 0; i < MaxItems; i++) rows.Add(NewRow(panel, i));
         }

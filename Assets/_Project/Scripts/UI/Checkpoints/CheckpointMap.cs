@@ -26,7 +26,8 @@ namespace ByteWorld
         const float TopEdge = 70f;       // stations nearer the top than this show their bubble below
         const float TopBarRoom = 124f;   // canvas units under the top of the screen kept for the top bar
 
-        [SerializeField] RectTransform layer;
+        [SerializeField] RectTransform layer;      // bubbles and the Next chip: under the comms dock
+        [SerializeField] RectTransform cardLayer;  // popup and card: over the comms dock (falls back to layer)
         [SerializeField] MaterialsPanel materials;
 
         class Bubble
@@ -98,6 +99,11 @@ namespace ByteWorld
             GameEvents.HeroLeft -= OnLeft;
             GameEvents.UiCommandRequested -= OnCommand;
         }
+
+        RectTransform Top => cardLayer != null ? cardLayer : layer;
+
+        /// <summary>True while a station card is open; the comms dock steps aside so the card has the stage.</summary>
+        public static bool CardShowing { get; private set; }
 
         bool OnMap => Stations.IsMapState(Services.Flow.State);
 
@@ -283,6 +289,7 @@ namespace ByteWorld
             if (layer.gameObject.activeSelf == hunt)
             {
                 layer.gameObject.SetActive(!hunt);
+                Top.gameObject.SetActive(!hunt);
                 if (hunt) CloseCard();
             }
             if (hunt) return;
@@ -406,7 +413,7 @@ namespace ByteWorld
 
         void BuildPopup()
         {
-            popup = UiKit.Rect("Popup", layer);
+            popup = UiKit.Rect("Popup", Top);
             UiKit.Image(popup.gameObject, UiStyle.Panel, true);
             popupBorder = UiKit.Border(popup.gameObject, 4);
             var shadow = popup.gameObject.AddComponent<Shadow>();
@@ -453,7 +460,7 @@ namespace ByteWorld
         void BuildCard()
         {
             // Tapping the map around the card closes it.
-            var catcher = UiKit.Rect("CardCatcher", layer);
+            var catcher = UiKit.Rect("CardCatcher", Top);
             UiKit.Stretch(catcher);
             var catcherImage = UiKit.Image(catcher.gameObject, new Color(0, 0, 0, 0), true);
             var catcherButton = catcher.gameObject.AddComponent<Button>();
@@ -462,7 +469,7 @@ namespace ByteWorld
             catcherButton.onClick.AddListener(CloseCard);
             cardCatcher = catcher.gameObject;
 
-            card = UiKit.Rect("Card", layer);
+            card = UiKit.Rect("Card", Top);
             card.sizeDelta = new Vector2(900, 0);
             UiKit.Image(card.gameObject, UiStyle.Panel, true);
             cardBorder = UiKit.Border(card.gameObject, 6);
@@ -558,6 +565,7 @@ namespace ByteWorld
 
             cardCatcher.SetActive(true);
             card.gameObject.SetActive(true);
+            CardShowing = true;
             LayoutRebuilder.ForceRebuildLayoutImmediate(card);
             PlaceCard(c);
             Redraw();
@@ -576,6 +584,7 @@ namespace ByteWorld
             var was = cardFor;
             cardFor = null;
             card.gameObject.SetActive(false);
+            CardShowing = false;
             cardCatcher.SetActive(false);
             if (was != null) Redraw();
         }

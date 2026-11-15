@@ -119,7 +119,7 @@ namespace ByteWorld
             crate.transform.localPosition = PixelArt.MapToWorld(spot.x, -20);
             var body = PixelArt.AddSprite(crate.transform, crateSprite, "Body", SortBase + 100 + nextSpot);
             Tappable.Add(body.gameObject, body, 0.4f).Tapped += () => OpenInspect(item);
-            JobVisuals.Label(crate.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 101 + nextSpot, 4f);
+            JobVisuals.Label(crate.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 101 + nextSpot, 2.4f);
             crate.AddComponent<Mover>().MoveTo(PixelArt.MapToWorld(spot.x, spot.y), 8f);
             crates[item.id] = crate;
 
@@ -137,7 +137,7 @@ namespace ByteWorld
             var mark = PixelArt.AddSprite(go.transform, crackSprite, "Mark", SortBase + 30);
             mark.transform.localScale = new Vector3(2f, 2f, 1f);
             Tappable.Add(mark.gameObject, mark, 0.6f).Tapped += () => OpenInspect(item);
-            JobVisuals.Label(go.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 31, 4f);
+            JobVisuals.Label(go.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 31, 2.4f);
             crates[item.id] = go;
         }
 
