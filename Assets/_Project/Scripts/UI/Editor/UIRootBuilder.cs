@@ -379,7 +379,7 @@ namespace ByteWorld.EditorTools
             var skip = NewRect("SkipButton", screen);
             skip.anchorMin = skip.anchorMax = new Vector2(1, 1);
             skip.pivot = new Vector2(1, 1);
-            skip.anchoredPosition = new Vector2(-64, -48);
+            skip.anchoredPosition = new Vector2(-64 - SettingsRoom, -48);
             skip.sizeDelta = new Vector2(240, 96);
             var skipImage = AddImage(skip.gameObject, new Color(0, 0, 0, 0), true);
             var skipButton = skip.gameObject.AddComponent<Button>();
@@ -927,7 +927,7 @@ namespace ByteWorld.EditorTools
 
             // Top-bar button in the top-right corner; the top bar leaves a gap for it on the map.
             var open = NewButton("ToolkitButton", host, ButtonStyle.Secondary, out var openLabel);
-            Place((RectTransform)open.transform, new Vector2(1, 1), new Vector2(-28, -16), new Vector2(ToolkitButtonWidth, 78));
+            Place((RectTransform)open.transform, new Vector2(1, 1), new Vector2(-28 - SettingsRoom, -16), new Vector2(ToolkitButtonWidth, 78));
             ((RectTransform)open.transform).pivot = new Vector2(1, 1);
             openLabel.fontSize = UiStyle.Small;
 
@@ -1447,7 +1447,7 @@ namespace ByteWorld.EditorTools
             right.anchorMin = new Vector2(1, 0);
             right.anchorMax = new Vector2(1, 1);
             right.pivot = new Vector2(1, 0.5f);
-            right.anchoredPosition = new Vector2(-48, 0);
+            right.anchoredPosition = new Vector2(-48 - SettingsRoom, 0);
             right.sizeDelta = new Vector2(0, 0);
             var rightLayout = right.gameObject.AddComponent<HorizontalLayoutGroup>();
             ConfigureRow(rightLayout, 64, TextAnchor.MiddleRight);
@@ -1473,6 +1473,9 @@ namespace ByteWorld.EditorTools
         }
 
         const float ToolkitButtonWidth = 400;
+        // A's settings button (SettingsMenu on GameRoot) is a 78 px tile in the top-right corner of every screen;
+        // what used to sit in that corner moves left by this much.
+        const float SettingsRoom = 96;
 
         static RectTransform BuildMeter(RectTransform parent, string name, out TMP_Text label, out RectTransform pips)
         {

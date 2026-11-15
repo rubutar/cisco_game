@@ -1,10 +1,9 @@
 // Stream B. Pause button and pause menu (B-16). The button shows while the player is actually playing;
 // the menu sends UiAction.Pause / UiAction.Resume (GameManager stops and restarts time) and
 // RestartDayRequested (GameManager restarts the day with three backups).
-// A sound button in the card's top-right corner mutes or unmutes all music and sound (AudioListener.volume, so the audio code
-// doesn't need to know).
-// A flag button beside it (added by A at Rudi's request) shows the current language, Italian or English, and
-// switches to the other one (Language.Toggle reloads the data; every screen reads its text again when shown). Its icon is a pixel speaker with sound waves, or a red cross while muted: no words needed.
+// A sound button in the card's top-right corner mutes or unmutes all music and sound (AudioListener.volume, so the
+// audio code doesn't need to know). Its icon is a pixel speaker with sound waves, or a red cross while muted.
+// The language lives in A's settings card (SettingsMenu); this menu relabels itself when it changes.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,9 +24,7 @@ namespace ByteWorld
 
         void Awake()
         {
-            WidenCard();
             BuildSoundButton();
-            BuildLanguageButton();
             pauseButton.GetComponent<Button>().onClick.AddListener(Pause);
             resumeButton.onClick.AddListener(Resume);
             restartButton.onClick.AddListener(RestartDay);
@@ -35,8 +32,22 @@ namespace ByteWorld
             pauseButton.SetActive(false);
         }
 
-        void OnEnable() => GameEvents.StateChanged += OnStateChanged;
-        void OnDisable() => GameEvents.StateChanged -= OnStateChanged;
+        void OnEnable()
+        {
+            GameEvents.StateChanged += OnStateChanged;
+            Language.Changed += OnLanguageChanged;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.StateChanged -= OnStateChanged;
+            Language.Changed -= OnLanguageChanged;
+        }
+
+        void OnLanguageChanged()
+        {
+            if (menu.activeSelf) ShowLabels();
+        }
 
         void Start() => pauseButton.SetActive(CanPause(Services.Flow.State));
 
@@ -68,63 +79,6 @@ namespace ByteWorld
             titleText.text = ui.pause ?? "";
             resumeLabel.text = ui.resume ?? "";
             restartLabel.text = ui.restartDay ?? "";
-        }
-
-        /// <summary>
-        /// Room for the flag and speaker in the top-right corner beside the centred title: the card grows from
-        /// 720 to 1040 wide, and the side padding grows with it so Resume and Restart day keep their width.
-        /// </summary>
-        void WidenCard()
-        {
-            var card = (RectTransform)resumeButton.transform.parent;
-            const float width = 1040f;
-            var extra = (width - card.sizeDelta.x) / 2f;
-            if (extra <= 0f) return;
-            card.sizeDelta = new Vector2(width, card.sizeDelta.y);
-            var layout = card.GetComponent<VerticalLayoutGroup>();
-            if (layout != null)
-                layout.padding = new RectOffset(layout.padding.left + (int)extra, layout.padding.right + (int)extra,
-                    layout.padding.top, layout.padding.bottom);
-        }
-
-        // ---------- Language ----------
-
-        Image flagIcon;
-
-        void BuildLanguageButton()
-        {
-            var card = resumeButton.transform.parent;
-            var button = UiKit.Button("Language", card, ButtonStyle.Secondary, out var label, 100);
-            var layout = button.GetComponent<LayoutElement>();
-            if (layout == null) layout = button.gameObject.AddComponent<LayoutElement>();
-            layout.ignoreLayout = true;
-            // Left of the speaker in the card's top-right corner.
-            var rect = (RectTransform)button.transform;
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1, 1);
-            rect.anchoredPosition = new Vector2(-28 - 120 - 20, -28);
-            rect.sizeDelta = new Vector2(120, 100);
-            label.text = "";
-            var icon = UiKit.Rect("Flag", button.transform);
-            icon.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            icon.anchorMin = icon.anchorMax = new Vector2(0.5f, 0.5f);
-            icon.sizeDelta = new Vector2(96, 72); // 16 x 12 pixels at 6x
-            flagIcon = UiKit.Image(icon.gameObject, Color.white);
-            flagIcon.preserveAspect = true;
-            button.onClick.AddListener(() =>
-            {
-                Language.Toggle();
-                ShowFlag();
-                ShowLabels();
-            });
-            ShowFlag();
-        }
-
-        void ShowFlag()
-        {
-            if (flagIcon == null) return;
-            var sprite = Resources.Load<Sprite>($"Sprites/UI/flag_{Language.Current}");
-            flagIcon.sprite = sprite;
-            flagIcon.enabled = sprite != null;
         }
 
         void Resume()

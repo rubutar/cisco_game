@@ -210,6 +210,16 @@ def flag_en():
     c.rect(1, 4, 14, 4, "4"); c.rect(6, 1, 4, 10, "4")             # white cross
     c.rect(1, 5, 14, 2, "5"); c.rect(7, 1, 2, 10, "5")             # red cross
     return c
+# Settings gear (UI, 16 x 16): cream gear with an ink outline and an ink ring round the hole
+def gear():
+    c = C(16, 16)
+    c.ell(8, 8, 4.6, 4.6, "4")
+    for x, y, w, h in ((7, 1, 2, 3), (7, 12, 2, 3), (1, 7, 3, 2), (12, 7, 3, 2),
+                       (3, 3, 2, 2), (11, 3, 2, 2), (3, 11, 2, 2), (11, 11, 2, 2)):
+        c.rect(x, y, w, h, "4")
+    c.ell(8, 8, 1.6, 1.6, ".")
+    return c
+save("gear", "UI", gear())
 save("flag_it", "UI", flag_it())
 save("flag_en", "UI", flag_en())
-print("bytes, attackers, badges, flags written")
+print("bytes, attackers, badges, gear, flags written")

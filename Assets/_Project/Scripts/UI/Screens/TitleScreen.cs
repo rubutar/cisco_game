@@ -23,19 +23,38 @@ namespace ByteWorld
             if (playButton != null) playButton.onClick.AddListener(OnPlay);
         }
 
-        void OnEnable() => GameEvents.StateChanged += OnStateChanged;
-        void OnDisable() => GameEvents.StateChanged -= OnStateChanged;
+        void OnEnable()
+        {
+            GameEvents.StateChanged += OnStateChanged;
+            Language.Changed += ShowText;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.StateChanged -= OnStateChanged;
+            Language.Changed -= ShowText;
+        }
 
         void Start()
+        {
+            ShowText();
+            ApplySplashArt();
+            SetVisible(Services.Flow.State == GameState.Title);
+        }
+
+        /// <summary>Title, tagline and Play from dialogue.json, in the current language (again after a switch).</summary>
+        void ShowText()
         {
             var ui = UiStrings.Ui;
             titleText.text = ui.gameTitle ?? "";
             if (titleShadow != null) titleShadow.text = titleText.text;
             taglineText.text = ui.tagline ?? "";
             playLabel.text = ui.play ?? "";
-            ApplySplashArt();
-            SetVisible(Services.Flow.State == GameState.Title);
+            if (taglinePill != null)
+                taglinePill.rectTransform.sizeDelta = new Vector2(taglineText.GetPreferredValues(taglineText.text).x + 80, 96);
         }
+
+        Image taglinePill;
 
         void ApplySplashArt()
         {
@@ -65,6 +84,7 @@ namespace ByteWorld
             if (backdrop != null && taglineText != null && !string.IsNullOrEmpty(taglineText.text))
             {
                 var pill = NewImage("TaglinePill", taglineText.transform.parent, null, Palette.Ink);
+                taglinePill = pill;
                 var rect = pill.rectTransform;
                 rect.anchorMin = rect.anchorMax = taglineText.rectTransform.anchorMin;
                 rect.anchoredPosition = taglineText.rectTransform.anchoredPosition;
