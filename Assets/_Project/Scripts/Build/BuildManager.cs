@@ -140,6 +140,8 @@ namespace ByteWorld
             }
 
             var trayCounts = new Dictionary<string, int>();
+            // The siege board is built for the player: no tray, its corner shows the call instead.
+            tray.gameObject.SetActive(!IsSiege);
             foreach (var t in Puzzle.tray ?? System.Array.Empty<TrayEntry>())
             {
                 trayCounts[t.piece] = t.count;

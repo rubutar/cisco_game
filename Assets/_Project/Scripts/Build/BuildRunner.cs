@@ -274,7 +274,10 @@ namespace ByteWorld
         {
             var ui = UiStrings.Ui;
             resultLine.text = line ?? "";
-            resultSummary.text = UiStrings.Format(ui.runResultFormat, result.delivered, result.blocked, result.leaked);
+            // The counts only mean something when packets were counted (not in the scripted siege).
+            var counted = result.delivered + result.blocked + result.leaked > 0;
+            resultSummary.text = counted ? UiStrings.Format(ui.runResultFormat, result.delivered, result.blocked, result.leaked) : "";
+            resultSummary.gameObject.SetActive(counted);
             resultButtonLabel.text = (result.passed ? ui.next : ui.fixBuild) ?? "";
             resultCard.SetActive(true);
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)resultCard.transform);

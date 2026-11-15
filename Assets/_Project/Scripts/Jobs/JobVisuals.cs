@@ -34,7 +34,7 @@ namespace ByteWorld
             label.alignment = TextAlignmentOptions.Center;
             // Long titles wrap inside width (world units), so neighbouring labels never run into each other.
             label.textWrappingMode = TextWrappingModes.Normal;
-            label.verticalAlignment = VerticalAlignmentOptions.Top;
+            label.verticalAlignment = VerticalAlignmentOptions.Middle; // centred on its point, like before
             label.rectTransform.sizeDelta = new Vector2(width, size * ReadableScale * 0.2f);
             label.GetComponent<MeshRenderer>().sortingOrder = 1;
             label.text = text;

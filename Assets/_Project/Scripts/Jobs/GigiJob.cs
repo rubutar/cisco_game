@@ -78,6 +78,7 @@ namespace ByteWorld
 
         // The board starts below the HUD's top bar (about 28 map pixels tall), so its door chips stay visible.
         const float BoardTop = 34f;
+        const int RowStep = 15; // map pixels between board rows: room for the readable labels
 
         protected override void OnShiftStarted()
         {
@@ -143,19 +144,19 @@ namespace ByteWorld
             var known = Shift.rules?.known ?? new string[0];
             var doors = new List<int>(open);
             doors.AddRange(closed);
-            var height = 16 + 12 * (Mathf.CeilToInt(doors.Count / 3f) + known.Length);
+            var height = 16 + RowStep * (Mathf.CeilToInt(doors.Count / 3f) + known.Length);
             var panel = PixelArt.AddSprite(board, PixelArt.Block(100, height, Palette.ByteCream, Palette.Ink, "List"), "Panel", SortBase + 20);
             panel.transform.localPosition = PixelArt.MapToWorld(60, BoardTop + height / 2f);
 
             for (var i = 0; i < doors.Count; i++)
             {
                 var chip = PixelArt.AddSprite(board, PixelArt.Block(26, 10, open.Contains(doors[i]) ? Palette.SignalBlue : Palette.AlertPink, Palette.Ink, "Chip"), "Chip", SortBase + 21);
-                chip.transform.localPosition = PixelArt.MapToWorld(26 + (i % 3) * 32, BoardTop + 12 + (i / 3) * 12);
+                chip.transform.localPosition = PixelArt.MapToWorld(26 + (i % 3) * 32, BoardTop + 12 + (i / 3) * RowStep);
                 JobVisuals.Label(chip.transform, doors[i].ToString(), Vector3.zero, 2.2f, Palette.ByteCream, SortBase + 22);
             }
-            var top = BoardTop + 12 + Mathf.CeilToInt(doors.Count / 3f) * 12;
+            var top = BoardTop + 12 + Mathf.CeilToInt(doors.Count / 3f) * RowStep;
             for (var i = 0; i < known.Length; i++)
-                JobVisuals.Label(board, known[i], PixelArt.MapToWorld(60, top + i * 12), 2.5f, Palette.Ink, SortBase + 22);
+                JobVisuals.Label(board, known[i], PixelArt.MapToWorld(60, top + i * RowStep), 2.5f, Palette.Ink, SortBase + 22);
         }
 
         protected override void SpawnItem(ItemData item)

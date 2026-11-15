@@ -35,6 +35,7 @@ namespace ByteWorld.EditorTools
                 var materials = BuildMaterialsPanel(safe);
                 var cardLayer = BuildCheckpointMap(safe, materials);
                 BuildTownSpace(safe);
+                BuildSplunkLog(safe);
                 cardLayer.SetAsLastSibling();
                 materials.transform.SetAsLastSibling();
                 BuildInspectPanel(safe);
@@ -517,11 +518,12 @@ namespace ByteWorld.EditorTools
             return list;
         }
 
-        // Quest 4 siege: call indicator top left, Call in the middle, Priority and Run again bottom right.
+        // Quest 4 siege: call indicator bottom left, Call in the middle, Priority and Run again bottom right.
         static void BuildSiegeParts(SiegeRunner siege, RectTransform view)
         {
             var indicator = NewRect("CallIndicator", view);
-            Place(indicator, new Vector2(0, 1), new Vector2(24, -BuildTop), new Vector2(0, 0));
+            // Bottom left, where the tray sits in other puzzles (the siege board is built for you, no tray).
+            Place(indicator, new Vector2(0, 0), new Vector2(48, 48), new Vector2(0, 0));
             AddImage(indicator.gameObject, UiStyle.Dim(0.9f), false);
             AddOutline(indicator.gameObject, UiStyle.Border);
             var row = indicator.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -1624,9 +1626,20 @@ namespace ByteWorld.EditorTools
 
         // ---------- Webex Town Space strip (map, bottom left) ----------
 
+        // Splunk log, bottom left inside a station (builds its parts at runtime).
+        static void BuildSplunkLog(RectTransform parent)
+        {
+            var host = NewRect("SplunkLog", parent);
+            Stretch(host);
+            var log = host.gameObject.AddComponent<SplunkTicker>();
+            var so = new SerializedObject(log);
+            so.FindProperty("root").objectReferenceValue = host;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         static void BuildTownSpace(RectTransform parent)
         {
-            // The comms dock (Webex chat + Splunk log) builds its own parts at runtime.
+            // Webex chat, bottom left on the map (builds its parts at runtime).
             var host = NewRect("TownSpace", parent);
             Stretch(host);
             var town = host.gameObject.AddComponent<TownSpace>();
