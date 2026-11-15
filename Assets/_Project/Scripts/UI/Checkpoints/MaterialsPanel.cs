@@ -4,8 +4,8 @@
 //   the same piece of town (drawn in code, RectMask2D) · without and with, three lines each · the Field Card
 //   (dim until earned) · in the real world · Cisco Networking Academy · footer by state (Go in, done, lock line).
 // Text from checkpoints.json materials, dialogue.json and ui labels. "materials:<id>" stays inside the UI.
-// Over a shift (added by A at Rudi's request): MistakeNote's "See materials" link calls OpenOverShift after a
-// wrong decision; the shift pauses while the panel is open (UiAction.Pause / Resume), and the map ring and
+// Over a shift (added by A at Rudi's request): the hint dialog's "See materials" button calls OpenOverShift after
+// a wrong decision; the shift pauses while the panel is open (UiAction.Pause / Resume), and the map ring and
 // Go in stay hidden because the player is already inside the station.
 using System.Collections;
 using System.Collections.Generic;
@@ -38,6 +38,7 @@ namespace ByteWorld
         Image withoutTint;
         string openFor;
         bool overShift;
+        int homeSibling = -1;   // where the panel sits among the UI layers while closed
         string url;
         Coroutine slide;
 
@@ -53,7 +54,6 @@ namespace ByteWorld
             Build();
             panel.gameObject.SetActive(false);
             ring.gameObject.SetActive(false);
-            MistakeNote.Create(root, this);
         }
 
         void OnEnable() => GameEvents.StateChanged += OnStateChanged;
@@ -74,6 +74,9 @@ namespace ByteWorld
             if (c == null) return;
             openFor = id;
             Fill(id);
+            // On top of every other layer while open (the chat bubble included); back in place on close.
+            if (homeSibling < 0) homeSibling = transform.GetSiblingIndex();
+            transform.SetAsLastSibling();
             panel.gameObject.SetActive(true);
             ring.gameObject.SetActive(true);
             slider.SetValueWithoutNotify(0.5f);
@@ -105,6 +108,11 @@ namespace ByteWorld
             panel.gameObject.SetActive(false);
             ring.gameObject.SetActive(false);
             openFor = null;
+            if (homeSibling >= 0)
+            {
+                transform.SetSiblingIndex(homeSibling);
+                homeSibling = -1;
+            }
             if (!overShift) return;
             overShift = false;
             GameEvents.RaiseUiAction(UiAction.Resume);
@@ -274,8 +282,16 @@ namespace ByteWorld
             titles.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
             station = UiKit.Text("Station", titles, UiStyle.Small, UiStyle.Accent);
             title = UiKit.Text("Tool", titles, UiStyle.Heading, UiStyle.Ink, TextAlignmentOptions.MidlineLeft, UiFont.Title);
-            var close = UiKit.Button("Close", header, ButtonStyle.Secondary, out var closeLabel, 72);
-            UiKit.Size(close.gameObject, 72, 72);
+            // The × stays put while the content scrolls (Rudi): it lives on the panel, above the scroll view, and
+            // the header keeps a same-size gap so the titles never run under it.
+            UiKit.Size(UiKit.Rect("CloseGap", header).gameObject, 72, 72);
+            var close = UiKit.Button("Close", panel, ButtonStyle.Secondary, out var closeLabel, 72);
+            var closeRect = (RectTransform)close.transform;
+            var closeLayout = close.GetComponent<LayoutElement>();
+            if (closeLayout != null) closeLayout.ignoreLayout = true;
+            closeRect.anchorMin = closeRect.anchorMax = closeRect.pivot = new Vector2(1, 1);
+            closeRect.anchoredPosition = new Vector2(-48, -40);
+            closeRect.sizeDelta = new Vector2(72, 72);
             closeLabel.text = "×";
             closeLabel.font = UiStyle.Font(UiFont.Mono);
             close.onClick.AddListener(Close);

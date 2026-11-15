@@ -1,7 +1,7 @@
 // Stream B. Pause button and pause menu (B-16). The button shows while the player is actually playing;
 // the menu sends UiAction.Pause / UiAction.Resume (GameManager stops and restarts time) and
 // RestartDayRequested (GameManager restarts the day with three backups).
-// A sound button in the menu mutes or unmutes all music and sound (AudioListener.volume, so the audio code
+// A sound button in the card's top-right corner mutes or unmutes all music and sound (AudioListener.volume, so the audio code
 // doesn't need to know). Its icon is a pixel speaker with sound waves, or a red cross while muted: no words needed.
 using TMPro;
 using UnityEngine;
@@ -111,7 +111,15 @@ namespace ByteWorld
         {
             var card = resumeButton.transform.parent;
             var button = UiKit.Button("Sound", card, ButtonStyle.Secondary, out var label, 100);
-            button.transform.SetSiblingIndex(resumeButton.transform.GetSiblingIndex() + 1);
+            // Top-right corner of the card, out of the Resume / Restart column (Rudi: a speaker between the
+            // two main buttons reads as one of them).
+            var layout = button.GetComponent<LayoutElement>();
+            if (layout == null) layout = button.gameObject.AddComponent<LayoutElement>();
+            layout.ignoreLayout = true;
+            var rect = (RectTransform)button.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1, 1);
+            rect.anchoredPosition = new Vector2(-28, -28);
+            rect.sizeDelta = new Vector2(120, 100);
             label.text = "";
             var icon = UiKit.Rect("Icon", button.transform);
             icon.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
