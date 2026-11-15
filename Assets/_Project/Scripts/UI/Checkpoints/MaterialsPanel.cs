@@ -282,8 +282,16 @@ namespace ByteWorld
             titles.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
             station = UiKit.Text("Station", titles, UiStyle.Small, UiStyle.Accent);
             title = UiKit.Text("Tool", titles, UiStyle.Heading, UiStyle.Ink, TextAlignmentOptions.MidlineLeft, UiFont.Title);
-            var close = UiKit.Button("Close", header, ButtonStyle.Secondary, out var closeLabel, 72);
-            UiKit.Size(close.gameObject, 72, 72);
+            // The × stays put while the content scrolls (Rudi): it lives on the panel, above the scroll view, and
+            // the header keeps a same-size gap so the titles never run under it.
+            UiKit.Size(UiKit.Rect("CloseGap", header).gameObject, 72, 72);
+            var close = UiKit.Button("Close", panel, ButtonStyle.Secondary, out var closeLabel, 72);
+            var closeRect = (RectTransform)close.transform;
+            var closeLayout = close.GetComponent<LayoutElement>();
+            if (closeLayout != null) closeLayout.ignoreLayout = true;
+            closeRect.anchorMin = closeRect.anchorMax = closeRect.pivot = new Vector2(1, 1);
+            closeRect.anchoredPosition = new Vector2(-48, -40);
+            closeRect.sizeDelta = new Vector2(72, 72);
             closeLabel.text = "×";
             closeLabel.font = UiStyle.Font(UiFont.Mono);
             close.onClick.AddListener(Close);
