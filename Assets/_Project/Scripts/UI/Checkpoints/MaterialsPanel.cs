@@ -4,6 +4,9 @@
 //   the same piece of town (drawn in code, RectMask2D) · without and with, three lines each · the Field Card
 //   (dim until earned) · in the real world · Cisco Networking Academy · footer by state (Go in, done, lock line).
 // Text from checkpoints.json materials, dialogue.json and ui labels. "materials:<id>" stays inside the UI.
+// Over a shift (added by A at Rudi's request): MistakeNote's "See materials" link calls OpenOverShift after a
+// wrong decision; the shift pauses while the panel is open (UiAction.Pause / Resume), and the map ring and
+// Go in stay hidden because the player is already inside the station.
 using System.Collections;
 using System.Collections.Generic;
 using ByteWorld.Data;
@@ -34,6 +37,7 @@ namespace ByteWorld
         Button link;
         Image withoutTint;
         string openFor;
+        bool overShift;
         string url;
         Coroutine slide;
 
@@ -49,6 +53,7 @@ namespace ByteWorld
             Build();
             panel.gameObject.SetActive(false);
             ring.gameObject.SetActive(false);
+            MistakeNote.Create(root, this);
         }
 
         void OnEnable() => GameEvents.StateChanged += OnStateChanged;
@@ -56,6 +61,7 @@ namespace ByteWorld
 
         void OnStateChanged(GameState from, GameState to)
         {
+            if (overShift && to == GameState.JobShift) return;
             if (!Stations.IsMapState(to)) CloseNow();
             else if (IsOpen && openFor != null) Fill(openFor); // states may have changed
         }
@@ -76,6 +82,16 @@ namespace ByteWorld
             slide = StartCoroutine(Slide(true));
         }
 
+        /// <summary>Opens the station's materials over its shift, pausing the shift until the panel closes.</summary>
+        public void OpenOverShift(string id)
+        {
+            if (Services.Flow.State != GameState.JobShift || Services.Checkpoints?.Get(id) == null) return;
+            overShift = true;
+            Open(id);
+            ring.gameObject.SetActive(false);
+            GameEvents.RaiseUiAction(UiAction.Pause);
+        }
+
         public void Close()
         {
             if (!IsOpen) return;
@@ -89,6 +105,9 @@ namespace ByteWorld
             panel.gameObject.SetActive(false);
             ring.gameObject.SetActive(false);
             openFor = null;
+            if (!overShift) return;
+            overShift = false;
+            GameEvents.RaiseUiAction(UiAction.Resume);
         }
 
         IEnumerator Slide(bool show)
@@ -109,7 +128,7 @@ namespace ByteWorld
 
         void LateUpdate()
         {
-            if (!IsOpen || openFor == null) return;
+            if (!IsOpen || openFor == null || overShift) return;
             var c = Services.Checkpoints.Get(openFor);
             if (c != null && Stations.MapToLocal(root, c.x, c.y - 20, out var local))
             {
@@ -159,7 +178,7 @@ namespace ByteWorld
             link.gameObject.SetActive(!string.IsNullOrEmpty(linkText.text));
 
             // Footer by state.
-            goIn.gameObject.SetActive(state == CheckpointState.Alert);
+            goIn.gameObject.SetActive(state == CheckpointState.Alert && !overShift);
             goInLabel.text = ui.goIn ?? "";
             var footer = state == CheckpointState.Locked ? Services.Checkpoints.LockReason(id)
                 : state == CheckpointState.Done ? UiStrings.Format(ui.toolkitCountFormat, Services.Checkpoints.ToolsCollected, Services.Checkpoints.ToolsTotal)
