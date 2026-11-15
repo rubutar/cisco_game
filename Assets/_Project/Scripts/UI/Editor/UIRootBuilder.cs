@@ -30,11 +30,14 @@ namespace ByteWorld.EditorTools
                 safe.gameObject.AddComponent<SafeArea>();
                 BuildBuildView(safe);
                 BuildTopBar(safe);
-                BuildTownSpace(safe);
-                BuildTicker(safe);
+                // Map UI, bottom to top: station bubbles, the comms dock, the station popup and card,
+                // then the materials panel over all of them.
                 var materials = BuildMaterialsPanel(safe);
-                BuildCheckpointMap(safe, materials);
-                materials.transform.SetAsLastSibling(); // the panel covers the bubbles and the card
+                var cardLayer = BuildCheckpointMap(safe, materials);
+                BuildTownSpace(safe);
+                BuildSplunkLog(safe);
+                cardLayer.SetAsLastSibling();
+                materials.transform.SetAsLastSibling();
                 BuildInspectPanel(safe);
                 BuildDialogueBubble(safe);
                 BuildToolkit(safe);
@@ -413,7 +416,7 @@ namespace ByteWorld.EditorTools
             var area = NewRect("BoardArea", view);
             Stretch(area);
             area.offsetMin = new Vector2(0, 170);
-            area.offsetMax = new Vector2(0, -120);
+            area.offsetMax = new Vector2(0, -BuildTop); // below the top bar and the goal banner
             var board = NewRect("Board", area);
             Stretch(board);
             var fitter = board.gameObject.AddComponent<AspectRatioFitter>();
@@ -460,20 +463,27 @@ namespace ByteWorld.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             BuildRunnerParts(host.gameObject.AddComponent<BuildRunner>(), view, packets);
-            BuildRulesPanel(host.gameObject.AddComponent<RulesPanel>(), manager, view);
+            BuildRulesPanel(host.gameObject.AddComponent<RulesPanel>(), manager, view, area);
             BuildSiegeParts(host.gameObject.AddComponent<SiegeRunner>(), view);
+            // The run result card sits over everything on the board, the rules panel included.
+            view.Find("ResultCard")?.SetAsLastSibling();
         }
 
         // Doors and rules (Quests 3 and 4), top right under the top bar. Rows are made at runtime per puzzle.
-        static void BuildRulesPanel(RulesPanel rules, BuildManager manager, RectTransform view)
+        /// <summary>Build mode content starts this far below the top of the screen (top bar + goal banner).</summary>
+        const float BuildTop = 206;
+
+        // A right-hand column from under the goal banner down to just above the Run button; the board shrinks
+        // to its left while the panel shows (RulesPanel moves the board area).
+        static void BuildRulesPanel(RulesPanel rules, BuildManager manager, RectTransform view, RectTransform boardArea)
         {
             var panel = NewRect("RulesPanel", view);
-            Place(panel, new Vector2(1, 1), new Vector2(-40, -140), new Vector2(680, 0));
-            AddImage(panel.gameObject, UiStyle.Dim(0.85f), true);
+            Place(panel, new Vector2(1, 1), new Vector2(-24, -BuildTop), new Vector2(RulesPanel.Width, 0));
+            AddImage(panel.gameObject, UiStyle.Dim(0.9f), true);
             AddOutline(panel.gameObject, UiStyle.Border);
             var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(20, 20, 20, 20);
-            layout.spacing = 14;
+            layout.padding = new RectOffset(14, 14, 14, 14);
+            layout.spacing = 8;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -492,6 +502,7 @@ namespace ByteWorld.EditorTools
             so.FindProperty("doorList").objectReferenceValue = doors;
             so.FindProperty("ruleList").objectReferenceValue = list;
             so.FindProperty("ruleHeader").objectReferenceValue = header.gameObject;
+            so.FindProperty("boardArea").objectReferenceValue = boardArea;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -499,7 +510,7 @@ namespace ByteWorld.EditorTools
         {
             var list = NewRect(name, parent);
             var layout = list.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 10;
+            layout.spacing = 8;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -507,11 +518,12 @@ namespace ByteWorld.EditorTools
             return list;
         }
 
-        // Quest 4 siege: call indicator top left, Call in the middle, Priority and Run again bottom right.
+        // Quest 4 siege: call indicator bottom left, Call in the middle, Priority and Run again bottom right.
         static void BuildSiegeParts(SiegeRunner siege, RectTransform view)
         {
             var indicator = NewRect("CallIndicator", view);
-            Place(indicator, new Vector2(0, 1), new Vector2(40, -140), new Vector2(0, 0));
+            // Bottom left, where the tray sits in other puzzles (the siege board is built for you, no tray).
+            Place(indicator, new Vector2(0, 0), new Vector2(48, 48), new Vector2(0, 0));
             AddImage(indicator.gameObject, UiStyle.Dim(0.9f), false);
             AddOutline(indicator.gameObject, UiStyle.Border);
             var row = indicator.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -876,17 +888,22 @@ namespace ByteWorld.EditorTools
 
         // ---------- Checkpoint UI (B-14 to B-17) ----------
 
-        static void BuildCheckpointMap(RectTransform parent, MaterialsPanel materials)
+        /// <summary>Returns the popup/card layer, which the caller places above the comms dock.</summary>
+        static RectTransform BuildCheckpointMap(RectTransform parent, MaterialsPanel materials)
         {
             var host = NewRect("CheckpointMap", parent);
             Stretch(host);
             var map = host.gameObject.AddComponent<CheckpointMap>();
             var layer = NewRect("Layer", host);
             Stretch(layer);
+            var cardLayer = NewRect("CheckpointCards", parent);
+            Stretch(cardLayer);
             var so = new SerializedObject(map);
             so.FindProperty("layer").objectReferenceValue = layer;
+            so.FindProperty("cardLayer").objectReferenceValue = cardLayer;
             so.FindProperty("materials").objectReferenceValue = materials;
             so.ApplyModifiedPropertiesWithoutUndo();
+            return cardLayer;
         }
 
         static MaterialsPanel BuildMaterialsPanel(RectTransform parent)
@@ -908,10 +925,10 @@ namespace ByteWorld.EditorTools
             Stretch(host);
             var toolkit = host.gameObject.AddComponent<ToolkitPanel>();
 
-            // Top-bar button, left of the meters.
+            // Top-bar button in the top-right corner; the top bar leaves a gap for it on the map.
             var open = NewButton("ToolkitButton", host, ButtonStyle.Secondary, out var openLabel);
-            Place((RectTransform)open.transform, new Vector2(0.64f, 1), new Vector2(0, -16), new Vector2(420, 78));
-            ((RectTransform)open.transform).pivot = new Vector2(0.5f, 1);
+            Place((RectTransform)open.transform, new Vector2(1, 1), new Vector2(-28, -16), new Vector2(ToolkitButtonWidth, 78));
+            ((RectTransform)open.transform).pivot = new Vector2(1, 1);
             openLabel.fontSize = UiStyle.Small;
 
             // Panel: right half, under the top bar, scrolls.
@@ -1332,43 +1349,6 @@ namespace ByteWorld.EditorTools
 
         // ---------- Splunk ticker (B-09, map and stations, bottom right) ----------
 
-        const int TickerLines = 3;
-
-        static void BuildTicker(RectTransform parent)
-        {
-            var host = NewRect("SplunkTicker", parent);
-            Stretch(host);
-            var ticker = host.gameObject.AddComponent<SplunkTicker>();
-
-            var strip = NewRect("Strip", host);
-            Place(strip, new Vector2(1, 0), new Vector2(-32, 32), new Vector2(980, 0));
-            AddImage(strip.gameObject, UiStyle.Dim(0.9f), false);
-            AddOutline(strip.gameObject, UiStyle.Border);
-            var layout = strip.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(24, 24, 16, 18);
-            layout.spacing = 4;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            strip.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var prefix = NewText("Prefix", strip, UiStyle.Small, Palette.PacketYellow, TextAlignmentOptions.MidlineLeft, UiFont.Mono);
-            var so = new SerializedObject(ticker);
-            var lines = so.FindProperty("lineTexts");
-            lines.arraySize = TickerLines;
-            for (var i = 0; i < TickerLines; i++)
-            {
-                var line = NewText($"Line{i}", strip, UiStyle.Small, Palette.NeonCyan, TextAlignmentOptions.MidlineLeft, UiFont.Mono);
-                line.textWrappingMode = TextWrappingModes.NoWrap;
-                line.overflowMode = TextOverflowModes.Ellipsis;
-                lines.GetArrayElementAtIndex(i).objectReferenceValue = line;
-            }
-            so.FindProperty("strip").objectReferenceValue = strip.gameObject;
-            so.FindProperty("prefixText").objectReferenceValue = prefix;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
         // ---------- Shared card helpers ----------
 
         /// <summary>A centred cream card with an ink border that grows with its content.</summary>
@@ -1425,23 +1405,43 @@ namespace ByteWorld.EditorTools
 
             var dayLabel = NewText("DayLabel", bar, 44, Palette.ByteCream, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             dayLabel.rectTransform.anchorMin = new Vector2(0, 0);
-            dayLabel.rectTransform.anchorMax = new Vector2(0.52f, 1);
-            dayLabel.rectTransform.offsetMin = new Vector2(136, 0); // room for the pause button on the left
+            dayLabel.rectTransform.anchorMax = new Vector2(0.38f, 1);
+            dayLabel.rectTransform.offsetMin = new Vector2(224, 0); // room for the pause button and Pax on the left
+
+            // Pax's portrait next to the pause button, framed in the same cyan as the "you" arrow on the map.
+            var pax = NewRect("Pax", bar);
+            pax.anchorMin = pax.anchorMax = new Vector2(0, 0.5f);
+            pax.pivot = new Vector2(0, 0.5f);
+            pax.anchoredPosition = new Vector2(128, 0);
+            pax.sizeDelta = new Vector2(80, 80);
+            AddImage(pax.gameObject, Palette.Ink, false);
+            AddOutline(pax.gameObject, 4);
+            pax.GetComponent<Outline>().effectColor = Palette.NeonCyan;
+            var paxFace = NewRect("Face", pax);
+            Stretch(paxFace);
+            var paxImage = AddImage(paxFace.gameObject, Color.white, false);
+            paxImage.preserveAspect = true;
             dayLabel.rectTransform.offsetMax = Vector2.zero;
             // Quest titles are long: one line, shrinking a little if needed.
             dayLabel.textWrappingMode = TextWrappingModes.NoWrap;
             dayLabel.enableAutoSizing = true;
             dayLabel.fontSizeMin = UiStyle.MinText;
             dayLabel.fontSizeMax = 44;
+            dayLabel.overflowMode = TextOverflowModes.Ellipsis;
 
-            // Day 3 goal line in the free middle of the bar; shrinks to fit long goals.
-            var goal = NewText("Goal", bar, 36, Palette.PacketYellow, TextAlignmentOptions.Center);
-            goal.rectTransform.anchorMin = new Vector2(0.30f, 0);
-            goal.rectTransform.anchorMax = new Vector2(0.64f, 1);
-            goal.rectTransform.offsetMin = goal.rectTransform.offsetMax = Vector2.zero;
-            goal.enableAutoSizing = true;
-            goal.fontSizeMin = UiStyle.MinText;
-            goal.fontSizeMax = 38;
+            // Day 3 goal line: its own banner under the bar, so long goals read in full.
+            var banner = NewRect("GoalBanner", host);
+            banner.anchorMin = banner.anchorMax = new Vector2(0.5f, 1);
+            banner.pivot = new Vector2(0.5f, 1);
+            banner.anchoredPosition = new Vector2(0, -122);
+            AddImage(banner.gameObject, UiStyle.Dim(0.92f), false);
+            AddOutline(banner.gameObject, UiStyle.Border);
+            var bannerLayout = banner.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bannerLayout.padding = new RectOffset(32, 32, 12, 14);
+            ConfigureRow(bannerLayout, 0, TextAnchor.MiddleCenter);
+            FitBoth(banner.gameObject);
+            var goal = NewText("Goal", banner, UiStyle.Body, Palette.PacketYellow, TextAlignmentOptions.Center);
+            goal.textWrappingMode = TextWrappingModes.NoWrap;
 
             var right = NewRect("Right", bar);
             right.anchorMin = new Vector2(1, 0);
@@ -1453,20 +1453,26 @@ namespace ByteWorld.EditorTools
             ConfigureRow(rightLayout, 64, TextAnchor.MiddleRight);
             right.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            BuildMeter(right, "Backups", out var backupsLabel, out var backupPips);
+            // No backups meter: the team chose to keep the top bar to the day, complaints and the toolkit.
             var complaints = BuildMeter(right, "Complaints", out var complaintsLabel, out var complaintPips);
+            // Room for the Cisco toolkit button (built with the toolkit, pinned to the top-right corner).
+            var toolkitSpace = NewRect("ToolkitSpace", right);
+            toolkitSpace.gameObject.AddComponent<LayoutElement>().preferredWidth = ToolkitButtonWidth - 40;
 
             var so = new SerializedObject(topBar);
             so.FindProperty("bar").objectReferenceValue = bar.gameObject;
             so.FindProperty("dayLabel").objectReferenceValue = dayLabel;
             so.FindProperty("goalText").objectReferenceValue = goal;
-            so.FindProperty("backupsLabel").objectReferenceValue = backupsLabel;
-            so.FindProperty("backupPips").objectReferenceValue = backupPips;
+            so.FindProperty("goalBanner").objectReferenceValue = banner.gameObject;
             so.FindProperty("complaintsGroup").objectReferenceValue = complaints.gameObject;
             so.FindProperty("complaintsLabel").objectReferenceValue = complaintsLabel;
             so.FindProperty("complaintPips").objectReferenceValue = complaintPips;
+            so.FindProperty("toolkitSpace").objectReferenceValue = toolkitSpace.gameObject;
+            so.FindProperty("paxPortrait").objectReferenceValue = paxImage;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        const float ToolkitButtonWidth = 400;
 
         static RectTransform BuildMeter(RectTransform parent, string name, out TMP_Text label, out RectTransform pips)
         {
@@ -1633,83 +1639,25 @@ namespace ByteWorld.EditorTools
 
         // ---------- Webex Town Space strip (map, bottom left) ----------
 
-        const int TownSpaceRows = 2;
+        // Splunk log, bottom left inside a station (builds its parts at runtime).
+        static void BuildSplunkLog(RectTransform parent)
+        {
+            var host = NewRect("SplunkLog", parent);
+            Stretch(host);
+            var log = host.gameObject.AddComponent<SplunkTicker>();
+            var so = new SerializedObject(log);
+            so.FindProperty("root").objectReferenceValue = host;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         static void BuildTownSpace(RectTransform parent)
         {
+            // Webex chat, bottom left on the map (builds its parts at runtime).
             var host = NewRect("TownSpace", parent);
             Stretch(host);
             var town = host.gameObject.AddComponent<TownSpace>();
-
-            var strip = NewRect("Strip", host);
-            Place(strip, Vector2.zero, new Vector2(32, 32), new Vector2(780, 0));
-            AddImage(strip.gameObject, UiStyle.Dim(0.88f), false);
-            AddOutline(strip.gameObject, UiStyle.Border);
-            var layout = strip.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(28, 28, 20, 24);
-            layout.spacing = 16;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            strip.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var header = NewRect("Header", strip);
-            ConfigureRow(header.gameObject.AddComponent<HorizontalLayoutGroup>(), 14, TextAnchor.MiddleLeft);
-            var dot = NewRect("Dot", header);
-            AddImage(dot.gameObject, Palette.NeonCyan, false);
-            var dotElement = dot.gameObject.AddComponent<LayoutElement>();
-            dotElement.preferredWidth = dotElement.preferredHeight = 16;
-            var spaceText = NewText("Space", header, UiStyle.Small, Palette.NeonCyan, TextAlignmentOptions.MidlineLeft, UiFont.Title);
-
             var so = new SerializedObject(town);
-            so.FindProperty("strip").objectReferenceValue = strip.gameObject;
-            so.FindProperty("spaceText").objectReferenceValue = spaceText;
-            var rows = so.FindProperty("rows");
-            var avatars = so.FindProperty("avatars");
-            var initials = so.FindProperty("initials");
-            var names = so.FindProperty("names");
-            var times = so.FindProperty("times");
-            var lines = so.FindProperty("lines");
-            rows.arraySize = avatars.arraySize = initials.arraySize = names.arraySize = times.arraySize = lines.arraySize = TownSpaceRows;
-            for (var i = 0; i < TownSpaceRows; i++)
-            {
-                var row = NewRect($"Post{i}", strip);
-                var rowLayout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-                ConfigureRow(rowLayout, 20, TextAnchor.UpperLeft);
-
-                var avatar = NewRect("Avatar", row);
-                var avatarImage = AddImage(avatar.gameObject, Palette.SignalBlue, false);
-                AddOutline(avatar.gameObject, 4);
-                var avatarElement = avatar.gameObject.AddComponent<LayoutElement>();
-                avatarElement.minWidth = avatarElement.preferredWidth = 72;
-                avatarElement.minHeight = avatarElement.preferredHeight = 72;
-                var init = NewText("Initials", avatar, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.Center, UiFont.Title);
-                Stretch(init.rectTransform);
-
-                var column = NewRect("Text", row);
-                var columnLayout = column.gameObject.AddComponent<VerticalLayoutGroup>();
-                columnLayout.spacing = 2;
-                columnLayout.childControlWidth = true;
-                columnLayout.childControlHeight = true;
-                columnLayout.childForceExpandWidth = true;
-                columnLayout.childForceExpandHeight = false;
-                column.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
-
-                var top = NewRect("Top", column);
-                ConfigureRow(top.gameObject.AddComponent<HorizontalLayoutGroup>(), 16, TextAnchor.LowerLeft);
-                var name = NewText("Name", top, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.BottomLeft, UiFont.Title);
-                var time = NewText("Time", top, UiStyle.Small, Palette.GridDim[4], TextAlignmentOptions.BottomLeft, UiFont.Mono);
-                var line = NewText("Line", column, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.TopLeft);
-                line.textWrappingMode = TextWrappingModes.Normal;
-
-                rows.GetArrayElementAtIndex(i).objectReferenceValue = row.gameObject;
-                avatars.GetArrayElementAtIndex(i).objectReferenceValue = avatarImage;
-                initials.GetArrayElementAtIndex(i).objectReferenceValue = init;
-                names.GetArrayElementAtIndex(i).objectReferenceValue = name;
-                times.GetArrayElementAtIndex(i).objectReferenceValue = time;
-                lines.GetArrayElementAtIndex(i).objectReferenceValue = line;
-            }
+            so.FindProperty("root").objectReferenceValue = host;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

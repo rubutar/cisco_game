@@ -1,4 +1,4 @@
-// Stream B. The top bar: day and progress label, the backup nest and the complaints meter.
+// Stream B. The top bar: day and progress label, Pax, and the complaints meter (no backups meter: the team dropped it).
 // Listens to GameEvents only; never changes game state.
 using System.Collections.Generic;
 using TMPro;
@@ -11,12 +11,15 @@ namespace ByteWorld
     {
         [SerializeField] GameObject bar;
         [SerializeField] TMP_Text dayLabel;
-        [SerializeField] TMP_Text goalText; // Day 3: the puzzle's goal line, in the middle of the bar
+        [SerializeField] TMP_Text goalText; // Day 3: the puzzle's goal line, in a banner under the bar
+        [SerializeField] GameObject goalBanner;
         [SerializeField] TMP_Text backupsLabel;
         [SerializeField] RectTransform backupPips;
         [SerializeField] GameObject complaintsGroup;
         [SerializeField] TMP_Text complaintsLabel;
         [SerializeField] RectTransform complaintPips;
+        [SerializeField] GameObject toolkitSpace;
+        [SerializeField] Image paxPortrait;      // the player: Pax, next to the pause button // keeps the meters clear of the Cisco toolkit button on the map
 
         const float PipSize = 36f;
 
@@ -59,6 +62,11 @@ namespace ByteWorld
             SetBarVisible(IsInGame(flow.State));
             ShowComplaints(0, 0);
             OnBackupsChanged(Services.Backups.Left, Services.Backups.Max);
+            if (paxPortrait != null)
+            {
+                paxPortrait.sprite = Portraits.Get(Portraits.Neutral);
+                paxPortrait.transform.parent.gameObject.SetActive(paxPortrait.sprite != null);
+            }
         }
 
         static bool IsInGame(GameState state) => state switch
@@ -67,17 +75,28 @@ namespace ByteWorld
             _ => true
         };
 
-        void SetBarVisible(bool visible)
+        bool inGame;
+
+        void SetBarVisible(bool visible) => inGame = visible;
+
+        // The Splunk Trace draws its own header over the top of the screen: step aside while it is open.
+        void LateUpdate()
         {
-            if (bar != null) bar.SetActive(visible);
+            var show = inGame && !HuntScreen.IsOpen;
+            if (bar != null && bar.activeSelf != show) bar.SetActive(show);
+            var goal = show && goalText != null && !string.IsNullOrEmpty(goalText.text);
+            if (goalBanner != null && goalBanner.activeSelf != goal) goalBanner.SetActive(goal);
+            var map = Stations.IsMapState(Services.Flow.State);
+            if (toolkitSpace != null && toolkitSpace.activeSelf != map) toolkitSpace.SetActive(map);
         }
 
         void OnStateChanged(GameState from, GameState to)
         {
             SetBarVisible(IsInGame(to));
             if (goalText != null && to != GameState.Build && to != GameState.TestRun) goalText.text = "";
-            // Every test run starts with a clean complaints meter.
+            // Every test run starts with a clean complaints meter; the map has no meter (it belongs to a shift).
             if (to == GameState.TestRun) ShowComplaints(0, complaintMax);
+            if (Stations.IsMapState(to) && to != GameState.FinalAttack) ShowComplaints(0, 0);
         }
 
         void OnDayStarted(int newDay, DayMode mode)

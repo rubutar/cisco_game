@@ -170,7 +170,7 @@ namespace ByteWorld
                 titleColor: Palette.AlertPink,
                 line: lastWords,
                 line2: lines?.backupLine,
-                note: UiStrings.Format(ui.backupsLeftFormat, lastSnatch.backupsLeft),
+                note: null, // no backups count: the team dropped the backups meter
                 button: ui.keepWatching,
                 action: UiAction.KeepWatching);
         }

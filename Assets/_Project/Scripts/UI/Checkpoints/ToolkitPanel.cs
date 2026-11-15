@@ -79,7 +79,7 @@ namespace ByteWorld
         void LateUpdate()
         {
             // Out of the way while the toolkit or the materials panel covers the right half.
-            var show = Stations.IsMapState(Services.Flow.State) && !IsOpen && !MaterialsPanel.AnyOpen;
+            var show = Stations.IsMapState(Services.Flow.State) && !IsOpen && !MaterialsPanel.AnyOpen && !HuntScreen.IsOpen;
             if (openButton.gameObject.activeSelf != show) openButton.gameObject.SetActive(show);
         }
 

@@ -67,7 +67,8 @@ namespace ByteWorld
             {
                 var tagGo = new GameObject("Health", typeof(RectTransform), typeof(Image), typeof(Outline));
                 var tagRect = (RectTransform)tagGo.transform;
-                tagRect.SetParent(transform.parent, false);
+                // On the board itself, above the cable, slot and packet layers, so pieces never hide it.
+                tagRect.SetParent(transform.parent.parent, false);
                 healthTag = tagGo.GetComponent<Image>();
                 healthTag.raycastTarget = false;
                 var o = tagGo.GetComponent<Outline>();
@@ -90,11 +91,19 @@ namespace ByteWorld
             healthTag.color = color;
             healthText.text = text;
             var tagRt = healthTag.rectTransform;
-            tagRt.sizeDelta = new Vector2(Mathf.Max(220, healthText.preferredWidth + 28), 52);
+            tagRt.sizeDelta = new Vector2(healthText.preferredWidth + 24, 46);
+            // Over every piece; the bad (pink) link's tag is raised last by the siege so it's never covered.
+            tagRt.SetAsLastSibling();
             // Sit on the middle of the cable.
             tagRt.anchorMin = tagRt.anchorMax = rect.anchorMin;
             var mid = rect.localRotation * new Vector3(rect.sizeDelta.x * 0.5f, 0, 0);
             tagRt.anchoredPosition = new Vector2(mid.x, mid.y);
+        }
+
+        /// <summary>Brings this cable's health tag to the very top (the root cause must always read).</summary>
+        public void RaiseHealth()
+        {
+            if (healthTag != null) healthTag.rectTransform.SetAsLastSibling();
         }
 
         public void ClearHealth()

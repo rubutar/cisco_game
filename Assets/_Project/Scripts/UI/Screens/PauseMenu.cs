@@ -1,9 +1,8 @@
 // Stream B. Pause button and pause menu (B-16). The button shows while the player is actually playing;
 // the menu sends UiAction.Pause / UiAction.Resume (GameManager stops and restarts time) and
 // RestartDayRequested (GameManager restarts the day with three backups).
-// Sound (A): a speaker button in the card's top-right corner mutes and unmutes all sound through
-// AudioDirector; its icons are Sprites/UI/speaker_on and speaker_off. Added at runtime, so the prefab
-// and UIRootBuilder stay as they are.
+// A sound button in the menu mutes or unmutes all music and sound (AudioListener.volume, so the audio code
+// doesn't need to know). Its icon is a pixel speaker with sound waves, or a red cross while muted: no words needed.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,63 +19,16 @@ namespace ByteWorld
         [SerializeField] Button restartButton;
         [SerializeField] TMP_Text restartLabel;
 
-        Image soundIcon;
-        Sprite soundOn, soundOff;
+        static bool muted;
 
         void Awake()
         {
+            BuildSoundButton();
             pauseButton.GetComponent<Button>().onClick.AddListener(Pause);
             resumeButton.onClick.AddListener(Resume);
             restartButton.onClick.AddListener(RestartDay);
             menu.SetActive(false);
             pauseButton.SetActive(false);
-            AddSoundButton();
-        }
-
-        void AddSoundButton()
-        {
-            soundOn = Resources.Load<Sprite>("Sprites/UI/speaker_on");
-            soundOff = Resources.Load<Sprite>("Sprites/UI/speaker_off");
-            if (soundOn == null || titleText == null) return;
-
-            // Same look as the pause button: a signal-blue tile with an ink outline and a cream icon.
-            var go = new GameObject("SoundButton", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement), typeof(Outline));
-            go.transform.SetParent(titleText.transform.parent, false);
-            go.GetComponent<LayoutElement>().ignoreLayout = true;
-            var rect = (RectTransform)go.transform;
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1, 1);
-            rect.anchoredPosition = new Vector2(-28, -28);
-            rect.sizeDelta = new Vector2(88, 88);
-            var tile = go.GetComponent<Image>();
-            tile.color = Palette.SignalBlue;
-            var outline = go.GetComponent<Outline>();
-            outline.effectColor = Palette.Ink;
-            outline.effectDistance = new Vector2(4, -4);
-            var button = go.GetComponent<Button>();
-            button.targetGraphic = tile;
-            button.onClick.AddListener(ToggleSound);
-
-            var icon = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-            icon.transform.SetParent(go.transform, false);
-            ((RectTransform)icon.transform).sizeDelta = new Vector2(80, 80);
-            soundIcon = icon.GetComponent<Image>();
-            soundIcon.raycastTarget = false;
-            ShowSound();
-        }
-
-        void ToggleSound()
-        {
-            var audio = AudioDirector.Instance;
-            if (audio == null) return;
-            audio.SetMuted(!audio.Muted);
-            ShowSound();
-        }
-
-        void ShowSound()
-        {
-            if (soundIcon == null) return;
-            var muted = AudioDirector.Instance != null && AudioDirector.Instance.Muted;
-            soundIcon.sprite = muted && soundOff != null ? soundOff : soundOn;
         }
 
         void OnEnable() => GameEvents.StateChanged += OnStateChanged;
@@ -105,7 +57,6 @@ namespace ByteWorld
             resumeLabel.text = ui.resume ?? "";
             restartLabel.text = ui.restartDay ?? "";
             menu.SetActive(true);
-            ShowSound();
             pauseButton.SetActive(false);
             GameEvents.RaiseUiAction(UiAction.Pause);
         }
@@ -116,6 +67,92 @@ namespace ByteWorld
             menu.SetActive(false);
             pauseButton.SetActive(CanPause(Services.Flow.State));
             GameEvents.RaiseUiAction(UiAction.Resume);
+        }
+
+        // ---------- Sound ----------
+
+        // Pixel-art speaker icons, 16 x 12: S = speaker, W = sound waves, X = the mute cross.
+        static readonly string[] SpeakerOn =
+        {
+            "......S.........",
+            ".....SS.....W...",
+            "....SSS..W...W..",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "....SSS..W...W..",
+            ".....SS.....W...",
+            "......S.........",
+        };
+
+        static readonly string[] SpeakerOff =
+        {
+            "......S.........",
+            ".....SS.........",
+            "....SSS.........",
+            "SSSSSSS..X...X..",
+            "SSSSSSS...X.X...",
+            "SSSSSSS....X....",
+            "SSSSSSS....X....",
+            "SSSSSSS...X.X...",
+            "SSSSSSS..X...X..",
+            "....SSS.........",
+            ".....SS.........",
+            "......S.........",
+        };
+
+        Image soundIcon;
+        Sprite soundOn, soundOff;
+
+        void BuildSoundButton()
+        {
+            var card = resumeButton.transform.parent;
+            var button = UiKit.Button("Sound", card, ButtonStyle.Secondary, out var label, 100);
+            button.transform.SetSiblingIndex(resumeButton.transform.GetSiblingIndex() + 1);
+            label.text = "";
+            var icon = UiKit.Rect("Icon", button.transform);
+            icon.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            icon.anchorMin = icon.anchorMax = new Vector2(0.5f, 0.5f);
+            icon.sizeDelta = new Vector2(96, 72); // 16 x 12 pixels at 6x
+            soundIcon = UiKit.Image(icon.gameObject, Color.white);
+            soundIcon.preserveAspect = true;
+            soundOn = PixelIcon(SpeakerOn, UiStyle.Accent, UiStyle.Accent, UiStyle.Danger);
+            soundOff = PixelIcon(SpeakerOff, UiStyle.Locked, UiStyle.Locked, UiStyle.Danger);
+            button.onClick.AddListener(() =>
+            {
+                muted = !muted;
+                ShowSound();
+            });
+            ShowSound();
+        }
+
+        static Sprite PixelIcon(string[] rows, Color speaker, Color waves, Color cross)
+        {
+            int h = rows.Length, w = rows[0].Length;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            for (var y = 0; y < h; y++)
+            for (var x = 0; x < w; x++)
+            {
+                var c = rows[h - 1 - y][x]; // textures start at the bottom row
+                tex.SetPixel(x, y, c switch
+                {
+                    'S' => speaker,
+                    'W' => waves,
+                    'X' => cross,
+                    _ => Color.clear
+                });
+            }
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 1);
+        }
+
+        void ShowSound()
+        {
+            AudioListener.volume = muted ? 0f : 1f;
+            soundIcon.sprite = muted ? soundOff : soundOn;
         }
 
         void RestartDay()

@@ -27,6 +27,7 @@ namespace ByteWorld
         RectTransform dotRow;
         readonly List<Image> dots = new();
         Coroutine flash;
+        bool pulse; // an open spot that can take the piece in hand: blinks until it's filled
 
         public static BuildSlot Create(BuildManager manager, RectTransform parent, string id, float u, float v)
         {
@@ -86,6 +87,7 @@ namespace ByteWorld
         public void ShowOpen(bool highlighted)
         {
             rect.sizeDelta = new Vector2(96, 96);
+            pulse = highlighted;
             var fill = (Color)Palette.ByteCream;
             fill.a = highlighted ? 0.45f : 0.15f;
             body.color = fill;
@@ -97,6 +99,7 @@ namespace ByteWorld
 
         public void ShowPiece(PieceKind kind, int sockets, int used, bool selected, bool reachesRouter, int address)
         {
+            pulse = false;
             switch (kind)
             {
                 case PieceKind.Router:
@@ -181,6 +184,15 @@ namespace ByteWorld
                 dots[i].gameObject.SetActive(i < sockets);
                 dots[i].color = i < used ? (Color)Palette.Ink : freeColor;
             }
+        }
+
+        void Update()
+        {
+            if (!pulse || flash != null) return;
+            var on = Mathf.Repeat(Time.unscaledTime, 0.9f) < 0.45f;
+            outline.effectColor = on ? Palette.PacketYellow : Palette.ByteCream;
+            var size = on ? 8f : 4f;
+            outline.effectDistance = new Vector2(size, -size);
         }
 
         public void OnPointerClick(PointerEventData eventData) => manager.OnSlotTapped(Id);

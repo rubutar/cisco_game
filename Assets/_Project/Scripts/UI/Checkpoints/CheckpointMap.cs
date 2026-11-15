@@ -4,6 +4,8 @@
 //             Tap: Pax walks there ("walk:<id>").
 //   Popup   - when Pax arrives (HeroArrived) the bubble becomes a small popup: badge, station, tool, Enter.
 //             Alert stations bounce gently. Walking away (HeroLeft) closes it.
+//   Next    - a chip in the bottom-right corner names the station to visit next ("Next" + badge + tool); tapping it
+//             walks Pax there. Stations waiting for the player also get a bouncing arrow over their bubble.
 //   Card    - Enter (button, or "interact:<id>" from the Enter key) expands it: the station, the tool as the
 //             title, one sentence, without → with, and the buttons by state (Go in / See materials / Play again,
 //             or the lock line). × or a tap on the map closes it. It opens inward near the screen edges.
@@ -22,8 +24,10 @@ namespace ByteWorld
         const float BubbleAbove = 58f;   // map pixels above the door
         const float BubbleBelow = 14f;
         const float TopEdge = 70f;       // stations nearer the top than this show their bubble below
+        const float TopBarRoom = 124f;   // canvas units under the top of the screen kept for the top bar
 
-        [SerializeField] RectTransform layer;
+        [SerializeField] RectTransform layer;      // bubbles and the Next chip: under the comms dock
+        [SerializeField] RectTransform cardLayer;  // popup and card: over the comms dock (falls back to layer)
         [SerializeField] MaterialsPanel materials;
 
         class Bubble
@@ -37,11 +41,20 @@ namespace ByteWorld
             public Image markFill;
             public TMP_Text markText;
             public TMP_Text tool;
+            public RectTransform arrow;
+            public CanvasGroup group;
+            public LayoutElement badgeSize;
         }
 
         readonly Dictionary<string, Bubble> bubbles = new();
         string arrivedAt;
         string cardFor;
+
+        // Next chip
+        RectTransform nextChip;
+        Image nextBadge;
+        TMP_Text nextLabel, nextTool;
+        string nextId;
 
         // Popup
         RectTransform popup;
@@ -63,6 +76,8 @@ namespace ByteWorld
 
         void Awake()
         {
+            BuildNextChip();
+            BuildYouMarker();
             BuildPopup();
             BuildCard();
             HideAll();
@@ -86,6 +101,11 @@ namespace ByteWorld
             GameEvents.UiCommandRequested -= OnCommand;
         }
 
+        RectTransform Top => cardLayer != null ? cardLayer : layer;
+
+        /// <summary>True while a station card is open; the comms dock steps aside so the card has the stage.</summary>
+        public static bool CardShowing { get; private set; }
+
         bool OnMap => Stations.IsMapState(Services.Flow.State);
 
         void OnStateChanged(GameState from, GameState to)
@@ -95,6 +115,8 @@ namespace ByteWorld
                 HideAll();
                 return;
             }
+            // Back from a station (or a build): the station's popup stays shut until Pax walks to a station again.
+            if (!Stations.IsMapState(from)) arrivedAt = null;
             EnsureBubbles();
             Redraw();
         }
@@ -103,6 +125,8 @@ namespace ByteWorld
         {
             foreach (var b in bubbles.Values) b.rect.gameObject.SetActive(false);
             popup.gameObject.SetActive(false);
+            nextChip.gameObject.SetActive(false);
+            if (youMarker != null) youMarker.gameObject.SetActive(false);
             CloseCard();
         }
 
@@ -188,6 +212,7 @@ namespace ByteWorld
             b.rect.pivot = new Vector2(0.5f, 0);
             b.fill = UiKit.Image(b.rect.gameObject, UiStyle.Panel, true);
             b.border = UiKit.Border(b.rect.gameObject, 4);
+            b.group = b.rect.gameObject.AddComponent<CanvasGroup>();
             UiKit.Row(b.rect.gameObject, 12, new RectOffset(12, 18, 8, 8));
             UiKit.Fit(b.rect.gameObject, true, true);
             var button = b.rect.gameObject.AddComponent<Button>();
@@ -198,7 +223,7 @@ namespace ByteWorld
             var badge = UiKit.Rect("Badge", b.rect);
             b.badge = UiKit.Image(badge.gameObject, Color.white);
             b.badge.preserveAspect = true;
-            UiKit.Size(badge.gameObject, 52, 52);
+            b.badgeSize = UiKit.Size(badge.gameObject, 52, 52);
 
             b.tool = UiKit.Text("Tool", b.rect, UiStyle.Small, UiStyle.Ink, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             b.tool.textWrappingMode = TextWrappingModes.NoWrap;
@@ -212,6 +237,20 @@ namespace ByteWorld
             b.markText = UiKit.Text("Text", mark, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.Center, UiFont.Title);
             UiKit.Stretch(b.markText.rectTransform);
             b.mark = mark.gameObject;
+
+            // Bouncing arrow over stations waiting for the player.
+            var arrow = UiKit.Rect("Arrow", b.rect);
+            arrow.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            arrow.anchorMin = arrow.anchorMax = new Vector2(0.5f, 1);
+            arrow.pivot = new Vector2(0.5f, 0);
+            arrow.sizeDelta = new Vector2(80, 64);
+            var arrowText = UiKit.Text("Text", arrow, UiStyle.Heading, UiStyle.Danger, TextAlignmentOptions.Bottom, UiFont.Mono);
+            UiKit.Stretch(arrowText.rectTransform);
+            arrowText.text = "▼";
+            var arrowShadow = arrowText.gameObject.AddComponent<Shadow>();
+            arrowShadow.effectColor = Palette.Ink;
+            arrowShadow.effectDistance = new Vector2(3, -3);
+            b.arrow = arrow;
             return b;
         }
 
@@ -232,19 +271,46 @@ namespace ByteWorld
                 b.tool.color = state == CheckpointState.Locked ? UiStyle.LockedDark : UiStyle.Ink;
                 b.fill.color = state == CheckpointState.Locked ? (Color)Palette.GridDim[4] : UiStyle.Panel;
                 b.border.effectColor = state == CheckpointState.Alert ? UiStyle.Danger : state == CheckpointState.Done ? UiStyle.Done : UiStyle.Locked;
-                b.mark.SetActive(state != CheckpointState.Locked);
-                b.markFill.color = state == CheckpointState.Alert ? UiStyle.Danger : UiStyle.Done;
-                b.markText.text = state == CheckpointState.Alert ? "!" : "";
+                // Only stations that need the player stand out (name, pink border, arrow); the rest step back:
+                // a small badge, faded (locked) or with a green border (done).
+                var alert = state == CheckpointState.Alert;
+                b.mark.SetActive(false);
+                b.arrow.gameObject.SetActive(alert);
+                var badgeSize = alert ? 52 : 36;
+                b.badgeSize.minWidth = b.badgeSize.preferredWidth = b.badgeSize.minHeight = b.badgeSize.preferredHeight = badgeSize;
+                b.group.alpha = state == CheckpointState.Locked ? 0.55f : alert ? 1f : 0.85f;
+                b.rect.transform.localScale = Vector3.one;
             }
             UpdatePopup();
+            UpdateNextChip();
         }
 
         void LateUpdate()
         {
             if (!OnMap) return;
+            // The Splunk Trace covers the map: nothing of the map UI shows through it.
+            var hunt = HuntScreen.IsOpen;
+            if (layer.gameObject.activeSelf == hunt)
+            {
+                layer.gameObject.SetActive(!hunt);
+                Top.gameObject.SetActive(!hunt);
+                if (hunt) CloseCard();
+            }
+            if (hunt) return;
+            PlaceYouMarker();
+            // The chip shares the bottom of the screen with the dialogue bubble.
+            var chip = nextId != null && cardFor == null && !Services.Dialogue.IsShowing && !string.IsNullOrEmpty(nextLabel.text);
+            if (nextChip.gameObject.activeSelf != chip) nextChip.gameObject.SetActive(chip);
+            if (chip) nextChip.anchoredPosition = new Vector2(-24, 24 + Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 2.5f)) * 2f) * 4f);
+
             // Follow the camera every frame (the map may scale with the screen).
+            var bob = Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3f)) * 3f) * 6f;
             foreach (var b in bubbles.Values)
-                if (b.rect.gameObject.activeSelf) Anchor(b.rect, b.data, 0);
+            {
+                if (!b.rect.gameObject.activeSelf) continue;
+                Anchor(b.rect, b.data, 0, b.arrow.gameObject.activeSelf ? 76 : 0);
+                if (b.arrow.gameObject.activeSelf) b.arrow.anchoredPosition = new Vector2(0, 6 + bob);
+            }
             if (popup.gameObject.activeSelf && arrivedAt != null)
             {
                 var c = Services.Checkpoints.Get(arrivedAt);
@@ -256,7 +322,7 @@ namespace ByteWorld
         }
 
         // Above the station, or below it when the station sits near the top of the map.
-        void Anchor(RectTransform rect, CheckpointData c, float lift)
+        void Anchor(RectTransform rect, CheckpointData c, float lift, float extraTop = 0)
         {
             if (c == null) return;
             var below = c.y < TopEdge;
@@ -265,10 +331,11 @@ namespace ByteWorld
             rect.pivot = new Vector2(0.5f, below ? 1 : 0);
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = new Vector2(Mathf.Round(local.x), Mathf.Round(local.y + (below ? -lift : lift)));
-            ClampInside(rect);
+            ClampInside(rect, extraTop);
         }
 
-        void ClampInside(RectTransform rect)
+        // Inside the screen, and never under the top bar.
+        void ClampInside(RectTransform rect, float extraTop = 0)
         {
             var half = layer.rect.size * 0.5f;
             var size = rect.rect.size;
@@ -276,14 +343,123 @@ namespace ByteWorld
             var minX = -half.x + size.x * rect.pivot.x + 16;
             var maxX = half.x - size.x * (1 - rect.pivot.x) - 16;
             if (minX < maxX) p.x = Mathf.Clamp(p.x, minX, maxX);
+            var maxY = half.y - TopBarRoom - extraTop - size.y * (1 - rect.pivot.y);
+            var minY = -half.y + size.y * rect.pivot.y + 16;
+            if (minY < maxY) p.y = Mathf.Clamp(p.y, minY, maxY);
             rect.anchoredPosition = p;
+        }
+
+        // ---------- "You" marker ----------
+        // A cyan arrow over Pax, the same cyan as Pax's portrait in the top bar: this one is you.
+
+        RectTransform youMarker;
+
+        void BuildYouMarker()
+        {
+            youMarker = UiKit.Rect("YouMarker", layer);
+            youMarker.anchorMin = youMarker.anchorMax = new Vector2(0.5f, 0.5f);
+            youMarker.pivot = new Vector2(0.5f, 0);
+            youMarker.sizeDelta = new Vector2(70, 56);
+            var arrow = UiKit.Text("Arrow", youMarker, UiStyle.Heading, UiStyle.Highlight, TextAlignmentOptions.Bottom, UiFont.Mono);
+            UiKit.Stretch(arrow.rectTransform);
+            arrow.text = "▼";
+            var shadow = arrow.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = Palette.Ink;
+            shadow.effectDistance = new Vector2(3, -3);
+            youMarker.gameObject.SetActive(false);
+        }
+
+        void PlaceYouMarker()
+        {
+            var hero = HeroController.Instance;
+            var cam = Camera.main;
+            // Out of the way while a station popup or card is open next to Pax.
+            var show = hero != null && cam != null && arrivedAt == null && cardFor == null;
+            if (show)
+            {
+                // Just above Pax's head (Pax is 32 map pixels tall, about 2 world units).
+                var screen = cam.WorldToScreenPoint(hero.transform.position + new Vector3(0, 2.2f, 0));
+                show = screen.z > 0 && RectTransformUtility.ScreenPointToLocalPointInRectangle(layer, screen, null, out var local);
+                if (show)
+                {
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(layer, screen, null, out local);
+                    var bob = Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3f)) * 2f) * 6f;
+                    youMarker.anchoredPosition = new Vector2(Mathf.Round(local.x), Mathf.Round(local.y + bob));
+                }
+            }
+            if (youMarker.gameObject.activeSelf != show) youMarker.gameObject.SetActive(show);
+        }
+
+        // ---------- Next chip ----------
+
+        void BuildNextChip()
+        {
+            nextChip = UiKit.Rect("NextChip", layer);
+            nextChip.anchorMin = nextChip.anchorMax = nextChip.pivot = new Vector2(1, 0);
+            nextChip.anchoredPosition = new Vector2(-24, 24);
+            var fill = UiKit.Image(nextChip.gameObject, UiStyle.Panel, true);
+            UiKit.Border(nextChip.gameObject, 4).effectColor = UiStyle.Danger;
+            var shadow = nextChip.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = Palette.Ink;
+            shadow.effectDistance = new Vector2(6, -6);
+            UiKit.Row(nextChip.gameObject, 14, new RectOffset(12, 20, 10, 10));
+            UiKit.Fit(nextChip.gameObject, true, true);
+            var button = nextChip.gameObject.AddComponent<Button>();
+            button.targetGraphic = fill;
+            button.onClick.AddListener(() => { if (nextId != null) Tap(nextId); });
+
+            var tag = UiKit.Rect("Tag", nextChip);
+            UiKit.Image(tag.gameObject, UiStyle.Danger);
+            UiKit.Row(tag.gameObject, 0, new RectOffset(14, 14, 4, 6));
+            nextLabel = UiKit.Text("Text", tag, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.Center, UiFont.Title);
+            nextLabel.textWrappingMode = TextWrappingModes.NoWrap;
+
+            var badge = UiKit.Rect("Badge", nextChip);
+            nextBadge = UiKit.Image(badge.gameObject, Color.white);
+            nextBadge.preserveAspect = true;
+            UiKit.Size(badge.gameObject, 52, 52);
+
+            nextTool = UiKit.Text("Tool", nextChip, UiStyle.Body, UiStyle.Ink, TextAlignmentOptions.MidlineLeft, UiFont.Title);
+            nextTool.textWrappingMode = TextWrappingModes.NoWrap;
+            var go = UiKit.Text("Go", nextChip, UiStyle.Body, UiStyle.Danger, TextAlignmentOptions.Center, UiFont.Mono);
+            go.text = "▶";
+        }
+
+        // The station to visit next: the one Pax stands at if it is waiting, else the first waiting one.
+        string FindNext()
+        {
+            var cps = Services.Checkpoints;
+            if (cps?.All == null) return null;
+            if (arrivedAt != null && cps.StateOf(arrivedAt) == CheckpointState.Alert) return arrivedAt;
+            foreach (var c in cps.All)
+                if (c != null && cps.StateOf(c.id) == CheckpointState.Alert) return c.id;
+            return null;
+        }
+
+        void UpdateNextChip()
+        {
+            nextId = FindNext();
+            var c = nextId == null ? null : Services.Checkpoints.Get(nextId);
+            var label = UiStrings.Ui.next;
+            var show = OnMap && c != null && cardFor == null && !string.IsNullOrEmpty(label);
+            nextChip.gameObject.SetActive(show);
+            if (!show)
+            {
+                nextId = null;
+                return;
+            }
+            nextLabel.text = label;
+            nextBadge.sprite = Stations.Badge(c, false);
+            nextBadge.gameObject.SetActive(nextBadge.sprite != null);
+            nextTool.text = c.tool ?? c.station ?? "";
+            LayoutRebuilder.ForceRebuildLayoutImmediate(nextChip);
         }
 
         // ---------- Popup ----------
 
         void BuildPopup()
         {
-            popup = UiKit.Rect("Popup", layer);
+            popup = UiKit.Rect("Popup", Top);
             UiKit.Image(popup.gameObject, UiStyle.Panel, true);
             popupBorder = UiKit.Border(popup.gameObject, 4);
             var shadow = popup.gameObject.AddComponent<Shadow>();
@@ -330,7 +506,7 @@ namespace ByteWorld
         void BuildCard()
         {
             // Tapping the map around the card closes it.
-            var catcher = UiKit.Rect("CardCatcher", layer);
+            var catcher = UiKit.Rect("CardCatcher", Top);
             UiKit.Stretch(catcher);
             var catcherImage = UiKit.Image(catcher.gameObject, new Color(0, 0, 0, 0), true);
             var catcherButton = catcher.gameObject.AddComponent<Button>();
@@ -339,7 +515,7 @@ namespace ByteWorld
             catcherButton.onClick.AddListener(CloseCard);
             cardCatcher = catcher.gameObject;
 
-            card = UiKit.Rect("Card", layer);
+            card = UiKit.Rect("Card", Top);
             card.sizeDelta = new Vector2(900, 0);
             UiKit.Image(card.gameObject, UiStyle.Panel, true);
             cardBorder = UiKit.Border(card.gameObject, 6);
@@ -435,6 +611,7 @@ namespace ByteWorld
 
             cardCatcher.SetActive(true);
             card.gameObject.SetActive(true);
+            CardShowing = true;
             LayoutRebuilder.ForceRebuildLayoutImmediate(card);
             PlaceCard(c);
             Redraw();
@@ -453,6 +630,7 @@ namespace ByteWorld
             var was = cardFor;
             cardFor = null;
             card.gameObject.SetActive(false);
+            CardShowing = false;
             cardCatcher.SetActive(false);
             if (was != null) Redraw();
         }

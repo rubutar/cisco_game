@@ -100,15 +100,6 @@ namespace ByteWorld
 
         // ---------- Public ----------
 
-        /// <summary>True while all sound is off (the pause menu's speaker button). Lasts until the page reloads.</summary>
-        public bool Muted { get; private set; }
-
-        public void SetMuted(bool muted)
-        {
-            Muted = muted;
-            AudioListener.volume = muted ? 0f : 1f;
-        }
-
         /// <summary>Plays a sound effect from Resources/Audio/Sfx by name ("pin", "tap", ...).</summary>
         public void Play(string name)
         {
