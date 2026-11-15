@@ -147,16 +147,7 @@ namespace ByteWorld
                 var body = PixelArt.AddSprite(transform, sprite, "Hull", sortingOrder);
                 Tappable.Add(body.gameObject, body, 0.4f).Tapped += () => Tapped?.Invoke();
 
-                var text = new GameObject("Name").AddComponent<TextMeshPro>();
-                text.transform.SetParent(transform, false);
-                text.transform.localPosition = new Vector3(0f, -0.35f, 0f);
-                text.text = label;
-                text.fontSize = 3f;
-                text.color = Palette.ByteCream;
-                text.alignment = TextAlignmentOptions.Center;
-                text.textWrappingMode = TextWrappingModes.NoWrap;
-                text.rectTransform.sizeDelta = new Vector2(6f, 0.6f);
-                text.GetComponent<MeshRenderer>().sortingOrder = sortingOrder + 1;
+                JobVisuals.Label(transform, label, new Vector3(0f, -0.4f, 0f), 3f, Palette.ByteCream, sortingOrder + 1);
             }
 
             public void SailTo(Vector2 position, float unitsPerSecond, bool destroyOnArrival = false)

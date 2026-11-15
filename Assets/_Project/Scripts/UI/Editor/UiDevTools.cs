@@ -46,11 +46,13 @@ namespace ByteWorld.EditorTools
 
     public static class UiCapture
     {
-        /// <summary>Renders the UIRoot canvas (and the main camera behind it) to a PNG. Play mode only.</summary>
+        /// <summary>Renders every overlay canvas (UIRoot, the Splunk Trace...) over the main camera to a PNG. Play mode only.</summary>
         public static string Capture(string path)
         {
-            var canvas = GameObject.Find("UIRoot(Clone)")?.GetComponent<Canvas>() ?? Object.FindAnyObjectByType<Canvas>();
-            if (canvas == null) return "No canvas";
+            var canvases = new System.Collections.Generic.List<Canvas>();
+            foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
+                if (c.isRootCanvas && c.renderMode == RenderMode.ScreenSpaceOverlay) canvases.Add(c);
+            if (canvases.Count == 0) return "No canvas";
 
             var rt = new RenderTexture(1920, 1080, 24);
             var cam = new GameObject("UiCaptureCamera").AddComponent<Camera>();
@@ -59,11 +61,12 @@ namespace ByteWorld.EditorTools
             cam.cullingMask |= 1 << 5; // the UI layer, which station cameras may leave out
             cam.targetTexture = rt;
 
-            var mode = canvas.renderMode;
-            var order = canvas.sortingOrder;
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.worldCamera = cam;
-            canvas.planeDistance = 1;
+            foreach (var c in canvases)
+            {
+                c.renderMode = RenderMode.ScreenSpaceCamera;
+                c.worldCamera = cam;
+                c.planeDistance = cam.nearClipPlane + 0.5f;
+            }
             Canvas.ForceUpdateCanvases();
             cam.Render();
 
@@ -75,8 +78,7 @@ namespace ByteWorld.EditorTools
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllBytes(path, tex.EncodeToPNG());
 
-            canvas.renderMode = mode;
-            canvas.sortingOrder = order;
+            foreach (var c in canvases) c.renderMode = RenderMode.ScreenSpaceOverlay;
             Object.DestroyImmediate(cam.gameObject);
             Object.DestroyImmediate(tex);
             rt.Release();

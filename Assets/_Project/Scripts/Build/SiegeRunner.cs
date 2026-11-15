@@ -293,11 +293,15 @@ namespace ByteWorld
             UpdateIndicator();
             if (!overlayOn) return;
             // Cables get re-laid when the board changes, so re-apply the colours every frame.
+            CableLine bad = null;
             foreach (var view in manager.CableViews)
             {
                 if (!health.TryGetValue(view.Cable, out var h)) continue;
-                view.ShowHealth(h.bad ? UiStyle.Danger : UiStyle.Done, $"{h.lossPercent}% · {h.latency} ms");
+                // Healthy links show just their delay; the bad one shows loss and delay, so it stands out.
+                view.ShowHealth(h.bad ? UiStyle.Danger : UiStyle.Done, h.bad ? $"{h.lossPercent}% · {h.latency} ms" : $"{h.latency} ms");
+                if (h.bad) bad = view;
             }
+            if (bad != null) bad.RaiseHealth();
         }
 
         // ---------- Packets ----------

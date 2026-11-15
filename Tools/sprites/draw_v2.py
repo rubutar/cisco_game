@@ -193,4 +193,5 @@ def visitor_pass():
         c.rect(x, y, 7, 7, "P"); c.rect(x + 1, y + 1, 5, 5, "p")
     return c
 save("visitor_pass", "UI", visitor_pass())
+
 print("bytes, attackers, badges written")

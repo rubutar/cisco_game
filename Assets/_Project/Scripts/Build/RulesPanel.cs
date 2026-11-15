@@ -16,6 +16,10 @@ namespace ByteWorld
         [SerializeField] RectTransform doorList;
         [SerializeField] RectTransform ruleList;
         [SerializeField] GameObject ruleHeader;
+        [SerializeField] RectTransform boardArea; // shrinks to the left of the panel while it shows
+
+        public const float Width = 620f;
+        const float RowHeight = 62f;
 
         readonly List<(int port, Image fill, TMP_Text label)> doorRows = new();
         readonly List<(Image fill, TMP_Text label)> ruleRows = new();
@@ -36,7 +40,13 @@ namespace ByteWorld
             manager.Ended -= Hide;
         }
 
-        void Hide() => panel.SetActive(false);
+        void Hide() => Show(false);
+
+        void Show(bool on)
+        {
+            panel.SetActive(on);
+            if (boardArea != null) boardArea.offsetMax = new Vector2(on ? -(Width + 48) : 0, boardArea.offsetMax.y);
+        }
 
         void Rebuild()
         {
@@ -49,7 +59,7 @@ namespace ByteWorld
             var puzzle = manager.Puzzle;
             if (rules == null || (!rules.HasDoors && !rules.HasRules))
             {
-                panel.SetActive(false);
+                Show(false);
                 return;
             }
 
@@ -74,7 +84,7 @@ namespace ByteWorld
             ruleList.gameObject.SetActive(rules.HasRules);
             ruleHeader.SetActive(rules.HasRules);
 
-            panel.SetActive(true);
+            Show(true);
             Redraw();
         }
 
@@ -118,14 +128,14 @@ namespace ByteWorld
             layout.childControlWidth = layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = true;
-            row.GetComponent<LayoutElement>().preferredHeight = 76;
+            row.GetComponent<LayoutElement>().preferredHeight = RowHeight;
 
             var tagGo = new GameObject("Tag", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
             ((RectTransform)tagGo.transform).SetParent(rect, false);
             tagGo.GetComponent<Image>().color = Palette.Ink;
             tagGo.GetComponent<Image>().raycastTarget = false;
             var tagElement = tagGo.GetComponent<LayoutElement>();
-            tagElement.minWidth = tagElement.preferredWidth = 112;
+            tagElement.minWidth = tagElement.preferredWidth = 104;
             tag = NewText(tagGo.transform, Palette.ByteCream);
 
             var buttonGo = new GameObject("Setting", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(Button), typeof(LayoutElement));
