@@ -1,0 +1,330 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "mode": "tutorial",
+      "alertGroups": [
+        {
+          "jobs": [
+            "scout",
+            "gigi"
+          ]
+        }
+      ],
+      "alertDelaySeconds": 6,
+      "waitPenaltyPerSecond": 0.5,
+      "maxWaitPenalty": 0.5,
+      "shifts": [
+        {
+          "job": "scout",
+          "timerSeconds": 60,
+          "spawnIntervalSeconds": 4,
+          "maxWrongBlocks": 0,
+          "items": [
+            {
+              "id": "q1s-1",
+              "kind": "safe",
+              "title": "Barca postale: Mamma",
+              "from": "mum@family.example",
+              "senderCheck": "pass",
+              "body": "Cena alle 8? Porta il pane."
+            },
+            {
+              "id": "q1s-2",
+              "kind": "attack",
+              "title": "Barca postale: La tua banca",
+              "from": "support@bank-supp0rt.example",
+              "replyTo": "verify@bank-supp0rt.example",
+              "senderCheck": "fail",
+              "link": "bank-supp0rt.example/login",
+              "body": "Il tuo conto è bloccato! Accedi entro 1 ora.",
+              "attacker": "phisher",
+              "hint": "Leggi il mittente: c'è uno zero in 'supp0rt'? E il controllo mittente è fallito."
+            },
+            {
+              "id": "q1s-3",
+              "kind": "safe",
+              "title": "Barca postale: Scuola",
+              "from": "trips@school.example",
+              "senderCheck": "pass",
+              "link": "school.example/trip-form",
+              "body": "URGENTE: firma il modulo per la gita entro le 17 di oggi!"
+            },
+            {
+              "id": "q1s-4",
+              "kind": "attack",
+              "title": "Barca postale: Ufficio Premi",
+              "from": "winner@prizes-now.example",
+              "replyTo": "claim@prize-desk.example",
+              "senderCheck": "fail",
+              "link": "prizes-now.example/claim",
+              "body": "Hai vinto un telefono nuovo! Paga 2,99 di spedizione per riceverlo.",
+              "attacker": "phisher",
+              "hint": "Nessuno regala telefoni in cambio della spedizione. E il controllo mittente è fallito."
+            },
+            {
+              "id": "q1s-5",
+              "kind": "safe",
+              "title": "Barca postale: Allenatore",
+              "from": "coach@club.example",
+              "senderCheck": "pass",
+              "body": "Allenamento spostato alle 17."
+            },
+            {
+              "id": "q1s-6",
+              "kind": "safe",
+              "title": "Barca postale: Biblioteca",
+              "from": "books@library.example",
+              "senderCheck": "pass",
+              "link": "library.example/my-loans",
+              "body": "Il fumetto che hai prenotato è arrivato."
+            }
+          ]
+        },
+        {
+          "job": "gigi",
+          "timerSeconds": 60,
+          "spawnIntervalSeconds": 4,
+          "maxWrongBlocks": 0,
+          "rules": {
+            "open": [
+              443,
+              8080
+            ],
+            "closed": [
+              23
+            ],
+            "strangers": "block",
+            "known": [
+              "Luca",
+              "Sofia",
+              "Marco",
+              "Aisha"
+            ]
+          },
+          "ruleChange": {
+            "atSeconds": 0,
+            "open": [],
+            "close": [],
+            "announce": ""
+          },
+          "rulesChangeAtItem": 4,
+          "rulesChangeLine": "Town Space: da ora la porta 8080 è Solo amici. Gli sconosciuti aspettano fuori.",
+          "items": [
+            {
+              "id": "q1g-1",
+              "kind": "safe",
+              "title": "Luca",
+              "door": 443,
+              "says": "Sono qui per la chat di gruppo!"
+            },
+            {
+              "id": "q1g-2",
+              "kind": "attack",
+              "title": "Luca",
+              "door": 23,
+              "says": "Sono io! La porta 23 è più veloce, solo per stavolta.",
+              "attacker": "ram",
+              "hint": "La porta 23 è Telnet, e resta chiusa, anche per un amico."
+            },
+            {
+              "id": "q1g-3",
+              "kind": "safe",
+              "title": "Sofia",
+              "door": 443,
+              "says": "Apri, apri! Sono in ritardo per la diretta!"
+            },
+            {
+              "id": "q1g-4",
+              "kind": "safe",
+              "title": "Aisha",
+              "door": 8080,
+              "says": "Serata giochi, sono sulla tua lista."
+            },
+            {
+              "id": "q1g-5",
+              "kind": "attack",
+              "title": "Sconosciuto",
+              "door": 8080,
+              "says": "Gigi mi conosce! Fammi entrare.",
+              "attacker": "ram",
+              "hint": "Non è sulla lista, e ora la 8080 è Solo amici."
+            },
+            {
+              "id": "q1g-6",
+              "kind": "safe",
+              "title": "Marco",
+              "door": 443,
+              "says": "Porto le foto di classe."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "mode": "shifts",
+      "alertGroups": [
+        {
+          "jobs": [
+            "twins",
+            "patch"
+          ]
+        }
+      ],
+      "alertDelaySeconds": 6,
+      "waitPenaltyPerSecond": 0.5,
+      "maxWaitPenalty": 0.5,
+      "shifts": [
+        {
+          "job": "twins",
+          "timerSeconds": 55,
+          "spawnIntervalSeconds": 4,
+          "maxWrongBlocks": 3,
+          "items": [
+            {
+              "id": "q2t-1",
+              "kind": "safe",
+              "title": "Il caveau della mamma",
+              "passwordCorrect": true,
+              "phoneCode": "4821",
+              "visitorCode": "4821",
+              "codeExpired": false,
+              "ownerRequested": true,
+              "pushCount": 1
+            },
+            {
+              "id": "q2t-2",
+              "kind": "attack",
+              "title": "Il caveau dell'allenatore",
+              "passwordCorrect": true,
+              "phoneCode": "7390",
+              "visitorCode": "1111",
+              "codeExpired": false,
+              "ownerRequested": true,
+              "pushCount": 1,
+              "attacker": "ram"
+            },
+            {
+              "id": "q2t-3",
+              "kind": "attack",
+              "title": "Il caveau di Luca",
+              "passwordCorrect": true,
+              "phoneCode": "5521",
+              "visitorCode": "5521",
+              "codeExpired": true,
+              "ownerRequested": true,
+              "pushCount": 1,
+              "attacker": "ram"
+            },
+            {
+              "id": "q2t-4",
+              "kind": "safe",
+              "title": "Il caveau di Sofia (telefono nuovo)",
+              "passwordCorrect": true,
+              "phoneCode": "3318",
+              "visitorCode": "3318",
+              "codeExpired": false,
+              "ownerRequested": true,
+              "pushCount": 1
+            },
+            {
+              "id": "q2t-5",
+              "kind": "attack",
+              "title": "Il caveau della nonna",
+              "passwordCorrect": true,
+              "phoneCode": "",
+              "visitorCode": "",
+              "codeExpired": false,
+              "ownerRequested": false,
+              "pushCount": 4,
+              "attacker": "ram"
+            }
+          ]
+        },
+        {
+          "job": "patch",
+          "timerSeconds": 60,
+          "spawnIntervalSeconds": 4,
+          "maxWrongBlocks": 3,
+          "items": [
+            {
+              "id": "q2p-1",
+              "kind": "safe",
+              "title": "Mattoni per il muro v2.1",
+              "from": "builders@town.example",
+              "type": "crate",
+              "signature": "valida",
+              "worm": true,
+              "wormSpeed": 0.8,
+              "attacker": "worm"
+            },
+            {
+              "id": "q2p-2",
+              "kind": "attack",
+              "title": "Patch di sicurezza URGENTE",
+              "from": "bu1lders@town-update.example",
+              "type": "fakeCrate",
+              "signature": "non valida",
+              "worm": false,
+              "wormSpeed": 0,
+              "attacker": "worm"
+            },
+            {
+              "id": "q2p-3",
+              "kind": "safe",
+              "title": "Vetri per finestre",
+              "from": "sales@glassworks.example",
+              "type": "crate",
+              "signature": "valida",
+              "worm": false,
+              "wormSpeed": 0,
+              "attacker": "worm"
+            },
+            {
+              "id": "q2p-4",
+              "kind": "attack",
+              "title": "Turbo gratis",
+              "from": "get@builders-fast.example",
+              "type": "fakeCrate",
+              "signature": "non valida",
+              "worm": false,
+              "wormSpeed": 0,
+              "attacker": "worm"
+            },
+            {
+              "id": "q2p-5",
+              "kind": "safe",
+              "title": "Tegole v3",
+              "from": "builders@town.example",
+              "type": "crate",
+              "signature": "valida",
+              "worm": true,
+              "wormSpeed": 1.0,
+              "attacker": "worm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "mode": "build"
+    }
+  ],
+  "fallbackDay3": {
+    "alertGroups": [
+      {
+        "jobs": [
+          "scout",
+          "gigi",
+          "twins",
+          "patch"
+        ]
+      }
+    ],
+    "itemsPerShift": 5,
+    "sourceDay": 2,
+    "timerSeconds": 35
+  }
+}

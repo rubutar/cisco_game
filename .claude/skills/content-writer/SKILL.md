@@ -21,3 +21,5 @@ description: Byte World v2 content rules for Person A — voice, real Cisco term
 - **Patch:** a real crate is `"kind": "safe"` (Fit now); fake updates are `"type": "fakeCrate", "kind": "attack"` (Later); `"type": "crack"` is a crack to repair.
 - Check questions: 4 options, one correct, a one-line explanation, never a trick.
 - Check: **Byte World > Validate Data** says "All data valid". Read every item before merging: a wrong answer key is worse than a missing item.
+
+**Italian (the default language):** every English line you add or change needs its Italian in `Tools/localize/it.json` (English text as the key), then run `python3 Tools/localize/make_locale.py`, which rewrites `Resources/Data/it/` and fails on a missing translation or a `{0}` mismatch. Keep real security terms and Cisco product names as they are; informal "tu"; same length limits.

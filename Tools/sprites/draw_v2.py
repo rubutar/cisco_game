@@ -194,4 +194,22 @@ def visitor_pass():
     return c
 save("visitor_pass", "UI", visitor_pass())
 
-print("bytes, attackers, badges written")
+
+
+# ---------- Language flags for the pause menu (UI, 16 x 12, ink outline): Italian and English (UK)
+def flag_it():
+    c = C(16, 12)
+    c.rect(1, 1, 5, 10, "e"); c.rect(6, 1, 4, 10, "4"); c.rect(10, 1, 5, 10, "5")
+    return c
+def flag_en():
+    c = C(16, 12)
+    c.rect(1, 1, 14, 10, "2")
+    for i in range(10):                                              # white diagonals, corner to corner
+        x = 1 + round(i * 13 / 9)
+        c.put(x, 1 + i, "4"); c.put(14 - (x - 1), 1 + i, "4")
+    c.rect(1, 4, 14, 4, "4"); c.rect(6, 1, 4, 10, "4")             # white cross
+    c.rect(1, 5, 14, 2, "5"); c.rect(7, 1, 2, 10, "5")             # red cross
+    return c
+save("flag_it", "UI", flag_it())
+save("flag_en", "UI", flag_en())
+print("bytes, attackers, badges, flags written")

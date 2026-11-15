@@ -1,4 +1,4 @@
-// Stream A. Loads the JSON content from Resources/Data once at startup and serves it as IGameData,
+// Stream A. Loads the JSON content from Resources/Data once at startup (in the current Language) and serves it as IGameData,
 // plus lookups the rest of Stream A needs (a day, a job's shift, a job's lines for a day).
 using System.Collections.Generic;
 using System.Linq;
@@ -53,13 +53,22 @@ namespace ByteWorld
         /// <summary>Reads every file again (handy after editing JSON during Play mode).</summary>
         public void Reload()
         {
-            Days = ResourcesGameData.Load<DaysFile>("days");
-            Dialogue = ResourcesGameData.Load<DialogueFile>("dialogue");
-            Roaming = ResourcesGameData.Load<RoamingFile>("roaming");
-            Build = ResourcesGameData.Load<BuildFile>("build");
-            Flags = ResourcesGameData.Load<FlagsFile>("flags");
-            Hunt = ResourcesGameData.Load<HuntFile>("hunt");
-            Checkpoints = ResourcesGameData.Load<CheckpointsFile>("checkpoints");
+            Days = Load<DaysFile>("days");
+            Dialogue = Load<DialogueFile>("dialogue");
+            Roaming = Load<RoamingFile>("roaming");
+            Build = Load<BuildFile>("build");
+            Flags = Load<FlagsFile>("flags");
+            Hunt = Load<HuntFile>("hunt");
+            Checkpoints = Load<CheckpointsFile>("checkpoints");
+        }
+
+        /// <summary>The file in the current language (Resources/Data/it/...) when there is one, else the English one.</summary>
+        static T Load<T>(string name) where T : new()
+        {
+            var language = Language.Current;
+            if (language != Language.English && Resources.Load<TextAsset>($"Data/{language}/{name}") != null)
+                return ResourcesGameData.Load<T>($"{language}/{name}");
+            return ResourcesGameData.Load<T>(name);
         }
 
         /// <summary>
