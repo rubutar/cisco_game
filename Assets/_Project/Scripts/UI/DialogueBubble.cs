@@ -1,7 +1,8 @@
 // Stream B. The speech bubble (IDialogueService), styled as a Webex message (PRD-v2 4.2, B-02): the Town
 // Space name on a tab, the speaker's avatar tile with initials, name and timestamp, then the line.
 // One line at a time; a tap anywhere continues. Narration (no speaker) hides the avatar and header.
-// ShowHint (Quest 1 hints) points at a world position and shows "Try again" instead.
+// ShowHint (Quest 1 hints) points at a world position and shows "Try again" instead, with "See materials" above
+// it (added by A at Rudi's request): it opens the speaker's station materials over the shift, which pauses it.
 // Lives on UIRoot.prefab; registers itself in Awake so gameplay finds it through Services.Dialogue.
 using System;
 using System.Collections.Generic;
@@ -39,6 +40,10 @@ namespace ByteWorld
         Action onRetry;
         Vector3 hintWorldPosition;
         int shownFrame;
+        Button materialsButton;
+        TMP_Text materialsLabel;
+        string materialsFor;
+        MaterialsPanel materials;
 
         public bool IsShowing { get; private set; }
 
@@ -46,6 +51,7 @@ namespace ByteWorld
         {
             Services.Register<IDialogueService>(this);
             if (retryButton != null) retryButton.onClick.AddListener(OnRetryPressed);
+            BuildMaterialsButton();
             SetVisible(false, false);
         }
 
@@ -81,6 +87,8 @@ namespace ByteWorld
             hintWorldPosition = worldPosition;
             SetSpeaker(speaker);
             if (retryLabel != null) retryLabel.text = UiStrings.Ui.tryAgain ?? "";
+            materialsFor = StationFor(speaker);
+            if (materialsLabel != null) materialsLabel.text = UiStrings.Ui.seeMaterials ?? "";
             SetVisible(true, true);
             ShowLine(text);
             PlacePointer();
@@ -120,6 +128,40 @@ namespace ByteWorld
             var retry = onRetry;
             Hide();
             retry?.Invoke();
+        }
+
+        // ---------- See materials (second button on hints) ----------
+
+        void BuildMaterialsButton()
+        {
+            if (retryButton == null) return;
+            // Same size as Try again, stacked just above it, in the quieter secondary style.
+            materialsButton = UiKit.Button("MaterialsButton", retryButton.transform.parent, ButtonStyle.Secondary, out materialsLabel, 88);
+            var rect = (RectTransform)materialsButton.transform;
+            var retry = (RectTransform)retryButton.transform;
+            rect.anchorMin = retry.anchorMin;
+            rect.anchorMax = retry.anchorMax;
+            rect.pivot = retry.pivot;
+            rect.sizeDelta = retry.sizeDelta;
+            rect.anchoredPosition = retry.anchoredPosition + new Vector2(0, retry.sizeDelta.y + 20);
+            materialsButton.onClick.AddListener(OnMaterialsPressed);
+            materialsButton.gameObject.SetActive(false);
+        }
+
+        void OnMaterialsPressed()
+        {
+            if (materialsFor == null) return;
+            if (materials == null) materials = FindAnyObjectByType<MaterialsPanel>();
+            materials?.OpenOverShift(materialsFor);
+        }
+
+        /// <summary>The station whose job is the speaker's (scout, gigi, twins, patch), or null.</summary>
+        static string StationFor(string speaker)
+        {
+            if (string.IsNullOrEmpty(speaker) || Services.Checkpoints == null) return null;
+            foreach (var c in Services.Checkpoints.All)
+                if (c.job == speaker) return c.id;
+            return null;
         }
 
         void Finish()
@@ -175,6 +217,7 @@ namespace ByteWorld
             if (tapCatcher != null) tapCatcher.SetActive(visible && !hint);
             if (continueIcon != null) continueIcon.SetActive(visible && !hint);
             if (retryButton != null) retryButton.gameObject.SetActive(visible && hint);
+            if (materialsButton != null) materialsButton.gameObject.SetActive(visible && hint && materialsFor != null);
             if (pointer != null) pointer.gameObject.SetActive(visible && hint);
             // Keep the line clear of the Try again button on hints, and of the continue arrow otherwise.
             var body = bodyText.rectTransform;

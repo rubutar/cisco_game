@@ -4,8 +4,8 @@
 //   the same piece of town (drawn in code, RectMask2D) · without and with, three lines each · the Field Card
 //   (dim until earned) · in the real world · Cisco Networking Academy · footer by state (Go in, done, lock line).
 // Text from checkpoints.json materials, dialogue.json and ui labels. "materials:<id>" stays inside the UI.
-// Over a shift (added by A at Rudi's request): MistakeNote's "See materials" link calls OpenOverShift after a
-// wrong decision; the shift pauses while the panel is open (UiAction.Pause / Resume), and the map ring and
+// Over a shift (added by A at Rudi's request): the hint dialog's "See materials" button calls OpenOverShift after
+// a wrong decision; the shift pauses while the panel is open (UiAction.Pause / Resume), and the map ring and
 // Go in stay hidden because the player is already inside the station.
 using System.Collections;
 using System.Collections.Generic;
@@ -53,7 +53,6 @@ namespace ByteWorld
             Build();
             panel.gameObject.SetActive(false);
             ring.gameObject.SetActive(false);
-            MistakeNote.Create(root, this);
         }
 
         void OnEnable() => GameEvents.StateChanged += OnStateChanged;
