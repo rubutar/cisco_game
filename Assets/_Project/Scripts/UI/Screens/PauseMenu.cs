@@ -25,6 +25,7 @@ namespace ByteWorld
 
         void Awake()
         {
+            WidenCard();
             BuildSoundButton();
             BuildLanguageButton();
             pauseButton.GetComponent<Button>().onClick.AddListener(Pause);
@@ -67,6 +68,23 @@ namespace ByteWorld
             titleText.text = ui.pause ?? "";
             resumeLabel.text = ui.resume ?? "";
             restartLabel.text = ui.restartDay ?? "";
+        }
+
+        /// <summary>
+        /// Room for the flag and speaker in the top-right corner beside the centred title: the card grows from
+        /// 720 to 1040 wide, and the side padding grows with it so Resume and Restart day keep their width.
+        /// </summary>
+        void WidenCard()
+        {
+            var card = (RectTransform)resumeButton.transform.parent;
+            const float width = 1040f;
+            var extra = (width - card.sizeDelta.x) / 2f;
+            if (extra <= 0f) return;
+            card.sizeDelta = new Vector2(width, card.sizeDelta.y);
+            var layout = card.GetComponent<VerticalLayoutGroup>();
+            if (layout != null)
+                layout.padding = new RectOffset(layout.padding.left + (int)extra, layout.padding.right + (int)extra,
+                    layout.padding.top, layout.padding.bottom);
         }
 
         // ---------- Language ----------
