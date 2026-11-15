@@ -1406,7 +1406,21 @@ namespace ByteWorld.EditorTools
             var dayLabel = NewText("DayLabel", bar, 44, Palette.ByteCream, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             dayLabel.rectTransform.anchorMin = new Vector2(0, 0);
             dayLabel.rectTransform.anchorMax = new Vector2(0.38f, 1);
-            dayLabel.rectTransform.offsetMin = new Vector2(136, 0); // room for the pause button on the left
+            dayLabel.rectTransform.offsetMin = new Vector2(224, 0); // room for the pause button and Pax on the left
+
+            // Pax's portrait next to the pause button, framed in the same cyan as the "you" arrow on the map.
+            var pax = NewRect("Pax", bar);
+            pax.anchorMin = pax.anchorMax = new Vector2(0, 0.5f);
+            pax.pivot = new Vector2(0, 0.5f);
+            pax.anchoredPosition = new Vector2(128, 0);
+            pax.sizeDelta = new Vector2(80, 80);
+            AddImage(pax.gameObject, Palette.Ink, false);
+            AddOutline(pax.gameObject, 4);
+            pax.GetComponent<Outline>().effectColor = Palette.NeonCyan;
+            var paxFace = NewRect("Face", pax);
+            Stretch(paxFace);
+            var paxImage = AddImage(paxFace.gameObject, Color.white, false);
+            paxImage.preserveAspect = true;
             dayLabel.rectTransform.offsetMax = Vector2.zero;
             // Quest titles are long: one line, shrinking a little if needed.
             dayLabel.textWrappingMode = TextWrappingModes.NoWrap;
@@ -1456,6 +1470,7 @@ namespace ByteWorld.EditorTools
             so.FindProperty("complaintsLabel").objectReferenceValue = complaintsLabel;
             so.FindProperty("complaintPips").objectReferenceValue = complaintPips;
             so.FindProperty("toolkitSpace").objectReferenceValue = toolkitSpace.gameObject;
+            so.FindProperty("paxPortrait").objectReferenceValue = paxImage;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

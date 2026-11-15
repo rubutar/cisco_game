@@ -77,6 +77,7 @@ namespace ByteWorld
         void Awake()
         {
             BuildNextChip();
+            BuildYouMarker();
             BuildPopup();
             BuildCard();
             HideAll();
@@ -114,6 +115,8 @@ namespace ByteWorld
                 HideAll();
                 return;
             }
+            // Back from a station (or a build): the station's popup stays shut until Pax walks to a station again.
+            if (!Stations.IsMapState(from)) arrivedAt = null;
             EnsureBubbles();
             Redraw();
         }
@@ -123,6 +126,7 @@ namespace ByteWorld
             foreach (var b in bubbles.Values) b.rect.gameObject.SetActive(false);
             popup.gameObject.SetActive(false);
             nextChip.gameObject.SetActive(false);
+            if (youMarker != null) youMarker.gameObject.SetActive(false);
             CloseCard();
         }
 
@@ -293,6 +297,7 @@ namespace ByteWorld
                 if (hunt) CloseCard();
             }
             if (hunt) return;
+            PlaceYouMarker();
             // The chip shares the bottom of the screen with the dialogue bubble.
             var chip = nextId != null && cardFor == null && !Services.Dialogue.IsShowing && !string.IsNullOrEmpty(nextLabel.text);
             if (nextChip.gameObject.activeSelf != chip) nextChip.gameObject.SetActive(chip);
@@ -342,6 +347,47 @@ namespace ByteWorld
             var minY = -half.y + size.y * rect.pivot.y + 16;
             if (minY < maxY) p.y = Mathf.Clamp(p.y, minY, maxY);
             rect.anchoredPosition = p;
+        }
+
+        // ---------- "You" marker ----------
+        // A cyan arrow over Pax, the same cyan as Pax's portrait in the top bar: this one is you.
+
+        RectTransform youMarker;
+
+        void BuildYouMarker()
+        {
+            youMarker = UiKit.Rect("YouMarker", layer);
+            youMarker.anchorMin = youMarker.anchorMax = new Vector2(0.5f, 0.5f);
+            youMarker.pivot = new Vector2(0.5f, 0);
+            youMarker.sizeDelta = new Vector2(70, 56);
+            var arrow = UiKit.Text("Arrow", youMarker, UiStyle.Heading, UiStyle.Highlight, TextAlignmentOptions.Bottom, UiFont.Mono);
+            UiKit.Stretch(arrow.rectTransform);
+            arrow.text = "▼";
+            var shadow = arrow.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = Palette.Ink;
+            shadow.effectDistance = new Vector2(3, -3);
+            youMarker.gameObject.SetActive(false);
+        }
+
+        void PlaceYouMarker()
+        {
+            var hero = HeroController.Instance;
+            var cam = Camera.main;
+            // Out of the way while a station popup or card is open next to Pax.
+            var show = hero != null && cam != null && arrivedAt == null && cardFor == null;
+            if (show)
+            {
+                // Just above Pax's head (Pax is 32 map pixels tall, about 2 world units).
+                var screen = cam.WorldToScreenPoint(hero.transform.position + new Vector3(0, 2.2f, 0));
+                show = screen.z > 0 && RectTransformUtility.ScreenPointToLocalPointInRectangle(layer, screen, null, out var local);
+                if (show)
+                {
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(layer, screen, null, out local);
+                    var bob = Mathf.Floor(Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3f)) * 2f) * 6f;
+                    youMarker.anchoredPosition = new Vector2(Mathf.Round(local.x), Mathf.Round(local.y + bob));
+                }
+            }
+            if (youMarker.gameObject.activeSelf != show) youMarker.gameObject.SetActive(show);
         }
 
         // ---------- Next chip ----------

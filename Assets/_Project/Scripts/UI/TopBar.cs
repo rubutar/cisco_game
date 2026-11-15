@@ -18,7 +18,8 @@ namespace ByteWorld
         [SerializeField] GameObject complaintsGroup;
         [SerializeField] TMP_Text complaintsLabel;
         [SerializeField] RectTransform complaintPips;
-        [SerializeField] GameObject toolkitSpace; // keeps the meters clear of the Cisco toolkit button on the map
+        [SerializeField] GameObject toolkitSpace;
+        [SerializeField] Image paxPortrait;      // the player: Pax, next to the pause button // keeps the meters clear of the Cisco toolkit button on the map
 
         const float PipSize = 36f;
 
@@ -61,6 +62,11 @@ namespace ByteWorld
             SetBarVisible(IsInGame(flow.State));
             ShowComplaints(0, 0);
             OnBackupsChanged(Services.Backups.Left, Services.Backups.Max);
+            if (paxPortrait != null)
+            {
+                paxPortrait.sprite = Portraits.Get(Portraits.Neutral);
+                paxPortrait.transform.parent.gameObject.SetActive(paxPortrait.sprite != null);
+            }
         }
 
         static bool IsInGame(GameState state) => state switch

@@ -72,7 +72,8 @@ namespace ByteWorld
                 doorSprites[doors[i]] = door;
                 // The 32 x 32 door art has a number plate at the top; the plain block takes the number in its middle.
                 var plate = PixelArt.HasSprite("Props/door_open") ? new Vector3(0f, 15 * PixelArt.Pixel, 0f) : Vector3.zero;
-                JobVisuals.Label(door.transform, doors[i].ToString(), plate, 2.2f, Palette.Ink, SortBase + 11);
+                // "Door 443": the word comes from dialogue.json (fieldLabels), so a bare number never has to be guessed.
+                JobVisuals.Label(door.transform, $"{FieldLabel(0, "Door")} {doors[i]}", plate, 2.2f, Palette.Ink, SortBase + 11);
             }
         }
 
@@ -169,7 +170,7 @@ namespace ByteWorld
             go.transform.localPosition = PixelArt.MapToWorld(500, spot.y);
             var body = PixelArt.AddSprite(go.transform, visitorSprite, "Body", SortBase + 100 + nextSpot);
             Tappable.Add(body.gameObject, body, 0.4f).Tapped += () => OpenInspect(item);
-            JobVisuals.Label(go.transform, $"{item.title} → {item.door}", new Vector3(0f, -0.3f, 0f), 2.5f, Palette.Ink, SortBase + 101 + nextSpot);
+            JobVisuals.Label(go.transform, $"{item.title} → {FieldLabel(0, "Door")} {item.door}", new Vector3(0f, -0.45f, 0f), 2.5f, Palette.Ink, SortBase + 101 + nextSpot, 3.4f); // wraps: fits between queued visitors
             go.AddComponent<Mover>().MoveTo(PixelArt.MapToWorld(spot.x, spot.y), 6f);
             visitors[item.id] = go;
         }

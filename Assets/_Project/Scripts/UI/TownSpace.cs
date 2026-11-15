@@ -1,6 +1,7 @@
 // Stream B. The Webex Town Space (PRD-v2 4.2, B-02): a small chat panel in the bottom-left corner of the map
-// with the two newest posts (the quest brief and each Byte's alert line). It stays put while the player is on
-// the map, never grows, and never blocks taps. Inside a station the Splunk log takes the corner instead.
+// with the two newest posts (the quest brief and each Byte's alert line). A new post opens it; a few seconds
+// later it folds into a small "■ BYTE WORLD ▲" pill so the map stays clear. Tap the pill to read the posts
+// again, tap again to fold it. Only shown on the map.
 // At the start of a quest (first time the map shows on a new day) the brief also plays in the dialogue bubble,
 // from Gigi, so the player reads it once in full.
 // Text: dialogue.json (briefs[], jobs[].days[].alertLine, ui.gameTitle). Other UI posts with Add().
@@ -17,6 +18,7 @@ namespace ByteWorld
 
         const int Shown = 2;
         const float Width = 640f;
+        const float OpenSeconds = 7f;   // a new post stays open this long, then folds into the pill
 
         struct Post
         {
@@ -43,7 +45,10 @@ namespace ByteWorld
 
         RectTransform panel;
         Outline border;
-        TMP_Text spaceText;
+        TMP_Text spaceText, foldText;
+        RectTransform header;
+        bool open;
+        float openedAt;
 
         void Awake()
         {
@@ -68,6 +73,10 @@ namespace ByteWorld
             GameEvents.StateChanged -= OnStateChanged;
             GameEvents.AlertRaised -= OnAlertRaised;
         }
+
+        /// <summary>Right edge of the chat panel in canvas units (12 when hidden), so the splunk> pill can sit next to it.</summary>
+        public static float RightEdge =>
+            instance != null && instance.panel != null && instance.panel.gameObject.activeSelf ? 24 + instance.panel.sizeDelta.x : 12;
 
         /// <summary>Adds a chat post (speaker is a job key, or "" for the town / alert bot).</summary>
         public static void Add(string speaker, string line) => instance?.AddPost(speaker, line);
@@ -124,7 +133,7 @@ namespace ByteWorld
             posts.Add(new Post { speaker = speaker, name = UiStrings.SpeakerName(speaker), time = Webex.NextTime(), line = line });
             while (posts.Count > Shown) posts.RemoveAt(0);
             newAt = Time.unscaledTime;
-            dirty = true;
+            Open(true);
         }
 
         // ---------- View ----------
@@ -144,6 +153,8 @@ namespace ByteWorld
             var fresh = Time.unscaledTime - newAt < 1.2f && Mathf.Repeat(Time.unscaledTime, 0.4f) < 0.2f;
             border.effectColor = fresh ? (Color)Palette.PacketYellow : UiStyle.Ink;
 
+            if (open && Time.unscaledTime - openedAt > OpenSeconds) Open(false);
+
             if (!dirty) return;
             dirty = false;
             Redraw();
@@ -152,14 +163,25 @@ namespace ByteWorld
             LayoutRebuilder.ForceRebuildLayoutImmediate(panel);
         }
 
+        void Open(bool on)
+        {
+            open = on;
+            if (on) openedAt = Time.unscaledTime;
+            dirty = true;
+        }
+
         void Redraw()
         {
             spaceText.text = UiStrings.Ui.gameTitle ?? "";
+            foldText.text = open ? "▼" : "▲";
+            // Folded, the panel is just its header: as narrow as the space name.
+            var width = open ? Width : LayoutUtility.GetPreferredWidth(header) + 36;
+            panel.sizeDelta = new Vector2(width, panel.sizeDelta.y);
             // Oldest at the top, newest at the bottom, like a chat.
             for (var i = 0; i < rows.Count; i++)
             {
                 var r = rows[i];
-                var has = i < posts.Count;
+                var has = open && i < posts.Count;
                 r.go.SetActive(has);
                 if (!has) continue;
                 var p = posts[i];
@@ -176,19 +198,25 @@ namespace ByteWorld
         {
             panel = UiKit.Rect("Chat", root);
             UiKit.Place(panel, Vector2.zero, new Vector2(24, 24), new Vector2(Width, 0));
-            UiKit.Image(panel.gameObject, UiStyle.Dim(0.92f));
+            var fill = UiKit.Image(panel.gameObject, UiStyle.Dim(0.92f), true);
             border = UiKit.Border(panel.gameObject, 4, UiStyle.Ink);
             UiKit.Column(panel.gameObject, 10, new RectOffset(18, 18, 12, 16));
             UiKit.Fit(panel.gameObject, false, true);
+            var tap = panel.gameObject.AddComponent<Button>();
+            tap.targetGraphic = fill;
+            tap.transition = Selectable.Transition.None;
+            tap.onClick.AddListener(() => Open(!open));
 
-            // "■ BYTE WORLD": the Webex space name.
-            var header = UiKit.Rect("Header", panel);
+            // "■ BYTE WORLD ▲": the Webex space name and the fold arrow.
+            header = UiKit.Rect("Header", panel);
             UiKit.Row(header.gameObject, 12);
             var dot = UiKit.Rect("Dot", header);
             UiKit.Image(dot.gameObject, Palette.NeonCyan);
             UiKit.Size(dot.gameObject, 14, 14);
             spaceText = UiKit.Text("Space", header, UiStyle.Small, Palette.NeonCyan, TextAlignmentOptions.MidlineLeft, UiFont.Title);
             spaceText.textWrappingMode = TextWrappingModes.NoWrap;
+            foldText = UiKit.Text("Fold", header, UiStyle.Small, Palette.ByteCream, TextAlignmentOptions.MidlineLeft, UiFont.Mono);
+            foldText.textWrappingMode = TextWrappingModes.NoWrap;
 
             for (var i = 0; i < Shown; i++) rows.Add(NewRow(panel, i));
         }
