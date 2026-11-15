@@ -36,7 +36,7 @@ namespace ByteWorld
             text.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             text.rectTransform.sizeDelta = new Vector2(56, 56);
             text.fontSize = 36;
-            text.fontStyle = FontStyles.Bold;
+            UiStyle.Apply(text, UiFont.Title);
             text.alignment = TextAlignmentOptions.Center;
             text.color = Palette.Ink;
             text.raycastTarget = false;
@@ -53,14 +53,27 @@ namespace ByteWorld
             return tray;
         }
 
-        public void Show(int count, bool selected)
+        bool hint;
+
+        /// <summary>hint makes the piece blink: the next thing to tap.</summary>
+        public void Show(int count, bool selected, bool showHint = false)
         {
+            hint = showHint;
             countText.text = count.ToString();
             var c = body.color;
             c.a = count > 0 ? 1f : 0.35f;
             body.color = c;
             outline.effectColor = selected ? Palette.PacketYellow : Palette.Ink;
             var size = selected ? 10f : 6f;
+            outline.effectDistance = new Vector2(size, -size);
+        }
+
+        void Update()
+        {
+            if (!hint) return;
+            var on = Mathf.Repeat(Time.unscaledTime, 0.9f) < 0.45f;
+            outline.effectColor = on ? Palette.PacketYellow : Palette.Ink;
+            var size = on ? 10f : 6f;
             outline.effectDistance = new Vector2(size, -size);
         }
 

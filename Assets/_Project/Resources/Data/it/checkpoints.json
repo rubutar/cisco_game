@@ -1,0 +1,333 @@
+{
+  "plaza": {
+    "x": 240,
+    "y": 140
+  },
+  "checkpoints": [
+    {
+      "id": "harbour",
+      "quest": 1,
+      "station": "Il porto di Scout",
+      "character": "scout",
+      "job": "scout",
+      "tool": "Cisco Umbrella",
+      "x": 360,
+      "y": 200,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 300,
+          "y": 140
+        },
+        {
+          "x": 300,
+          "y": 200
+        },
+        {
+          "x": 360,
+          "y": 200
+        }
+      ],
+      "requires": [],
+      "line": "Blocca domini e link pericolosi prima ancora che un dispositivo si colleghi.",
+      "without": "Ogni link viene cliccato",
+      "with": "Domini pericolosi bloccati subito",
+      "materials": {
+        "what": "Cisco Umbrella controlla il dominio richiesto da un dispositivo e blocca siti di malware e phishing prima della connessione.",
+        "withoutLines": [
+          "I domini sosia vengono cliccati",
+          "Un clic può regalare una password",
+          "Nessuno vede quali link erano rischiosi"
+        ],
+        "withLines": [
+          "I domini pericolosi noti vengono bloccati alla ricerca",
+          "Le pagine di phishing non si aprono mai",
+          "Il team vede ogni richiesta bloccata"
+        ],
+        "realWorld": "Le organizzazioni usano Umbrella perché un clic sbagliato su un link di phishing non arrivi mai alla pagina.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "gate",
+      "quest": 1,
+      "station": "Il cancello di Gigi",
+      "character": "gigi",
+      "job": "gigi",
+      "tool": "Cisco Secure Firewall",
+      "x": 92,
+      "y": 215,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 215
+        },
+        {
+          "x": 92,
+          "y": 215
+        }
+      ],
+      "requires": [],
+      "line": "Decide quali porte sono aperte, e per chi. Tutto il resto viene scartato.",
+      "without": "Ogni porta è aperta",
+      "with": "Solo le porte che servono",
+      "materials": {
+        "what": "Cisco Secure Firewall confronta il traffico con le regole di accesso e lascia passare solo ciò che una regola permette.",
+        "withoutLines": [
+          "Le vecchie porte come Telnet restano aperte",
+          "Chiunque può bussare a qualsiasi porta",
+          "Nessuno sa cosa è entrato"
+        ],
+        "withLines": [
+          "Sono aperte solo le porte che servono alla città",
+          "Le regole dicono chi può usare ogni porta",
+          "Tutto il resto viene scartato"
+        ],
+        "realWorld": "Le organizzazioni usano Secure Firewall per controllare il traffico che entra ed esce dalla loro rete.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "vault",
+      "quest": 2,
+      "station": "Il caveau Duo",
+      "character": "twins",
+      "job": "twins",
+      "tool": "Cisco Duo",
+      "x": 100,
+      "y": 80,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 80
+        },
+        {
+          "x": 100,
+          "y": 80
+        }
+      ],
+      "requires": [
+        "harbour",
+        "gate"
+      ],
+      "line": "Un secondo controllo sul tuo telefono, così una password rubata non basta.",
+      "without": "Una password rubata lo apre",
+      "with": "Un secondo passaggio sul telefono",
+      "materials": {
+        "what": "Cisco Duo aggiunge un secondo fattore: dopo la password, il proprietario approva l'accesso sul suo telefono.",
+        "withoutLines": [
+          "Una password indovinata apre il caveau",
+          "Gli accessi rubati sembrano del proprietario",
+          "Le richieste a raffica vengono approvate"
+        ],
+        "withLines": [
+          "Il proprietario approva dal telefono",
+          "Una password rubata da sola non funziona",
+          "Verified Push chiede un codice"
+        ],
+        "realWorld": "Le organizzazioni usano Duo perché il personale confermi ogni accesso dal proprio telefono.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "workshop",
+      "quest": 2,
+      "station": "L'officina di Patch",
+      "character": "patch",
+      "job": "patch",
+      "tool": "Cisco Secure Endpoint",
+      "x": 240,
+      "y": 190,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 190
+        }
+      ],
+      "requires": [
+        "harbour",
+        "gate"
+      ],
+      "line": "Protegge ogni dispositivo e cattura il malware, come un aggiornamento falso.",
+      "without": "Ogni aggiornamento viene installato",
+      "with": "Malware fermato sul dispositivo",
+      "materials": {
+        "what": "Cisco Secure Endpoint protegge i dispositivi prevenendo, rilevando e rispondendo al malware, anche nei file sospetti.",
+        "withoutLines": [
+          "Un aggiornamento falso installa malware",
+          "Nessuno nota il dispositivo infetto",
+          "Le crepe restano aperte per settimane"
+        ],
+        "withLines": [
+          "I file sospetti vengono controllati",
+          "Il malware viene rilevato e fermato",
+          "Il team vede ogni dispositivo"
+        ],
+        "realWorld": "Le organizzazioni usano Secure Endpoint per trovare e fermare il malware su portatili e server.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "observatory",
+      "quest": 2,
+      "station": "Osservatorio Splunk",
+      "character": "gigi",
+      "job": "hunt",
+      "tool": "Splunk",
+      "x": 200,
+      "y": 100,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 100
+        },
+        {
+          "x": 200,
+          "y": 100
+        }
+      ],
+      "requires": [
+        "vault",
+        "workshop"
+      ],
+      "line": "Ogni decisione in città viene registrata. Splunk cerca in tutto insieme.",
+      "without": "Log in ogni casa",
+      "with": "Una ricerca per tutta la città",
+      "materials": {
+        "what": "Splunk, parte di Cisco dal 2024, raccoglie i log di ogni sistema così una ricerca trova schemi in tutti.",
+        "withoutLines": [
+          "Ogni casa tiene i propri log",
+          "Una scansione lenta passa inosservata",
+          "Nessuno può seguire le tracce di un attacco"
+        ],
+        "withLines": [
+          "Ogni log finisce in un unico posto",
+          "Una ricerca mostra lo scanner",
+          "La traccia riporta alla sorgente"
+        ],
+        "realWorld": "I team di sicurezza usano Splunk per cercare nei log di tutta l'organizzazione e individuare attacchi.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "switchyard",
+      "quest": 3,
+      "station": "Lo scalo degli switch",
+      "character": "patch",
+      "job": "build",
+      "tool": "Cisco Catalyst switches",
+      "x": 240,
+      "y": 58,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 58
+        }
+      ],
+      "requires": [
+        "observatory"
+      ],
+      "line": "Dividi la città in corsie così un pod infetto non raggiunge il caveau.",
+      "without": "Un'unica rete piatta",
+      "with": "Corsie separate per gruppo",
+      "materials": {
+        "what": "Gli switch Cisco Catalyst mettono i dispositivi in VLAN separate, così il traffico tra gruppi si può controllare.",
+        "withoutLines": [
+          "Ogni pod può raggiungere il caveau",
+          "Un'infezione si diffonde ovunque",
+          "Il traffico non ha corsie"
+        ],
+        "withLines": [
+          "I pod stanno in corsie separate",
+          "Un pod infetto resta nella sua corsia",
+          "Le regole decidono cosa passa tra le corsie"
+        ],
+        "realWorld": "Le organizzazioni usano switch Catalyst e VLAN per tenere separati ospiti, personale e server.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "tower",
+      "quest": 4,
+      "station": "La torre del segnale",
+      "character": "gigi",
+      "job": "siege",
+      "tool": "Cisco ThousandEyes",
+      "x": 350,
+      "y": 70,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 70
+        },
+        {
+          "x": 350,
+          "y": 70
+        }
+      ],
+      "requires": [
+        "switchyard"
+      ],
+      "line": "Vede dentro ogni cavo: quale collegamento perde pacchetti, e perché.",
+      "without": "La chiamata si blocca, nessuno sa perché",
+      "with": "Il collegamento guasto appare rosa",
+      "materials": {
+        "what": "Cisco ThousandEyes misura perdita, latenza e jitter passo per passo, così il team vede quale collegamento cede.",
+        "withoutLines": [
+          "La chiamata Webex si blocca",
+          "Ogni collegamento sembra uguale",
+          "Andando a tentativi si ripara la cosa sbagliata"
+        ],
+        "withLines": [
+          "Perdita e latenza per ogni collegamento",
+          "Il collegamento guasto si trova subito",
+          "La chiamata passa su un percorso buono"
+        ],
+        "realWorld": "Le organizzazioni usano ThousandEyes per capire dove la rete rallenta un'app o una chiamata.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    }
+  ]
+}

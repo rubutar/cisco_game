@@ -1,18 +1,21 @@
 # Byte World: rules for every agent session
 
-Byte World is a short, landscape, bright pixel-art story game for teens (13–17) about cybersecurity, built for The Big Hack 2026 (Consorzio CLARA / Cisco). A tiny town lives inside your Wi-Fi. Four job Bytes (Scout checks boats, Gigi keeps the gate, Uno and Due guard the vault, Patch fixes the wall) handle incoming data. Mishandle it and an attacker snatches the Byte; one of three shared backups takes over; run out and Byte World collapses. Day 1 is a tutorial, Day 2 has double alerts, Day 3 is a tap-only network build with a final test run. The full spec is the PRD (v1.3); `STREAMS.md` says who owns what.
+Byte World is a landscape, pixel-art story game in which Cisco Networking Academy learners (16+) defend a town that lives inside their Wi-Fi router, built for The Big Hack 2026 (Consorzio CLARA / Cisco, Challenge 4 "Hack the Route"). The player is **Pax**, a visiting learner who walks the town from Router Plaza to seven Cisco stations (Umbrella, Secure Firewall, Duo, Secure Endpoint, Splunk, Catalyst switches, ThousandEyes and Webex). At each station a popup offers **Go in** (play the station's shift, hunt, build or siege) and **See materials** (a half-screen lesson with the town without and with the tool). The game runs as four quests on the existing day and puzzle machinery; every finished station adds its tool to Pax's **Cisco toolkit**, and the game ends with a Learner Card. **The spec is `PRD-v2.md` (v2.1)**; `STREAMS.md` says who owns what. The v1.3 PRD is retired.
 
-## Pillars (PRD 4.1)
+## Pillars (PRD-v2 4.1)
 
-1. **Jobs, not lessons.** No security or networking words on Days 1 and 2. Real terms appear only on Day 3 reveal cards.
-2. **Notice what's off.** Most incoming items are fine; a few are slightly wrong.
+1. **Real tools, real terms, from minute one.** Every station names its Cisco tool and the concept behind it.
+2. **Notice what's off.** Most items are fine, a few are subtly wrong, and one per station looks wrong but is fine.
 3. **Loss you can feel**, never scary or gory.
-4. **Short and readable.** One bubble per line (max ~110 characters). Shifts 30–60 s, puzzles 1–2 min.
-5. **Safe isn't blocking everything.** Blocking safe items fills the complaints meter.
+4. **Short and readable.** One bubble per line (about 110 characters), cards under 140 a line. Shifts 45–60 s.
+5. **Safe isn't blocking everything.** Blocking real citizens fills the Complaints Meter.
+6. **Every quest proves learning.** A Field Card and a 2-question check close each quest.
+7. **If we can't film it, it doesn't ship.** Every feature must read clearly in a 1920 × 1080 capture.
+8. **Show the value, not the logo.** Each tool is shown as the same piece of town without it and with it. Only true claims (PRD-v2 4.11), product names in text, no logos.
 
 ## Stack (state this in every prompt)
 
-Unity **6000.6.9f1** (everyone on exactly this version), URP 2D, uGUI + TextMeshPro, **WebGL** target, landscape, **tap input only** via the uGUI EventSystem (`IPointerClickHandler`). The project uses the Input System package only, so the EventSystem needs `InputSystemUIInputModule`. Pixel Perfect Camera 480 × 270, 16 PPU, Point filter, no compression. Canvas Scaler: Scale With Screen Size, 1920 × 1080, match 0.5. WebGL rules: no threads, no file system, no `System.IO` at runtime, keep allocations low.
+Unity **6000.6.9f1** (everyone on exactly this version), URP 2D, uGUI + TextMeshPro, **WebGL** target, landscape, **tap input** via the uGUI EventSystem (`IPointerClickHandler`); the only keyboard use is the hero's `Hero` action map (Move WASD/arrows, Interact Enter/E, Materials M, Back Esc), and every UI action stays tappable. The project uses the Input System package only, so the EventSystem needs `InputSystemUIInputModule`. Pixel Perfect Camera 480 × 270, 16 PPU, Point filter, no compression. Canvas Scaler: Scale With Screen Size, 1920 × 1080, match 0.5. WebGL rules: no threads, no file system, no `System.IO` at runtime, keep allocations low.
 
 ## Folder structure
 
@@ -24,17 +27,17 @@ Assets/_Project/
     Core/Data/    JSON data classes                                                  (shared contracts)
     Core/Stubs/   stub implementations                                               (shared contracts)
     Core/         GameManager.cs, DayManager.cs, BackupNest.cs, DataLoader.cs        (Stream A)
-    World/        WorldMap, RoamingByte, JobByte, AlertController                    (Stream A)
+    World/        WorldMap, RoamingByte, JobByte, AlertController, HeroController, CheckpointManager (A)
     Jobs/         JobShift, ItemQueue, ScoutJob, GigiJob, TwinsJob, PatchJob         (Stream A)
     Debug/        DebugStart, debug menu  (namespace ByteWorld.DebugTools)            (Stream A)
-    UI/           DialogueBubble, InspectPanel, TopBar, DayCard, RevealCard, Screens/ (Stream B)
+    UI/           DialogueBubble, InspectPanel, TopBar, RevealCard, Screens/, Checkpoints/ (B); UI/Hunt/ (A)
     Build/        BuildManager, NetworkGraph, BuildSlot, CableTool, DoorRules, TrafficRun (Stream B)
     Editor/       editor tools (FoundationSetup, FakeEventPanel, PixelArtImporter)
   Scenes/  Prefabs/  Art/Sprites/  Art/Palettes/  Audio/
-  Resources/Data/   days.json, dialogue.json, roaming.json, build.json (Content C), flags.json (Stream A)
+  Resources/Data/   days.json, dialogue.json, roaming.json, build.json, flags.json, hunt.json, checkpoints.json (all A)
   Resources/Core/   GameRoot.prefab (Stream A)
   Resources/UI/     UIRoot.prefab   (Stream B)
-Tools/sprites/      grids/*.txt, make_sprites.py, quantize.py (Content C)
+Tools/sprites/      grids/*.txt, make_sprites.py, quantize.py (A: all art)
 ```
 
 Namespaces: `ByteWorld`, `ByteWorld.Data`, `ByteWorld.Stubs`, `ByteWorld.EditorTools`, `ByteWorld.DebugTools`. **Never name a namespace `ByteWorld.Debug`**: it hides `UnityEngine.Debug` everywhere.
@@ -56,44 +59,49 @@ Namespaces: `ByteWorld`, `ByteWorld.Data`, `ByteWorld.Stubs`, `ByteWorld.EditorT
 
 All content lives in `Resources/Data/*.json`, loaded with `Resources.Load<TextAsset>` + `JsonUtility`. The data classes in `Scripts/Core/Data/` are the schema. JsonUtility rules: public fields only, no dictionaries, **no nested arrays** (that's why `alertGroups` is `[{ "jobs": [...] }]`), missing fields get default values. Changing a data class is a contract change. Check content with **Byte World > Validate Data**.
 
+**Two languages: Italian (default) and English.** `Resources/Data/<file>.json` is the English source; `Resources/Data/it/<file>.json` is generated by `python3 Tools/localize/make_locale.py` from it and the table `Tools/localize/it.json` (which fields are text: `Tools/localize/fields.py`). After changing any English text, add its Italian to `it.json` and re-run the script (it fails on a missing translation). Never edit `Data/it/` by hand. `Language` (Italian unless the player picked English with the pause menu's flag) decides which files DataLoader reads.
+
 **Never put game text in code.** Every player-facing string, including button labels and HUD formats, comes from `dialogue.json` (`ui` block, `jobs[].primaryAction`, and so on). The only exception is the developer-only IMGUI text in the stubs and the editor tools.
 
 ## Palette (PRD 6.6)
 
 Use `ByteWorld.Palette` (`Palette.Ink`, `Palette.AlertPink`, `Palette.GridNormal`...). Never type hex colours anywhere else in code. Sprite grids use indices 1–5: ink, blue, cyan, cream, pink.
 
-## Ownership (PRD 6.2)
+## Ownership (PRD-v2 6.2): two people, no Content C
 
 | Area | Owner |
 |---|---|
-| `World.unity`, `Job_Scout/Gigi/Twins/Patch.unity`, `Resources/Core/GameRoot.prefab`, `Scripts/Core/` (non-contract files), `World/`, `Jobs/`, `Debug/`, `flags.json` | **Stream A** (person A) |
-| `Boot.unity`, `Build.unity`, `Resources/UI/UIRoot.prefab`, every UI prefab, `Scripts/UI/`, `Scripts/Build/`, WebGL template and build settings | **Stream B** (person B) |
-| `days.json`, `dialogue.json`, `roaming.json`, `build.json`, `Art/`, `Audio/`, `Tools/sprites/` | **Content C** (through `c/*` branches) |
-| `Scripts/Core/` contract files (`GameState.cs`, `Events.cs`, `Services.cs`, `Palette.cs`, `Bootstrap.cs`, `Contracts/`, `Data/`, `Stubs/`) | **Shared**, contract-change rule |
+| **All `Resources/Data/*.json`** (days, dialogue, roaming, build, flags, hunt, checkpoints) | **A** |
+| `Scripts/Core/` (non-contract), `World/` (incl. `HeroController`, `CheckpointManager`), `Jobs/`, `Debug/`, `GameRoot.prefab`, `World.unity`, `Job_*.unity` | **A** |
+| The Splunk Trace module: `Scripts/UI/Hunt/`, `Editor/HuntBuilder.cs`, `Resources/UI/Hunt.prefab` | **A** |
+| **All art**: `Tools/sprites/`, `Resources/Sprites/`, `Art/Sprites/` (Pax, Bytes, stations, props) | **A** |
+| `Scripts/UI/` (everything else, incl. `CheckpointPopup`, `MaterialsPanel`, `ToolkitPanel`, `StationTransition`), `UIRootBuilder.cs`, `UIRoot.prefab`, `Scripts/Build/`, `Boot.unity`, `Build.unity`, WebGL template, `Art/Fonts/` | **B** |
+| Contract files (`GameState`, `Events`, `Services`, `Contracts/`, `Data/`, `Stubs/`, `Palette`, `Bootstrap`) | **A**, one PR per change (see below) |
 
-**Nobody edits a scene, prefab or folder they don't own.** Need something from the other stream? Open an issue for its owner, or put it in your own prefab and hand it over.
+**Nobody edits a file they don't own.** B never edits JSON: ask A. Need something from the other person? Open an issue for them, or hand it over in your own file.
 
 ## Rules for agents
 
 - **Never hand-edit `.unity` or `.prefab` YAML.** Scene and prefab changes go through the Unity MCP (the Editor makes the change) or a human, and only in scenes and prefabs your stream owns. Save the scene and commit after each working MCP change.
 - **After every compile, read the Unity Console through MCP** (`Unity_ReadConsole`) and fix every new error before moving on. Don't report a task done with Console errors.
 - Don't use the MCP for Project Settings changes (agree them as a team), other people's scenes, or large batch deletes.
-- Work from your stream's GitHub issues. Small tasks, frequent commits, commit messages `area: what changed` (for example `scout: inspect panel shows sender`).
+- Work from your person's v2 issue checklist (one issue each). Small tasks, frequent commits, commit messages `area: what changed` (for example `scout: inspect panel shows sender`).
 - If you go in circles for more than 15 minutes: stop, revert, and split the task smaller.
 - The game never calls an AI service at runtime.
 
 ## Contract change rule
 
-A stream that needs to change a shared contract (anything in the **Shared** row above, or a JSON schema):
+v2 has two planned contract PRs, both by A, each one PR straight to `v2dev` with stubs updated (PRD-v2 6.4):
 
-1. Opens an issue labelled **`contract-change`** describing the change and why.
-2. Makes the change in a **small PR straight to `main`** (branch `contract/<short-name>`), compiling with no Console errors, with stubs updated to match.
-3. The other stream **merges `main` into its stream branch before continuing**.
+- **`contract/quests-v2`**: `ItemResolvedInfo` gains `{ day, title, attacker, logLine }`; `GameEvents.PropTapped(string)`; `IHuntScreen.Begin(Action<string> onPinned)`; the PRD-v2 6.5 data classes.
+- **`contract/hero`**: `CheckpointState { Locked, Alert, Done }`; `GameEvents.CheckpointStatesChanged()`, `HeroArrived(string id)`, `HeroLeft(string id)`, `StationFinished(string id)`; `ICheckpointService { Get, StateOf, LockReason, ToolsCollected }`; UI actions `walk:<id>`, `goin:<id>` (A handles) and `materials:<id>` (UI only, B).
 
-**Never change contracts inside a feature branch.** Adding a new event or interface member counts as a contract change.
+Any other contract change needs both people to agree: an issue labelled **`contract-change`**, a small PR from `contract/<name>` straight to `v2dev`, compiling with no Console errors and stubs updated, then the other person merges `v2dev` before continuing. **Never change contracts inside a feature branch.**
 
-## Branches and merge windows (PRD 10.2)
+## Branches and merge windows (PRD-v2 10.2)
 
-- `main` is always playable; no direct pushes. Stream branches: `stream/a-game-core`, `stream/b-screens-build`. Feature branches off the stream branch: `a/scout-shift`, `b/dialogue-bubble`; content: `c/data-day2`.
-- Merge windows: Saturday 13:00, 16:00, 19:00 (tag `playable-sat`), 22:00; Sunday 08:30, 10:30. Feature freeze Sunday 10:00 (tag `freeze`), final build tagged `demo`.
-- At each window: every stream merges `main` into its stream branch, compiles, reads the Console, runs the reviewer subagent, then opens a PR. Merge order: **A, then B (after merging main again), then content.** Use merge commits, not squash, for stream PRs.
+- **`v2dev`** is the v2 integration branch; `main` keeps the last v1 build until v2 is ready. No direct pushes to either: PRs only.
+- Work branches: **`stream/a-quests`** (A) and **`stream/b-screens`** (B), branched from `v2dev`. Optional short feature branches `a/<name>`, `b/<name>` merge into the stream branch.
+- Merge windows into `v2dev`: Sat 22:00 · Sat 23:30 (`contract/hero`) · Sun 08:00 (cut-off: set `quest4Mode` and `heroMode`) · 08:30 · 10:00 (feature freeze, tag `freeze`, then `v2dev` → `main`) · 10:30 (final WebGL build from `main`, tag `demo`).
+- At each window: merge `v2dev` into your stream branch, compile, read the Console, run Validate Data and the reviewer, then open a PR into `v2dev`. **A merges first, then B** (after merging `v2dev` again). Merge commits, not squash.
+- Definition of done (PRD-v2 10.3): no new Console errors, Validate Data says "All data valid", it plays end to end with the Fake Event Panel or the URL shortcuts, it looks right in a 1920 × 1080 capture, and TASKS.md is updated.

@@ -1,0 +1,333 @@
+{
+  "plaza": {
+    "x": 240,
+    "y": 140
+  },
+  "checkpoints": [
+    {
+      "id": "harbour",
+      "quest": 1,
+      "station": "Scout's Harbour",
+      "character": "scout",
+      "job": "scout",
+      "tool": "Cisco Umbrella",
+      "x": 360,
+      "y": 200,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 300,
+          "y": 140
+        },
+        {
+          "x": 300,
+          "y": 200
+        },
+        {
+          "x": 360,
+          "y": 200
+        }
+      ],
+      "requires": [],
+      "line": "Blocks dangerous domains and links before a device ever connects.",
+      "without": "Every link gets clicked",
+      "with": "Bad domains blocked first",
+      "materials": {
+        "what": "Cisco Umbrella checks the domain a device asks for and blocks malware and phishing sites before a connection is made.",
+        "withoutLines": [
+          "Look-alike domains get clicked",
+          "One click can hand over a password",
+          "Nobody sees which links were risky"
+        ],
+        "withLines": [
+          "Known bad domains are blocked at the lookup",
+          "Phishing pages never load",
+          "The team sees every blocked request"
+        ],
+        "realWorld": "Organisations use Umbrella so a wrong click on a phishing link never reaches the page.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "gate",
+      "quest": 1,
+      "station": "Gigi's Gate",
+      "character": "gigi",
+      "job": "gigi",
+      "tool": "Cisco Secure Firewall",
+      "x": 92,
+      "y": 215,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 215
+        },
+        {
+          "x": 92,
+          "y": 215
+        }
+      ],
+      "requires": [],
+      "line": "Decides which doors are open, and for whom. Anything else is dropped.",
+      "without": "Every door is open",
+      "with": "Only the doors you need",
+      "materials": {
+        "what": "Cisco Secure Firewall checks traffic against access control rules and only lets through what a rule allows.",
+        "withoutLines": [
+          "Old doors like Telnet stay open",
+          "Anyone can knock on any door",
+          "Nobody knows what came in"
+        ],
+        "withLines": [
+          "Only the doors the town needs are open",
+          "Rules say who may use each door",
+          "Everything else is dropped"
+        ],
+        "realWorld": "Organisations use Secure Firewall to control which traffic enters and leaves their network.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "vault",
+      "quest": 2,
+      "station": "The Duo Vault",
+      "character": "twins",
+      "job": "twins",
+      "tool": "Cisco Duo",
+      "x": 100,
+      "y": 80,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 140
+        },
+        {
+          "x": 160,
+          "y": 80
+        },
+        {
+          "x": 100,
+          "y": 80
+        }
+      ],
+      "requires": [
+        "harbour",
+        "gate"
+      ],
+      "line": "A second check on your own phone, so a stolen password isn't enough.",
+      "without": "A stolen password opens it",
+      "with": "A second step on your phone",
+      "materials": {
+        "what": "Cisco Duo adds a second factor: after the password, the owner approves the login on their own phone.",
+        "withoutLines": [
+          "A guessed password opens the vault",
+          "Stolen logins look like the owner",
+          "Spammed approvals get tapped"
+        ],
+        "withLines": [
+          "The owner approves on their phone",
+          "A stolen password alone fails",
+          "Verified Push asks for a code"
+        ],
+        "realWorld": "Organisations use Duo so staff confirm each login on their own phone.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "workshop",
+      "quest": 2,
+      "station": "Patch's Workshop",
+      "character": "patch",
+      "job": "patch",
+      "tool": "Cisco Secure Endpoint",
+      "x": 240,
+      "y": 190,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 190
+        }
+      ],
+      "requires": [
+        "harbour",
+        "gate"
+      ],
+      "line": "Protects every device and catches malware, like a fake update.",
+      "without": "Any update gets installed",
+      "with": "Malware caught on the device",
+      "materials": {
+        "what": "Cisco Secure Endpoint protects devices by preventing, detecting and responding to malware, including suspicious files.",
+        "withoutLines": [
+          "A fake update installs malware",
+          "Nobody notices the infected device",
+          "Cracks stay open for weeks"
+        ],
+        "withLines": [
+          "Suspicious files are checked",
+          "Malware is detected and stopped",
+          "The team can see every device"
+        ],
+        "realWorld": "Organisations use Secure Endpoint to find and stop malware on laptops and servers.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "observatory",
+      "quest": 2,
+      "station": "Splunk Observatory",
+      "character": "gigi",
+      "job": "hunt",
+      "tool": "Splunk",
+      "x": 200,
+      "y": 100,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 100
+        },
+        {
+          "x": 200,
+          "y": 100
+        }
+      ],
+      "requires": [
+        "vault",
+        "workshop"
+      ],
+      "line": "Every decision in town is logged. Splunk searches all of it at once.",
+      "without": "Logs in every house",
+      "with": "One search for the town",
+      "materials": {
+        "what": "Splunk, part of Cisco since 2024, collects logs from every system so one search can find patterns across all of them.",
+        "withoutLines": [
+          "Each house keeps its own logs",
+          "A slow scan goes unnoticed",
+          "Nobody can trace an attack"
+        ],
+        "withLines": [
+          "Every log lands in one place",
+          "One search shows the scanner",
+          "The trail leads back to the source"
+        ],
+        "realWorld": "Security teams use Splunk to search logs from the whole organisation and spot attacks.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "switchyard",
+      "quest": 3,
+      "station": "The Switch Yard",
+      "character": "patch",
+      "job": "build",
+      "tool": "Cisco Catalyst switches",
+      "x": 240,
+      "y": 58,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 58
+        }
+      ],
+      "requires": [
+        "observatory"
+      ],
+      "line": "Split the town into lanes so one infected pod can't reach the vault.",
+      "without": "One flat network",
+      "with": "Separate lanes per group",
+      "materials": {
+        "what": "Cisco Catalyst switches put devices into separate VLANs, so traffic between groups can be controlled.",
+        "withoutLines": [
+          "Every pod can reach the vault",
+          "One infection spreads everywhere",
+          "Traffic has no lanes"
+        ],
+        "withLines": [
+          "Pods sit in separate lanes",
+          "An infected pod stays in its lane",
+          "Rules decide what crosses lanes"
+        ],
+        "realWorld": "Organisations use Catalyst switches and VLANs to keep guests, staff and servers apart.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    },
+    {
+      "id": "tower",
+      "quest": 4,
+      "station": "The Signal Tower",
+      "character": "gigi",
+      "job": "siege",
+      "tool": "Cisco ThousandEyes",
+      "x": 350,
+      "y": 70,
+      "path": [
+        {
+          "x": 240,
+          "y": 140
+        },
+        {
+          "x": 240,
+          "y": 70
+        },
+        {
+          "x": 350,
+          "y": 70
+        }
+      ],
+      "requires": [
+        "switchyard"
+      ],
+      "line": "Sees inside every cable: which link is losing packets, and why.",
+      "without": "The call freezes, nobody knows why",
+      "with": "The broken link shows up pink",
+      "materials": {
+        "what": "Cisco ThousandEyes measures loss, latency and jitter hop by hop, so the team can see which link is failing.",
+        "withoutLines": [
+          "The Webex call freezes",
+          "Every link looks the same",
+          "Guesswork fixes the wrong thing"
+        ],
+        "withLines": [
+          "Loss and latency shown per link",
+          "The bad link is found first",
+          "The call is moved to a good path"
+        ],
+        "realWorld": "Organisations use ThousandEyes to find where the network is slowing down an app or a call.",
+        "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
+        "learnMoreUrl": "https://www.netacad.com"
+      }
+    }
+  ]
+}

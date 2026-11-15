@@ -4,14 +4,15 @@ description: Pre-merge reviewer for Byte World. Use before opening a stream PR i
 tools: Read, Grep, Glob, Bash
 ---
 
-You review a Byte World branch before it merges. Read `CLAUDE.md` first. Report problems as a short numbered list (file:line, what's wrong, the fix); don't rewrite large parts of the code. If nothing is wrong, say so in one line.
+You review a Byte World branch before it merges. Read `CLAUDE.md` and `PRD-v2.md` first. The base branch is `v2dev`. Report problems as a short numbered list (file:line, what's wrong, the fix); don't rewrite large parts of the code. If nothing is wrong, say so in one line.
 
 Check, in order:
 1. **Compiles with no Console errors.** Ask the calling agent to read the Unity Console through the Unity MCP (`Unity_ReadConsole`) after the latest compile, and confirm there are no new errors. Do the same after any MCP scene change.
-2. **Ownership.** `git diff --name-only main...HEAD`: every changed file is owned by this branch's stream (ownership table in CLAUDE.md). Flag any change to a shared contract (`Scripts/Core/GameState.cs`, `Events.cs`, `Services.cs`, `Palette.cs`, `Bootstrap.cs`, `Core/Contracts`, `Core/Data`, `Core/Stubs`) that isn't on a `contract/*` branch.
+2. **Ownership.** `git diff --name-only v2dev...HEAD`: every changed file is owned by this branch's stream (ownership table in CLAUDE.md). Flag any change to a shared contract (`Scripts/Core/GameState.cs`, `Events.cs`, `Services.cs`, `Palette.cs`, `Bootstrap.cs`, `Core/Contracts`, `Core/Data`, `Core/Stubs`) that isn't one of the two planned v2 contract PRs (`contract/quests-v2`, `contract/hero`) or an agreed `contract/*` branch.
 3. **No hand-edited scene or prefab YAML.** `.unity` or `.prefab` changes must come from Editor or MCP work in the stream's own scenes.
-4. **No hard-coded game text.** Player-facing string literals in C# (except stubs, editor tools and log messages) belong in `dialogue.json`.
-5. **Events, not references.** Gameplay code (`Core`, `World`, `Jobs`, `Build` logic) doesn't reference UI types; UI doesn't call gameplay methods except through `GameEvents.Raise*` and `Services`.
-6. **Rules in one place.** Snatches go through `Services.Backups.ReportSnatch`; complaints use `ComplaintRules`. No hex colours outside `Palette.cs`.
-7. **JSON is valid.** Run **Byte World > Validate Data** in the Editor (or `-executeMethod ByteWorld.EditorTools.DataValidator.RunBatch` in batch mode) and confirm "All data valid".
-8. **After a merge to main:** remind the team to make a WebGL build and check it loads on a phone.
+4. **Cisco claims (PRD-v2 4.11).** Product names in full where the player acts, no invented statistics, customers or awards, no logos.
+5. **No hard-coded game text.** Player-facing string literals in C# (except stubs, editor tools and log messages) belong in `dialogue.json`.
+6. **Events, not references.** Gameplay code (`Core`, `World`, `Jobs`, `Build` logic) doesn't reference UI types; UI doesn't call gameplay methods except through `GameEvents.Raise*` and `Services`.
+7. **Rules in one place.** Snatches go through `Services.Backups.ReportSnatch`; complaints use `ComplaintRules`. No hex colours outside `Palette.cs`.
+8. **JSON is valid.** Run **Byte World > Validate Data** in the Editor (or `-executeMethod ByteWorld.EditorTools.DataValidator.RunBatch` in batch mode) and confirm "All data valid".
+9. **After a merge:** remind the team to make a WebGL build and check it loads on a phone.

@@ -72,9 +72,14 @@ namespace ByteWorld
                 doorSprites[doors[i]] = door;
                 // The 32 x 32 door art has a number plate at the top; the plain block takes the number in its middle.
                 var plate = PixelArt.HasSprite("Props/door_open") ? new Vector3(0f, 15 * PixelArt.Pixel, 0f) : Vector3.zero;
-                JobVisuals.Label(door.transform, doors[i].ToString(), plate, 2.2f, Palette.Ink, SortBase + 11);
+                // "Door 443": the word comes from dialogue.json (fieldLabels), so a bare number never has to be guessed.
+                JobVisuals.Label(door.transform, $"{FieldLabel(0, "Door")} {doors[i]}", plate, 2.2f, Palette.Ink, SortBase + 11);
             }
         }
+
+        // The board starts below the HUD's top bar (about 28 map pixels tall), so its door chips stay visible.
+        const float BoardTop = 34f;
+        const int RowStep = 15; // map pixels between board rows: room for the readable labels
 
         protected override void OnShiftStarted()
         {
@@ -91,13 +96,23 @@ namespace ByteWorld
         {
             base.Update();
             var change = Shift.ruleChange;
-            if (!Running || ruleChangeDone || change == null || change.atSeconds <= 0f || Elapsed < change.atSeconds) return;
+            // v2 triggers the change when a given item arrives (rulesChangeAtItem, see SpawnItem); v1 by time.
+            if (!Running || ruleChangeDone || change == null || Shift.rulesChangeAtItem > 0 || change.atSeconds <= 0f || Elapsed < change.atSeconds) return;
+            ApplyRuleChange();
+        }
+
+        void ApplyRuleChange()
+        {
+            var change = Shift.ruleChange;
+            if (ruleChangeDone || change == null) return;
 
             ruleChangeDone = true;
             foreach (var d in change.close ?? new int[0]) { open.Remove(d); closed.Add(d); }
             foreach (var d in change.open ?? new int[0]) { closed.Remove(d); open.Add(d); }
             Refresh();
-            if (!string.IsNullOrEmpty(change.announce)) Services.Dialogue.Say(Job.ToKey(), change.announce);
+            // The Webex post: the v2 line if there is one, else the v1 announcement.
+            var line = !string.IsNullOrEmpty(Shift.rulesChangeLine) ? Shift.rulesChangeLine : change.announce;
+            if (!string.IsNullOrEmpty(line)) Services.Dialogue.Say(Job.ToKey(), line);
         }
 
         void Refresh()
@@ -130,31 +145,32 @@ namespace ByteWorld
             var known = Shift.rules?.known ?? new string[0];
             var doors = new List<int>(open);
             doors.AddRange(closed);
-            var height = 16 + 12 * (Mathf.CeilToInt(doors.Count / 3f) + known.Length);
+            var height = 16 + RowStep * (Mathf.CeilToInt(doors.Count / 3f) + known.Length);
             var panel = PixelArt.AddSprite(board, PixelArt.Block(100, height, Palette.ByteCream, Palette.Ink, "List"), "Panel", SortBase + 20);
-            panel.transform.localPosition = PixelArt.MapToWorld(60, 12 + height / 2f);
+            panel.transform.localPosition = PixelArt.MapToWorld(60, BoardTop + height / 2f);
 
             for (var i = 0; i < doors.Count; i++)
             {
                 var chip = PixelArt.AddSprite(board, PixelArt.Block(26, 10, open.Contains(doors[i]) ? Palette.SignalBlue : Palette.AlertPink, Palette.Ink, "Chip"), "Chip", SortBase + 21);
-                chip.transform.localPosition = PixelArt.MapToWorld(26 + (i % 3) * 32, 24 + (i / 3) * 12);
+                chip.transform.localPosition = PixelArt.MapToWorld(26 + (i % 3) * 32, BoardTop + 12 + (i / 3) * RowStep);
                 JobVisuals.Label(chip.transform, doors[i].ToString(), Vector3.zero, 2.2f, Palette.ByteCream, SortBase + 22);
             }
-            var top = 24 + Mathf.CeilToInt(doors.Count / 3f) * 12;
+            var top = BoardTop + 12 + Mathf.CeilToInt(doors.Count / 3f) * RowStep;
             for (var i = 0; i < known.Length; i++)
-                JobVisuals.Label(board, known[i], PixelArt.MapToWorld(60, top + i * 12), 2.5f, Palette.Ink, SortBase + 22);
+                JobVisuals.Label(board, known[i], PixelArt.MapToWorld(60, top + i * RowStep), 2.5f, Palette.Ink, SortBase + 22);
         }
 
         protected override void SpawnItem(ItemData item)
         {
             var spot = QueueSpots[nextSpot % QueueSpots.Length];
             nextSpot++;
+            if (Shift.rulesChangeAtItem > 0 && nextSpot == Shift.rulesChangeAtItem) ApplyRuleChange();
             var go = new GameObject($"Visitor {item.id}");
             go.transform.SetParent(root, false);
             go.transform.localPosition = PixelArt.MapToWorld(500, spot.y);
             var body = PixelArt.AddSprite(go.transform, visitorSprite, "Body", SortBase + 100 + nextSpot);
             Tappable.Add(body.gameObject, body, 0.4f).Tapped += () => OpenInspect(item);
-            JobVisuals.Label(go.transform, $"{item.title} → {item.door}", new Vector3(0f, -0.3f, 0f), 2.5f, Palette.Ink, SortBase + 101 + nextSpot);
+            JobVisuals.Label(go.transform, $"{item.title} → {FieldLabel(0, "Door")} {item.door}", new Vector3(0f, -0.45f, 0f), 2.5f, Palette.Ink, SortBase + 101 + nextSpot, 3.4f); // wraps: fits between queued visitors
             go.AddComponent<Mover>().MoveTo(PixelArt.MapToWorld(spot.x, spot.y), 6f);
             visitors[item.id] = go;
         }
@@ -186,5 +202,8 @@ namespace ByteWorld
             new InspectField(FieldLabel(0, "Door"), item.door.ToString()),
             new InspectField(FieldLabel(1, "Says"), item.says),
         };
+
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"gate src={item.title} door={item.door} action={(allowed ? "allow" : "deny")}";
     }
 }

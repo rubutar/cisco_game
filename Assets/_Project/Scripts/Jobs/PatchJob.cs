@@ -119,7 +119,7 @@ namespace ByteWorld
             crate.transform.localPosition = PixelArt.MapToWorld(spot.x, -20);
             var body = PixelArt.AddSprite(crate.transform, crateSprite, "Body", SortBase + 100 + nextSpot);
             Tappable.Add(body.gameObject, body, 0.4f).Tapped += () => OpenInspect(item);
-            JobVisuals.Label(crate.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 101 + nextSpot, 4f);
+            JobVisuals.Label(crate.transform, item.title, new Vector3(0f, -1f, 0f), 2.2f, Palette.Ink, SortBase + 101 + nextSpot, 2.4f);
             crate.AddComponent<Mover>().MoveTo(PixelArt.MapToWorld(spot.x, spot.y), 8f);
             crates[item.id] = crate;
 
@@ -137,7 +137,7 @@ namespace ByteWorld
             var mark = PixelArt.AddSprite(go.transform, crackSprite, "Mark", SortBase + 30);
             mark.transform.localScale = new Vector3(2f, 2f, 1f);
             Tappable.Add(mark.gameObject, mark, 0.6f).Tapped += () => OpenInspect(item);
-            JobVisuals.Label(go.transform, item.title, new Vector3(0f, -0.75f, 0f), 2.2f, Palette.Ink, SortBase + 31, 4f);
+            JobVisuals.Label(go.transform, item.title, new Vector3(0f, -1f, 0f), 2.2f, Palette.Ink, SortBase + 31, 2.4f);
             crates[item.id] = go;
         }
 
@@ -238,9 +238,15 @@ namespace ByteWorld
             nextSpot = 0;
         }
 
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"workshop file={item.title} from={item.from} sig={(string.IsNullOrEmpty(item.signature) ? "-" : item.signature)} action={(allowed ? "install" : "reject")}";
+
+        // v2 (PRD-v2 4.6): From, Signature and the speed of the Worm heading for this crate's crack.
         protected override InspectField[] InspectFields(ItemData item) => new[]
         {
             new InspectField(FieldLabel(0, "From"), item.from),
+            new InspectField(FieldLabel(1, "Signature"), string.IsNullOrEmpty(item.signature) ? "-" : item.signature),
+            new InspectField(FieldLabel(2, "Worm speed"), item.worm ? item.wormSpeed.ToString("0.0") : "-"),
         };
 
         static Sprite CrateSprite()

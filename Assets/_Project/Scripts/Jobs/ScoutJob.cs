@@ -90,11 +90,26 @@ namespace ByteWorld
             nextMooring = 0;
         }
 
-        protected override InspectField[] InspectFields(ItemData item) => new[]
+        // v2 (PRD-v2 4.5): From, Reply-To, Sender check, Link; the message itself last. Fields without data are left out.
+        protected override InspectField[] InspectFields(ItemData item)
         {
-            new InspectField(FieldLabel(0, "From"), item.from),
-            new InspectField(FieldLabel(1, "Cargo"), item.body),
-        };
+            var hasReplyTo = !string.IsNullOrEmpty(item.replyTo);
+            var hasCheck = !string.IsNullOrEmpty(item.senderCheck);
+            var hasLink = !string.IsNullOrEmpty(item.link);
+            // The inspect panel shows up to four fields. With all five, Reply-To shares the From line so the
+            // message (often the clue: urgency, a prize) always stays visible.
+            var crowded = hasReplyTo && hasCheck && hasLink;
+            var from = crowded ? $"{item.from}\n{FieldLabel(2, "Reply-To")}: {item.replyTo}" : item.from;
+            var fields = new System.Collections.Generic.List<InspectField> { new(FieldLabel(0, "From"), from) };
+            if (hasReplyTo && !crowded) fields.Add(new InspectField(FieldLabel(2, "Reply-To"), item.replyTo));
+            if (hasCheck) fields.Add(new InspectField(FieldLabel(3, "Sender check"), item.senderCheck));
+            if (hasLink) fields.Add(new InspectField(FieldLabel(4, "Link"), item.link));
+            fields.Add(new InspectField(FieldLabel(1, "Message"), item.body));
+            return fields.ToArray();
+        }
+
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"harbour from={item.from} link={(string.IsNullOrEmpty(item.link) ? "-" : item.link)} action={(allowed ? "dock" : "quarantine")}";
 
         /// <summary>The name painted on the boat: the title without the "Post boat:" prefix.</summary>
         static string ShortName(ItemData item)
@@ -132,16 +147,7 @@ namespace ByteWorld
                 var body = PixelArt.AddSprite(transform, sprite, "Hull", sortingOrder);
                 Tappable.Add(body.gameObject, body, 0.4f).Tapped += () => Tapped?.Invoke();
 
-                var text = new GameObject("Name").AddComponent<TextMeshPro>();
-                text.transform.SetParent(transform, false);
-                text.transform.localPosition = new Vector3(0f, -0.35f, 0f);
-                text.text = label;
-                text.fontSize = 3f;
-                text.color = Palette.ByteCream;
-                text.alignment = TextAlignmentOptions.Center;
-                text.textWrappingMode = TextWrappingModes.NoWrap;
-                text.rectTransform.sizeDelta = new Vector2(6f, 0.6f);
-                text.GetComponent<MeshRenderer>().sortingOrder = sortingOrder + 1;
+                JobVisuals.Label(transform, label, new Vector3(0f, -0.4f, 0f), 3f, Palette.ByteCream, sortingOrder + 1);
             }
 
             public void SailTo(Vector2 position, float unitsPerSecond, bool destroyOnArrival = false)

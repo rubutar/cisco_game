@@ -120,12 +120,18 @@ namespace ByteWorld
             nextSpot = 0;
         }
 
+        // v2 (PRD-v2 4.6): the phone line already says "not asked" when the owner never asked, so the fourth
+        // field is the number of approval requests (push bombing shows up as a big number).
         protected override InspectField[] InspectFields(ItemData item) => new[]
         {
             new InspectField(FieldLabel(0, "Password"), Word(item.passwordCorrect ? 0 : 1)),
             new InspectField(FieldLabel(1, "Phone code"), PhoneShows(item)),
-            new InspectField(FieldLabel(2, "Visitor's code"), item.visitorCode),
+            new InspectField(FieldLabel(2, "Visitor's code"), string.IsNullOrEmpty(item.visitorCode) ? "-" : item.visitorCode),
+            new InspectField(FieldLabel(4, "Approval requests"), Mathf.Max(1, item.pushCount).ToString()),
         };
+
+        protected override string LogLine(ItemData item, bool allowed) =>
+            $"vault user={item.title} password={(item.passwordCorrect ? "ok" : "bad")} push={item.pushCount} action={(allowed ? "open" : "deny")}";
 
         /// <summary>What the owner's phone says: the code (marked expired), or "not asked" if the owner never asked.</summary>
         string PhoneShows(ItemData item)

@@ -15,6 +15,67 @@ namespace ByteWorld.Data
         public string peace;
         public BuildDialogue build;
         public UiText ui;
+
+        // v2 learning layer (PRD-v2 4.9, 6.5)
+        public Brief[] briefs;              // Webex briefs per quest
+        public CheckQuestion[] checks;      // 2 per quest
+        public PropData[] props;
+        public LearnerCardData learnerCard;
+        public IncidentData incident;
+    }
+
+    [Serializable]
+    public class Brief
+    {
+        public int quest;
+        public string[] lines;              // 2-3 Webex lines from Gigi
+    }
+
+    [Serializable]
+    public class FieldCardData
+    {
+        public string term;
+        public string text;                 // plain line, max ~140 characters
+        public string cisco;                // the Cisco tool, e.g. "Cisco Umbrella"
+        public string concept;              // the general concept
+        public string role;                 // the career role
+    }
+
+    [Serializable]
+    public class CheckQuestion
+    {
+        public int quest;
+        public string question;
+        public string[] options;            // exactly 4
+        public int answer;                  // index of the correct option (0-3)
+        public string explanation;          // one line, shown after answering
+    }
+
+    [Serializable]
+    public class PropData
+    {
+        public string id;
+        public string name;
+        public string place;
+        public string concept;
+        public string text;
+        public string tryLabel;
+    }
+
+    [Serializable]
+    public class LearnerCardData
+    {
+        public string title;
+        public string[] outcomes;           // the 9 learning outcomes
+        public string cta;
+        public string url;
+    }
+
+    [Serializable]
+    public class IncidentData
+    {
+        public string prompt;
+        public string[] cards;              // in the correct order
     }
 
     [Serializable]
@@ -43,6 +104,7 @@ namespace ByteWorld.Data
         public string waitingLine;          // Day 2: player arrived late
         public string complaintLine;        // a safe item was blocked
         public string complaintFailLine;    // complaints meter full
+        public FieldCardData fieldCard;     // v2: shown after this station's shift
     }
 
     [Serializable]
@@ -96,5 +158,22 @@ namespace ByteWorld.Data
         public string pause;                // pause menu title, "Paused"
         public string resume;               // pause menu button
         public string restartDay;           // pause menu button: restart the current day with three backups
+
+        // v2 labels
+        public string call;
+        public string priority;
+        public string pin;
+        public string report;
+        public string quarantine;
+        public string fieldNotesFormat;     // "Field Notes {0}/{1}"
+        public string tickerPrefix;
+        public string enter;
+        public string goIn;
+        public string seeMaterials;
+        public string toolkit;              // "Cisco toolkit"
+        public string toolkitCountFormat;   // "Cisco toolkit {0}/{1}"
+        public string toolkitToastFormat;   // "{0} added to your Cisco toolkit"
+        public string keyHint;              // "Enter: go in · M: materials · Esc: close"
+        public string lockFormat;           // "Opens after Quest {0}" (ICheckpointService.LockReason)
     }
 }

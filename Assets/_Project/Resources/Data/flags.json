@@ -1,3 +1,6 @@
 {
-  "day3Mode": "build"
+  "day3Mode": "build",
+  "quest4Mode": "scripted",
+  "heroMode": "walk",
+  "heroSpeed": 110
 }

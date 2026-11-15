@@ -27,6 +27,7 @@ namespace ByteWorld
         RectTransform dotRow;
         readonly List<Image> dots = new();
         Coroutine flash;
+        bool pulse; // an open spot that can take the piece in hand: blinks until it's filled
 
         public static BuildSlot Create(BuildManager manager, RectTransform parent, string id, float u, float v)
         {
@@ -62,7 +63,7 @@ namespace ByteWorld
             text.rectTransform.anchoredPosition = new Vector2(0, -6);
             text.rectTransform.sizeDelta = new Vector2(100, 44);
             text.fontSize = 38;
-            text.fontStyle = FontStyles.Bold;
+            UiStyle.Apply(text, UiFont.Title);
             text.alignment = TextAlignmentOptions.Center;
             text.color = Palette.Ink;
             text.raycastTarget = false;
@@ -86,6 +87,7 @@ namespace ByteWorld
         public void ShowOpen(bool highlighted)
         {
             rect.sizeDelta = new Vector2(96, 96);
+            pulse = highlighted;
             var fill = (Color)Palette.ByteCream;
             fill.a = highlighted ? 0.45f : 0.15f;
             body.color = fill;
@@ -97,6 +99,7 @@ namespace ByteWorld
 
         public void ShowPiece(PieceKind kind, int sockets, int used, bool selected, bool reachesRouter, int address)
         {
+            pulse = false;
             switch (kind)
             {
                 case PieceKind.Router:
@@ -120,6 +123,26 @@ namespace ByteWorld
             SetOutline(selected ? Palette.PacketYellow : Palette.Ink, selected ? 10 : 6);
             // On the cyan switch, free sockets need a darker colour to show up.
             SetDots(sockets, used, kind == PieceKind.Switch ? Palette.SignalBlue : Palette.NeonCyan);
+        }
+
+        Image laneBar;
+
+        /// <summary>Quest 3: a coloured bar under a pod shows the lane it belongs to (null hides it).</summary>
+        public void ShowLane(Color? color)
+        {
+            if (laneBar == null)
+            {
+                laneBar = NewImage("Lane", rect, new Vector2(112, 14), Vector2.zero);
+                var r = laneBar.rectTransform;
+                r.anchorMin = r.anchorMax = new Vector2(0.5f, 0);
+                r.pivot = new Vector2(0.5f, 1);
+                r.anchoredPosition = new Vector2(0, -10);
+                var o = laneBar.gameObject.AddComponent<Outline>();
+                o.effectColor = Palette.Ink;
+                o.effectDistance = new Vector2(3, -3);
+            }
+            laneBar.gameObject.SetActive(color.HasValue);
+            if (color.HasValue) laneBar.color = color.Value;
         }
 
         /// <summary>A quick pink blink when a tap can't do anything here (no free socket, etc.).</summary>
@@ -161,6 +184,15 @@ namespace ByteWorld
                 dots[i].gameObject.SetActive(i < sockets);
                 dots[i].color = i < used ? (Color)Palette.Ink : freeColor;
             }
+        }
+
+        void Update()
+        {
+            if (!pulse || flash != null) return;
+            var on = Mathf.Repeat(Time.unscaledTime, 0.9f) < 0.45f;
+            outline.effectColor = on ? Palette.PacketYellow : Palette.ByteCream;
+            var size = on ? 8f : 4f;
+            outline.effectDistance = new Vector2(size, -size);
         }
 
         public void OnPointerClick(PointerEventData eventData) => manager.OnSlotTapped(Id);

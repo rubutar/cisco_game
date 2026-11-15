@@ -50,6 +50,20 @@ namespace ByteWorld
         /// <summary>The inspect panel's fields for an item.</summary>
         protected abstract InspectField[] InspectFields(ItemData item);
 
+        /// <summary>
+        /// The Splunk-style log line for a decision (PRD-v2 4.2), without the time, e.g.
+        /// "gate src=Luca door=23 action=deny". Field names are log syntax, not player text.
+        /// </summary>
+        protected virtual string LogLine(ItemData item, bool allowed) =>
+            $"{Job.ToKey()} item={item.id} action={(allowed ? "allow" : "deny")}";
+
+        /// <summary>Town clock for log lines: the shift starts at 14:00 and a minute passes every 5 s.</summary>
+        string LogClock()
+        {
+            var minutes = 14 * 60 + Mathf.FloorToInt(Elapsed / 5f);
+            return $"{minutes / 60:00}:{minutes % 60:00}";
+        }
+
         /// <summary>Called each time the shift starts or restarts (after ClearItems).</summary>
         protected virtual void OnShiftStarted() { }
 
@@ -165,7 +179,17 @@ namespace ByteWorld
         {
             if (!running || queue.IsDone(item)) return;
             var correct = allowed != item.IsAttack;
-            GameEvents.RaiseItemResolved(new ItemResolvedInfo { job = Job, itemId = item.id, allowed = allowed, correct = correct });
+            GameEvents.RaiseItemResolved(new ItemResolvedInfo
+            {
+                day = Context.day,
+                job = Job,
+                itemId = item.id,
+                title = item.title,
+                allowed = allowed,
+                correct = correct,
+                attacker = item.attacker ?? "",
+                logLine = $"{LogClock()} {LogLine(item, allowed)}",
+            });
 
             if (correct)
             {

@@ -1,61 +1,208 @@
 {
   "jobs": [
     {
-      "job": "scout", "name": "Scout", "place": "Scout's Lookout",
+      "job": "scout",
+      "name": "Scout",
+      "place": "Scout's Lookout",
       "jobLine": "I watch the harbour and check every boat that brings messages into town.",
-      "primaryAction": "Let it dock", "secondaryAction": "Send away", "fieldLabels": ["From", "Cargo"],
+      "primaryAction": "Dock",
+      "secondaryAction": "Quarantine",
+      "fieldLabels": [
+        "From",
+        "Message",
+        "Reply-To",
+        "Sender check",
+        "Link"
+      ],
       "days": [
-        { "day": 1, "alertLine": "So many boats today!", "introLines": ["I check each boat's name and flag before it docks.", "I can't keep up… will you help?"], "successLine": "That one said it was from the bank, but the name had a zero in it!", "snatchLine": "But it looked just like a post boat…", "backupLine": "I'll take the lookout. Show me how!" },
-        { "day": 2, "alertLine": "Boats coming in!", "introLines": ["Busy dock again, and some boats look almost right.", "Check who sent it, not just the name on the side!"], "successLine": "That boat said Coach, but it came from c1ub-news. Always read who really sent it!", "snatchLine": "But it looked just like Coach…", "backupLine": "I'll take the lookout. Show me how!", "waitingLine": "Finally! The boats piled up while you were at the gate!", "complaintLine": "Hey, that was Mum!", "complaintFailLine": "Nobody trusts the lookout any more, so the attackers walked right in." }
+        {
+          "day": 1,
+          "alertLine": "Boats coming in fast!",
+          "introLines": [
+            "Pax! Check who really sent each boat: From, Reply-To, sender check, link.",
+            "Dock the real ones, quarantine the fakes."
+          ],
+          "successLine": "The bank boat came from bank-supp0rt with a zero, and its sender check failed. Quarantined!",
+          "snatchLine": "That link went straight to a fake login page…",
+          "backupLine": "I'll take the lookout. Read every sender!",
+          "waitingLine": "Finally! The boats piled up while you were at the gate!",
+          "complaintLine": "Hey, that was a real message!",
+          "complaintFailLine": "Too many real boats sent away. Nobody trusts the harbour now.",
+          "fieldCard": {
+            "term": "Phishing",
+            "text": "A message that pretends to be someone you trust. Check the sender, the Reply-To and where the link really goes.",
+            "cisco": "Cisco Umbrella",
+            "concept": "Phishing, look-alike domains, spoofing",
+            "role": "Security analyst"
+          }
+        }
       ]
     },
     {
-      "job": "gigi", "name": "Gigi", "place": "Gigi's Gate",
+      "job": "gigi",
+      "name": "Gigi",
+      "place": "Gigi's Gate",
       "jobLine": "I keep the list of who may come in, and which door they use.",
-      "primaryAction": "Let in", "secondaryAction": "Turn away", "fieldLabels": ["Door", "Says"],
+      "primaryAction": "Let in",
+      "secondaryAction": "Turn away",
+      "fieldLabels": [
+        "Door",
+        "Says"
+      ],
       "days": [
-        { "day": 1, "alertLine": "Visitors at the gate!", "introLines": ["Everyone needs the right door, and the list says who's welcome.", "Help me check them?"], "successLine": "Door 23 has been shut for years. Nobody honest asks for it.", "snatchLine": "They walked right through the old door…", "backupLine": "I'll keep the gate. Show me the list!" },
-        { "day": 2, "alertLine": "Visitors at the gate, hurry!", "introLines": ["The queue is long today, and my list can change mid-shift.", "Not on my list, or the door is shut? Then they wait outside."], "successLine": "Saying 'Gigi knows me' doesn't put you on my list!", "snatchLine": "They sounded so friendly…", "backupLine": "I'll keep the gate. Show me the list!", "waitingLine": "There you are! The queue went all the way to the bridge.", "complaintLine": "That was Luca! He's on the list.", "complaintFailLine": "Friends stopped coming, and the gate got careless." }
+        {
+          "day": 1,
+          "alertLine": "Visitors at the gate!",
+          "introLines": [
+            "The board says: 443 Everyone, 8080 Friends only, 23 Closed.",
+            "Friend or not, a closed door stays closed."
+          ],
+          "successLine": "Luca asked for door 23, but Telnet stays shut, even for a friend.",
+          "snatchLine": "Door 23 was open for a moment, and a Ram walked straight in…",
+          "backupLine": "I'll keep the gate. Show me the board!",
+          "waitingLine": "There you are! The queue went all the way to the bridge.",
+          "complaintLine": "That was a friend at an open door!",
+          "complaintFailLine": "Friends kept getting turned away, so the gate stopped checking.",
+          "fieldCard": {
+            "term": "Ports and allow-lists",
+            "text": "Each service has a door number, its port. Open only the doors you need, for the people on the list.",
+            "cisco": "Cisco Secure Firewall",
+            "concept": "Allow-listing, default deny, attack surface",
+            "role": "Network security engineer"
+          }
+        }
       ]
     },
     {
-      "job": "twins", "name": "Uno and Due", "place": "The Twins' Vault",
+      "job": "twins",
+      "name": "Uno and Due",
+      "place": "The Twins' Vault",
       "jobLine": "Uno checks the password. Due checks with the owner's phone. You need both of us.",
-      "primaryAction": "Open vault", "secondaryAction": "Keep it shut", "fieldLabels": ["Password", "Phone code", "Visitor's code"],
-      "valueLabels": ["right", "wrong", "expired", "not asked"],
+      "primaryAction": "Open vault",
+      "secondaryAction": "Keep it shut",
+      "fieldLabels": [
+        "Password",
+        "Phone code",
+        "Visitor's code",
+        "Requested by owner",
+        "Approval requests"
+      ],
+      "valueLabels": [
+        "right",
+        "wrong",
+        "expired",
+        "not asked",
+        "yes",
+        "no"
+      ],
       "days": [
-        { "day": 1, "alertLine": "Someone wants into a vault!", "introLines": ["Uno: I check the password.", "Due: I check the owner's phone. We need both!"], "successLine": "Right password, wrong code. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the code wasn't!", "backupLine": "I'll stand by the vault. Two checks, got it!" },
-        { "day": 2, "alertLine": "The vault queue is long today!", "introLines": ["Uno: Some passwords will be right.", "Due: So my code must match, be fresh, and be asked for!"], "successLine": "Right password, but an old code nobody asked for. That's why there are two of us!", "snatchLine": "Uno: The password was right… Due: But the owner never asked for that code!", "backupLine": "I'll stand by the vault. Two checks, got it!", "waitingLine": "Uno: Finally! Due: The vault queue reached the bridge!", "complaintLine": "Uno: That was really Mum! Due: Both checks were fine.", "complaintFailLine": "Owners got locked out so often they stopped checking. The Rams loved that." }
+        {
+          "day": 2,
+          "alertLine": "Login requests are piling up!",
+          "introLines": [
+            "Uno: A right password isn't enough on its own.",
+            "Due: The code must match, be fresh, and the owner must have asked."
+          ],
+          "successLine": "Four approval requests in a minute? That's push bombing. We kept it shut and reported it!",
+          "snatchLine": "Uno: The password was right… Due: but the owner never asked to log in!",
+          "backupLine": "I'll stand by the vault. Two checks, every time.",
+          "waitingLine": "Uno: Finally! Due: The requests kept coming!",
+          "complaintLine": "Uno: That was really Sofia. Due: New phone, right code, and she asked.",
+          "complaintFailLine": "Owners got locked out so often they stopped using the vault.",
+          "fieldCard": {
+            "term": "MFA fatigue",
+            "text": "Attackers spam approval requests and hope you tap Yes. If you didn't ask to log in, deny it and report it.",
+            "cisco": "Cisco Duo",
+            "concept": "Multi-factor authentication, push bombing",
+            "role": "Identity and access analyst"
+          }
+        }
       ]
     },
     {
-      "job": "patch", "name": "Patch", "place": "Patch's Workshop",
+      "job": "patch",
+      "name": "Patch",
+      "place": "Patch's Workshop",
       "jobLine": "When the builders send new parts, I fit them before the old cracks get bigger.",
-      "primaryAction": "Fit now", "secondaryAction": "Later", "fieldLabels": ["From"],
+      "primaryAction": "Fit now",
+      "secondaryAction": "Later",
+      "fieldLabels": [
+        "From",
+        "Signature",
+        "Worm speed"
+      ],
       "days": [
-        { "day": 1, "alertLine": "New parts arrived!", "introLines": ["The builders sent new bricks.", "Fit them now, or later?"], "successLine": "Fixed before they found it. That's why I never say 'later'.", "snatchLine": "The Worm found the crack first…", "backupLine": "I'll fix the wall. Pass me the bricks!" },
-        { "day": 2, "alertLine": "Crates everywhere, and the Worms are back!", "introLines": ["Real parts first, before the Worms find a crack.", "And check who sent them. Not every crate is from the builders."], "successLine": "That crate said b1lders, not builders. Real parts only, and never later!", "snatchLine": "I waited too long, and the Worm got in…", "backupLine": "I'll fix the wall. Pass me the bricks!", "waitingLine": "There you are! The Worms are halfway up the wall!", "complaintLine": "Hey, those were real bricks from the builders!", "complaintFailLine": "Too many good crates sent back. The wall fell apart and the Worms walked in." }
+        {
+          "day": 2,
+          "alertLine": "Crates incoming, and Worms on the wall!",
+          "introLines": [
+            "Check the signature and who really sent it.",
+            "Real fixes go in now, before the Worms reach a crack."
+          ],
+          "successLine": "bu1lders with a one and a bad signature? That update was fake. The real ones went in fast!",
+          "snatchLine": "A fake update opened a crack, and the Worm got in…",
+          "backupLine": "I'll fix the wall. Signed parts only!",
+          "waitingLine": "There you are! The Worms are halfway up the wall!",
+          "complaintLine": "That was a real, signed crate from the builders!",
+          "complaintFailLine": "Too many real fixes left outside, and the wall fell apart.",
+          "fieldCard": {
+            "term": "Fake updates",
+            "text": "An update is safe only if its signature checks out and it comes from the real maker. Fit real fixes fast.",
+            "cisco": "Cisco Secure Endpoint",
+            "concept": "Code signing, supply chain, patching",
+            "role": "Endpoint security engineer"
+          }
+        }
       ]
     }
   ],
   "intro": [
-    "Every message, photo and password you send passes through Byte World.",
-    "The Bytes who live here make sure it all gets where it's going."
+    "Every message you send passes through Byte World, a tiny town of Bytes inside your network.",
+    "Strangers keep sneaking in, so the Bytes called a visitor with an empty Cisco toolkit: you, Pax.",
+    "Gigi: Walk with WASD or the arrow keys, then press Enter at a station. Follow the red rings!"
   ],
   "dayEnd": [
-    { "day": 1, "speaker": "gigi", "title": "Day 1 done", "line": "You learn fast. Tomorrow they'll come two at a time." },
-    { "day": 2, "speaker": "patch", "title": "Day 2 done", "line": "They learned all our tricks. Tomorrow we rebuild the town." }
+    {
+      "day": 1,
+      "speaker": "gigi",
+      "title": "Quest 1 done",
+      "line": "The outer perimeter holds. Next: the inner ring."
+    },
+    {
+      "day": 2,
+      "speaker": "patch",
+      "title": "Quest 2 done",
+      "line": "We found the scanner. Now we rebuild, and this time in lanes."
+    }
   ],
   "dayStart": [
-    { "day": 1, "speaker": "", "title": "Day 1", "line": "A quiet morning in Byte World." },
-    { "day": 2, "speaker": "scout", "title": "Day 2", "line": "Busy dock again. I'll need sharper eyes today." },
-    { "day": 3, "speaker": "patch", "title": "Day 3", "line": "Build day!" }
+    {
+      "day": 1,
+      "speaker": "gigi",
+      "title": "Quest 1: The Outer Perimeter",
+      "line": "Phishing boats and strangers at the gate, both at once."
+    },
+    {
+      "day": 2,
+      "speaker": "gigi",
+      "title": "Quest 2: The Inner Ring",
+      "line": "Something is trying the vault and the workshop."
+    },
+    {
+      "day": 3,
+      "speaker": "patch",
+      "title": "Quest 3: The Blueprint Shift",
+      "line": "We rebuild the network in lanes."
+    }
   ],
   "collapse": "No Bytes were left to do the work, and the attackers took over.",
   "peace": "Built it ourselves, and built it right. Back to work, everyone!",
   "build": {
     "speaker": "patch",
-    "intro": ["They learned all our tricks.", "Today we rebuild the town's network ourselves, and this time we build it right."],
+    "intro": [
+      "They learned all our tricks.",
+      "Today we rebuild the town's network ourselves, and this time we build it right."
+    ],
     "failNoPath": "That house has no cable to the router. The message got lost on the way!",
     "failWrongHouse": "That message went to the wrong house.",
     "failLeak": "An attacker walked through a door we left open. Let's fix the rules!",
@@ -64,18 +211,219 @@
   },
   "ui": {
     "gameTitle": "BYTE WORLD",
-    "tagline": "A tiny world living inside your Wi-Fi",
-    "play": "Play", "next": "Next", "skip": "Skip", "tryAgain": "Try again",
-    "pause": "Paused", "resume": "Resume", "restartDay": "Restart day",
-    "backToWorld": "Back to Byte World", "keepWatching": "Keep watching", "sleep": "Sleep",
-    "startDay": "Start the day", "startAgain": "Start again", "letsBuild": "Let's build",
-    "run": "Run", "fixBuild": "Fix the build", "playAgain": "Play again",
-    "backups": "Backups", "complaints": "Complaints",
+    "tagline": "A tiny world living inside your network",
+    "play": "Play",
+    "next": "Next",
+    "skip": "Skip",
+    "tryAgain": "Try again",
+    "pause": "Paused",
+    "resume": "Resume",
+    "restartDay": "Restart day",
+    "backToWorld": "Back to Byte World",
+    "keepWatching": "Keep watching",
+    "sleep": "Sleep",
+    "startDay": "Start the day",
+    "startAgain": "Start again",
+    "letsBuild": "Let's build",
+    "run": "Run",
+    "fixBuild": "Fix the build",
+    "playAgain": "Play again",
+    "backups": "Backups",
+    "complaints": "Complaints",
     "dayAlertFormat": "Day {0}: alert {1} of {2}",
     "dayPuzzleFormat": "Day {0}: puzzle {1} of {2}",
     "backupsLeftFormat": "A backup Byte takes over. Backups left: {0}",
     "snatchedFormat": "{0} was snatched!",
     "runResultFormat": "Delivered {0} · Blocked {1} · Leaked {2}",
-    "rotatePhone": "Turn your phone sideways"
+    "rotatePhone": "Turn your phone sideways",
+    "call": "Call the network team",
+    "priority": "Priority for Webex",
+    "pin": "Pin",
+    "report": "Report",
+    "quarantine": "Quarantine",
+    "fieldNotesFormat": "Field Notes {0}/{1}",
+    "tickerPrefix": "splunk>",
+    "enter": "Enter",
+    "goIn": "Go in",
+    "seeMaterials": "See materials",
+    "toolkit": "Cisco toolkit",
+    "toolkitCountFormat": "Cisco toolkit {0}/{1}",
+    "toolkitToastFormat": "{0} added to your Cisco toolkit",
+    "keyHint": "Enter: go in · M: materials · Esc: close",
+    "lockFormat": "Opens after Quest {0}"
+  },
+  "briefs": [
+    {
+      "quest": 1,
+      "lines": [
+        "Welcome to Byte World Town Space, Pax.",
+        "Phishing boats at the harbour and visitors at the gate, both at once.",
+        "Read every sender. Keep closed doors closed."
+      ]
+    },
+    {
+      "quest": 2,
+      "lines": [
+        "Inner ring next: the Duo Vault and Patch's Workshop.",
+        "Watch for push spam and fake updates.",
+        "Then meet me at the Splunk Observatory."
+      ]
+    },
+    {
+      "quest": 3,
+      "lines": [
+        "Something got in. Time to rebuild the network in lanes.",
+        "Keep the infected pod away from the vault."
+      ]
+    },
+    {
+      "quest": 4,
+      "lines": [
+        "The siege is here, and the Webex call keeps freezing.",
+        "If we can't see inside the cables, call the network team."
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "quest": 1,
+      "question": "Which detail proved the bank message was fake?",
+      "options": [
+        "It arrived in the morning",
+        "It had a link in it",
+        "The sender check failed and the domain used a zero",
+        "The boat was blue"
+      ],
+      "answer": 2,
+      "explanation": "Look-alike domains and a failed sender check are the classic signs of phishing."
+    },
+    {
+      "quest": 1,
+      "question": "Why stay closed to Luca at door 23?",
+      "options": [
+        "Telnet sends everything unencrypted, so it stays closed for everyone",
+        "Luca is not on the list",
+        "Door 23 is only for Gigi",
+        "It was too late in the day"
+      ],
+      "answer": 0,
+      "explanation": "A closed door protects the whole town. Being a friend doesn't make it safe."
+    },
+    {
+      "quest": 2,
+      "question": "The password was correct. Why was it still an attack?",
+      "options": [
+        "The password was too short",
+        "The phone was switched off",
+        "The vault was full",
+        "The owner never asked to log in, and the second factor stopped it"
+      ],
+      "answer": 3,
+      "explanation": "With MFA, a stolen password alone is not enough."
+    },
+    {
+      "quest": 2,
+      "question": "What did the Splunk search show?",
+      "options": [
+        "Too many photos being sent",
+        "One address scanning door 8080 again and again: reconnaissance",
+        "A broken switch",
+        "A slow Webex call"
+      ],
+      "answer": 1,
+      "explanation": "Searching all the logs at once shows patterns no single house can see."
+    },
+    {
+      "quest": 3,
+      "question": "Pod 12 is infected. What stops it reaching the vault?",
+      "options": [
+        "A stronger password",
+        "Turning off the Wi-Fi",
+        "The pods are on separate switch lanes",
+        "A faster router"
+      ],
+      "answer": 2,
+      "explanation": "Segmentation keeps an infection inside its own lane."
+    },
+    {
+      "quest": 3,
+      "question": "What happens to traffic no rule matches?",
+      "options": [
+        "It is dropped: the implicit deny",
+        "It is let in",
+        "It waits in a queue",
+        "It goes to the vault"
+      ],
+      "answer": 0,
+      "explanation": "A firewall allows only what a rule permits; everything else is dropped."
+    },
+    {
+      "quest": 4,
+      "question": "How did ThousandEyes help?",
+      "options": [
+        "It made the call louder",
+        "It blocked the phishing boats",
+        "It added a second password",
+        "It showed which link was losing packets, so we fixed the cause"
+      ],
+      "answer": 3,
+      "explanation": "Seeing loss and latency per link turns guessing into a fix."
+    },
+    {
+      "quest": 4,
+      "question": "Why give the Webex call priority?",
+      "options": [
+        "Real-time video breaks with loss and jitter, so it goes first",
+        "It is the oldest traffic",
+        "Calls are cheaper to send",
+        "It slows the attackers down"
+      ],
+      "answer": 0,
+      "explanation": "Quality of service lets time-sensitive traffic go first."
+    }
+  ],
+  "props": [
+    {
+      "id": "door23",
+      "name": "Rusted Door 23",
+      "place": "Gigi's Gate",
+      "concept": "Encryption",
+      "text": "Door 23 is Telnet: everything through it travels as plain text, passwords too. Modern doors encrypt.",
+      "tryLabel": "Peek at the plain text"
+    },
+    {
+      "id": "bridges",
+      "name": "Conduit Bridges",
+      "place": "The Switch Yard",
+      "concept": "Segmentation",
+      "text": "Each bridge is a lane. Traffic stays on its own bridge unless a rule lets it cross.",
+      "tryLabel": "Send a packet across"
+    }
+  ],
+  "learnerCard": {
+    "title": "Learner Card: Byte World",
+    "outcomes": [
+      "Spot phishing from the sender, Reply-To, sender check and link",
+      "Allow traffic by list and port, and keep Telnet (23) shut",
+      "Explain why a correct password isn't enough, and spot push fatigue",
+      "Reject unsigned updates and patch what matters first",
+      "Build a basic Splunk search and find a scan in the logs",
+      "Segment a network into lanes so one infection stays put",
+      "Order firewall rules for least privilege, with deny last",
+      "Find the root cause of a bad call from loss, latency and jitter",
+      "Put an incident's evidence in order, from scan to flood"
+    ],
+    "cta": "Keep going with Cisco Networking Academy: Introduction to Cybersecurity",
+    "url": "https://www.netacad.com"
+  },
+  "incident": {
+    "prompt": "Put the evidence in order, from the first probe to the flood.",
+    "cards": [
+      "A scan knocks on every door",
+      "Phishing boats reach the harbour",
+      "Push requests spam the vault",
+      "203.0.113.7 probes door 8080",
+      "The flood hits every door"
+    ]
   }
 }

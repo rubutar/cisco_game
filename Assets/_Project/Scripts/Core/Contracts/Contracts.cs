@@ -33,6 +33,32 @@ namespace ByteWorld
         RoamingFile Roaming { get; }
         BuildFile Build { get; }
         FlagsFile Flags { get; }
+        HuntFile Hunt { get; }
+        CheckpointsFile Checkpoints { get; }
+    }
+
+    /// <summary>
+    /// The seven stations (PRD-v2 4.2a, 6.4). Implemented by Person A (CheckpointManager). UI re-reads it on
+    /// GameEvents.CheckpointStatesChanged.
+    /// </summary>
+    public interface ICheckpointService
+    {
+        CheckpointData[] All { get; }
+        CheckpointData Get(string id);
+        CheckpointState StateOf(string id);
+        /// <summary>"" when open; otherwise the lock line, e.g. "Opens after Quest 1".</summary>
+        string LockReason(string id);
+        int ToolsCollected { get; }
+        int ToolsTotal { get; }
+    }
+
+    /// <summary>
+    /// The Splunk Trace screen (PRD-v2 4.6). Implemented by Person A (UI/Hunt). Begin shows it; onPinned
+    /// receives the pinned row as "srcIp:destPort" (e.g. "203.0.113.7:8080") when the player pins the target.
+    /// </summary>
+    public interface IHuntScreen
+    {
+        void Begin(Action<string> onPinned);
     }
 
     /// <summary>Game flow, read by UI and debug tools. Implemented by Stream A (GameManager).</summary>
