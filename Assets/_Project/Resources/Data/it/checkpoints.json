@@ -36,7 +36,7 @@
       "without": "Ogni link viene cliccato",
       "with": "Domini pericolosi bloccati subito",
       "materials": {
-        "what": "Cisco Umbrella controlla il dominio richiesto da un dispositivo e blocca siti di malware e phishing prima della connessione.",
+        "what": "Ogni link parte da una ricerca: il tuo dispositivo chiede un nome come bank.example prima di aprire la pagina. Cisco Umbrella controlla prima quel nome, con l'intelligence sulle minacce di Cisco Talos, e blocca i siti di phishing e malware noti prima che parta la connessione. Nel gioco è il porto: un mittente sosia o un link falso non devono mai far entrare una barca in città.",
         "withoutLines": [
           "I domini sosia vengono cliccati",
           "Un clic può regalare una password",
@@ -47,7 +47,7 @@
           "Le pagine di phishing non si aprono mai",
           "Il team vede ogni richiesta bloccata"
         ],
-        "realWorld": "Le organizzazioni usano Umbrella perché un clic sbagliato su un link di phishing non arrivi mai alla pagina.",
+        "realWorld": "A scuola qualcuno riceve un messaggio da \"bank-supp0rt\" e tocca il link. Con Umbrella la ricerca viene bloccata, la finta pagina di accesso non si apre, e il team di sicurezza vede quale dispositivo ha provato a raggiungerla.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -84,7 +84,7 @@
       "without": "Ogni porta è aperta",
       "with": "Solo le porte che servono",
       "materials": {
-        "what": "Cisco Secure Firewall confronta il traffico con le regole di accesso e lascia passare solo ciò che una regola permette.",
+        "what": "Ogni servizio di rete ascolta su una porta numerata: 443 per i siti sicuri, 23 per Telnet. Cisco Secure Firewall confronta ogni connessione con le regole di accesso, dall'alto verso il basso, e decide la prima regola che corrisponde. Tutto ciò che nessuna regola permette viene scartato. Nel gioco le regole sei tu: apri solo le porte che servono alla città, solo per chi è sulla lista.",
         "withoutLines": [
           "Le vecchie porte come Telnet restano aperte",
           "Chiunque può bussare a qualsiasi porta",
@@ -95,7 +95,7 @@
           "Le regole dicono chi può usare ogni porta",
           "Tutto il resto viene scartato"
         ],
-        "realWorld": "Le organizzazioni usano Secure Firewall per controllare il traffico che entra ed esce dalla loro rete.",
+        "realWorld": "Un'azienda tiene il suo sito aperto sulla 443 per tutti, fa usare gli altri servizi al personale solo dall'interno, e tiene chiusa Telnet (23), perché invia le password in chiaro. Tutto il resto che bussa viene scartato e registrato.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -135,7 +135,7 @@
       "without": "Una password rubata lo apre",
       "with": "Un secondo passaggio sul telefono",
       "materials": {
-        "what": "Cisco Duo aggiunge un secondo fattore: dopo la password, il proprietario approva l'accesso sul suo telefono.",
+        "what": "Una password è un fattore: qualcosa che sai. Se viene rubata o indovinata, apre tutto. Cisco Duo aggiunge un secondo fattore, qualcosa che hai: dopo la password, il proprietario approva l'accesso sul suo telefono. Gli attaccanti provano il push bombing, una richiesta dopo l'altra finché qualcuno tocca Sì, così Verified Duo Push chiede un codice mostrato nella schermata di accesso. Se non hai chiesto tu di entrare, rifiuta e segnala.",
         "withoutLines": [
           "Una password indovinata apre il caveau",
           "Gli accessi rubati sembrano del proprietario",
@@ -146,7 +146,7 @@
           "Una password rubata da sola non funziona",
           "Verified Push chiede un codice"
         ],
-        "realWorld": "Le organizzazioni usano Duo perché il personale confermi ogni accesso dal proprio telefono.",
+        "realWorld": "La password di uno studente finisce online da un vecchio sito di giochi. L'attaccante la prova sull'account della scuola, ma la richiesta arriva sul telefono dello studente. Non l'aveva chiesta, quindi rifiuta e segnala, e l'account resta al sicuro.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -178,7 +178,7 @@
       "without": "Ogni aggiornamento viene installato",
       "with": "Malware fermato sul dispositivo",
       "materials": {
-        "what": "Cisco Secure Endpoint protegge i dispositivi prevenendo, rilevando e rispondendo al malware, anche nei file sospetti.",
+        "what": "Gli aggiornamenti chiudono le crepe che usano gli attaccanti, quindi quelli veri vanno installati presto. Ma un aggiornamento falso è uno dei modi più facili per infilare malware in un dispositivo. Cisco Secure Endpoint controlla i file su portatili e server, osserva come si comportano i programmi, e può mettere in quarantena un file sospetto o isolare un dispositivo infetto. Nel gioco: controlla firma e mittente prima di montare qualcosa.",
         "withoutLines": [
           "Un aggiornamento falso installa malware",
           "Nessuno nota il dispositivo infetto",
@@ -189,7 +189,7 @@
           "Il malware viene rilevato e fermato",
           "Il team vede ogni dispositivo"
         ],
-        "realWorld": "Le organizzazioni usano Secure Endpoint per trovare e fermare il malware su portatili e server.",
+        "realWorld": "Un pop-up offre un \"turbo gratis\" da un sito che non è il vero produttore. Secure Endpoint segnala il file come malware e lo mette in quarantena prima che parta, e il team vede quale dispositivo l'ha scaricato.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -225,7 +225,7 @@
       "without": "Log in ogni casa",
       "with": "Una ricerca per tutta la città",
       "materials": {
-        "what": "Splunk, parte di Cisco dal 2024, raccoglie i log di ogni sistema così una ricerca trova schemi in tutti.",
+        "what": "Ogni sistema scrive un log: chi ha bussato, a quale porta, cosa è stato permesso. Un log da solo dice poco. Splunk, parte di Cisco dal 2024, raccoglie i log di tutti i sistemi in un unico posto, e una ricerca li attraversa tutti insieme. Così emerge una scansione lenta: un indirizzo che prova porta dopo porta, troppo piano perché una singola casa se ne accorga. Questo è il threat hunting, il lavoro quotidiano di un analista SOC.",
         "withoutLines": [
           "Ogni casa tiene i propri log",
           "Una scansione lenta passa inosservata",
@@ -236,7 +236,7 @@
           "Una ricerca mostra lo scanner",
           "La traccia riporta alla sorgente"
         ],
-        "realWorld": "I team di sicurezza usano Splunk per cercare nei log di tutta l'organizzazione e individuare attacchi.",
+        "realWorld": "Un team di sicurezza non vede niente di strano su nessun server. Una ricerca Splunk su tutti i log mostra lo stesso indirizzo che sonda la porta 8080 centinaia di volte durante la notte, e la traccia riporta dritta a lui.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -267,7 +267,7 @@
       "without": "Un'unica rete piatta",
       "with": "Corsie separate per gruppo",
       "materials": {
-        "what": "Gli switch Cisco Catalyst mettono i dispositivi in VLAN separate, così il traffico tra gruppi si può controllare.",
+        "what": "In una rete piatta ogni dispositivo può raggiungere tutti gli altri, così un'infezione può diffondersi ovunque. Gli switch Cisco Catalyst possono mettere gruppi di dispositivi in corsie separate chiamate VLAN. Il traffico resta nella sua VLAN, e ciò che passa da una corsia all'altra deve superare regole che decidono cosa è permesso. Questa è la segmentazione: un dispositivo infetto resta nella sua corsia.",
         "withoutLines": [
           "Ogni pod può raggiungere il caveau",
           "Un'infezione si diffonde ovunque",
@@ -278,7 +278,7 @@
           "Un pod infetto resta nella sua corsia",
           "Le regole decidono cosa passa tra le corsie"
         ],
-        "realWorld": "Le organizzazioni usano switch Catalyst e VLAN per tenere separati ospiti, personale e server.",
+        "realWorld": "Una scuola mette i telefoni degli ospiti, i portatili degli studenti e i server con voti e registri in VLAN separate. Quando il telefono di un ospite è infetto, non raggiunge i server, perché nessuna regola fa passare gli ospiti in quella corsia.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
@@ -313,7 +313,7 @@
       "without": "La chiamata si blocca, nessuno sa perché",
       "with": "Il collegamento guasto appare rosa",
       "materials": {
-        "what": "Cisco ThousandEyes misura perdita, latenza e jitter passo per passo, così il team vede quale collegamento cede.",
+        "what": "Quando una videochiamata si blocca, il problema può essere ovunque lungo il percorso: il Wi-Fi, il router, il provider internet o l'app stessa. Cisco ThousandEyes misura ogni passaggio del percorso: perdita di pacchetti (dati che non arrivano), latenza (ritardo) e jitter (ritardo irregolare), anche su reti che non sono tue. Il team ripara il collegamento che cede davvero, invece di andare a tentativi.",
         "withoutLines": [
           "La chiamata Webex si blocca",
           "Ogni collegamento sembra uguale",
@@ -324,7 +324,7 @@
           "Il collegamento guasto si trova subito",
           "La chiamata passa su un percorso buono"
         ],
-        "realWorld": "Le organizzazioni usano ThousandEyes per capire dove la rete rallenta un'app o una chiamata.",
+        "realWorld": "Le lezioni Webex di una scuola continuano a bloccarsi. ThousandEyes mostra che la perdita inizia su un collegamento del provider internet, non dentro la scuola, così il team chiama il provider per quel collegamento invece di cambiare il Wi-Fi.",
         "learnMoreLabel": "Cisco Networking Academy: Introduction to Cybersecurity",
         "learnMoreUrl": "https://www.netacad.com"
       }
