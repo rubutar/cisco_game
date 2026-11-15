@@ -24,6 +24,7 @@ namespace ByteWorld.EditorTools
             typeof(CheckpointManager),
             typeof(HuntScreen),
             typeof(AudioDirector),
+            typeof(SettingsMenu),
             typeof(DebugTools.DebugMenu),
         };
 

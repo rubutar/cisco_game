@@ -46,8 +46,30 @@ namespace ByteWorld
             art.enabled = false;
         }
 
-        void OnEnable() => GameEvents.StateChanged += OnStateChanged;
-        void OnDisable() => GameEvents.StateChanged -= OnStateChanged;
+        void OnEnable()
+        {
+            GameEvents.StateChanged += OnStateChanged;
+            Language.Changed += OnLanguageChanged;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.StateChanged -= OnStateChanged;
+            Language.Changed -= OnLanguageChanged;
+        }
+
+        // The settings card can switch language mid-story: show the same panel in the new language.
+        void OnLanguageChanged()
+        {
+            if (!screen.activeSelf) return;
+            panels = Services.Data?.Dialogue?.intro ?? System.Array.Empty<string>();
+            if (panels.Length == 0) return;
+            index = Mathf.Min(index, panels.Length - 1);
+            var ui = UiStrings.Ui;
+            nextLabel.text = ui.next ?? "";
+            skipLabel.text = ui.skip ?? "";
+            ShowPanel();
+        }
 
         void OnStateChanged(GameState from, GameState to)
         {

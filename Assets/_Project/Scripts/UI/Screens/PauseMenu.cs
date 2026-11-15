@@ -1,8 +1,9 @@
 // Stream B. Pause button and pause menu (B-16). The button shows while the player is actually playing;
 // the menu sends UiAction.Pause / UiAction.Resume (GameManager stops and restarts time) and
 // RestartDayRequested (GameManager restarts the day with three backups).
-// A sound button in the card's top-right corner mutes or unmutes all music and sound (AudioListener.volume, so the audio code
-// doesn't need to know). Its icon is a pixel speaker with sound waves, or a red cross while muted: no words needed.
+// A sound button in the card's top-right corner mutes or unmutes all music and sound (AudioListener.volume, so the
+// audio code doesn't need to know). Its icon is a pixel speaker with sound waves, or a red cross while muted.
+// The language lives in A's settings card (SettingsMenu); this menu relabels itself when it changes.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,8 +32,22 @@ namespace ByteWorld
             pauseButton.SetActive(false);
         }
 
-        void OnEnable() => GameEvents.StateChanged += OnStateChanged;
-        void OnDisable() => GameEvents.StateChanged -= OnStateChanged;
+        void OnEnable()
+        {
+            GameEvents.StateChanged += OnStateChanged;
+            Language.Changed += OnLanguageChanged;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.StateChanged -= OnStateChanged;
+            Language.Changed -= OnLanguageChanged;
+        }
+
+        void OnLanguageChanged()
+        {
+            if (menu.activeSelf) ShowLabels();
+        }
 
         void Start() => pauseButton.SetActive(CanPause(Services.Flow.State));
 
@@ -52,13 +67,18 @@ namespace ByteWorld
         void Pause()
         {
             if (menu.activeSelf) return;
+            ShowLabels();
+            menu.SetActive(true);
+            pauseButton.SetActive(false);
+            GameEvents.RaiseUiAction(UiAction.Pause);
+        }
+
+        void ShowLabels()
+        {
             var ui = UiStrings.Ui;
             titleText.text = ui.pause ?? "";
             resumeLabel.text = ui.resume ?? "";
             restartLabel.text = ui.restartDay ?? "";
-            menu.SetActive(true);
-            pauseButton.SetActive(false);
-            GameEvents.RaiseUiAction(UiAction.Pause);
         }
 
         void Resume()

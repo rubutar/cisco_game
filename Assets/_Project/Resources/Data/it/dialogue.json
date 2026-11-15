@@ -1,0 +1,429 @@
+{
+  "jobs": [
+    {
+      "job": "scout",
+      "name": "Scout",
+      "place": "La vedetta di Scout",
+      "jobLine": "Sorveglio il porto e controllo ogni barca che porta messaggi in città.",
+      "primaryAction": "Attracca",
+      "secondaryAction": "Quarantena",
+      "fieldLabels": [
+        "Da",
+        "Messaggio",
+        "Rispondi a",
+        "Controllo mittente",
+        "Link"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "alertLine": "Arrivano barche a tutta velocità!",
+          "introLines": [
+            "Pax! Controlla chi ha mandato davvero ogni barca: Da, Rispondi a, controllo mittente, link.",
+            "Fai attraccare quelle vere, metti in quarantena le false."
+          ],
+          "successLine": "La barca della banca veniva da bank-supp0rt con uno zero, e il controllo mittente è fallito. In quarantena!",
+          "snatchLine": "Quel link portava dritto a una finta pagina di accesso…",
+          "backupLine": "Io sto di vedetta. Leggi ogni mittente!",
+          "waitingLine": "Finalmente! Le barche si sono ammucchiate mentre eri al cancello!",
+          "complaintLine": "Ehi, quello era un messaggio vero!",
+          "complaintFailLine": "Troppe barche vere respinte. Ora nessuno si fida più del porto.",
+          "fieldCard": {
+            "term": "Phishing",
+            "text": "Un messaggio che finge di essere qualcuno di cui ti fidi. Controlla mittente, Rispondi a e dove porta il link.",
+            "cisco": "Cisco Umbrella",
+            "concept": "Phishing, domini sosia, spoofing",
+            "role": "Analista di sicurezza"
+          }
+        }
+      ]
+    },
+    {
+      "job": "gigi",
+      "name": "Gigi",
+      "place": "Il cancello di Gigi",
+      "jobLine": "Tengo la lista di chi può entrare, e da quale porta.",
+      "primaryAction": "Fai entrare",
+      "secondaryAction": "Respingi",
+      "fieldLabels": [
+        "Porta",
+        "Dice"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "alertLine": "Visitatori al cancello!",
+          "introLines": [
+            "Il cartello dice: 443 Tutti, 8080 Solo amici, 23 Chiusa.",
+            "Amico o no, una porta chiusa resta chiusa."
+          ],
+          "successLine": "Luca voleva la porta 23, ma Telnet resta chiusa, anche per un amico.",
+          "snatchLine": "La porta 23 è rimasta aperta un attimo, e un Montone è entrato dritto…",
+          "backupLine": "Io tengo il cancello. Fammi vedere il cartello!",
+          "waitingLine": "Eccoti! La coda arrivava fino al ponte.",
+          "complaintLine": "Era un amico a una porta aperta!",
+          "complaintFailLine": "Gli amici venivano sempre respinti, così il cancello ha smesso di controllare.",
+          "fieldCard": {
+            "term": "Porte e allow-list",
+            "text": "Ogni servizio ha un numero di porta. Apri solo le porte che servono, per chi è sulla lista.",
+            "cisco": "Cisco Secure Firewall",
+            "concept": "Allow-list, default deny, superficie d'attacco",
+            "role": "Ingegnere della sicurezza di rete"
+          }
+        }
+      ]
+    },
+    {
+      "job": "twins",
+      "name": "Uno e Due",
+      "place": "Il caveau dei Gemelli",
+      "jobLine": "Uno controlla la password. Due controlla col telefono del proprietario. Servono entrambi.",
+      "primaryAction": "Apri il caveau",
+      "secondaryAction": "Tienilo chiuso",
+      "fieldLabels": [
+        "Password",
+        "Codice sul telefono",
+        "Codice del visitatore",
+        "Richiesto dal proprietario",
+        "Richieste di approvazione"
+      ],
+      "valueLabels": [
+        "giusta",
+        "sbagliata",
+        "scaduto",
+        "non richiesto",
+        "sì",
+        "no"
+      ],
+      "days": [
+        {
+          "day": 2,
+          "alertLine": "Le richieste di accesso si accumulano!",
+          "introLines": [
+            "Uno: Una password giusta da sola non basta.",
+            "Due: Il codice deve coincidere, essere fresco, e il proprietario deve averlo chiesto."
+          ],
+          "successLine": "Quattro richieste in un minuto? È push bombing. L'abbiamo tenuto chiuso e segnalato!",
+          "snatchLine": "Uno: La password era giusta… Due: ma il proprietario non aveva mai chiesto di entrare!",
+          "backupLine": "Io resto al caveau. Due controlli, ogni volta.",
+          "waitingLine": "Uno: Finalmente! Due: Le richieste non finivano più!",
+          "complaintLine": "Uno: Era davvero Sofia. Due: Telefono nuovo, codice giusto, e l'aveva chiesto lei.",
+          "complaintFailLine": "I proprietari restavano chiusi fuori così spesso che hanno smesso di usare il caveau.",
+          "fieldCard": {
+            "term": "MFA fatigue",
+            "text": "Gli attaccanti inondano di richieste sperando che tu tocchi Sì. Se non hai chiesto tu, rifiuta e segnala.",
+            "cisco": "Cisco Duo",
+            "concept": "Autenticazione a più fattori, push bombing",
+            "role": "Analista di identità e accessi"
+          }
+        }
+      ]
+    },
+    {
+      "job": "patch",
+      "name": "Patch",
+      "place": "L'officina di Patch",
+      "jobLine": "Quando i costruttori mandano pezzi nuovi, li monto prima che le crepe si allarghino.",
+      "primaryAction": "Monta ora",
+      "secondaryAction": "Più tardi",
+      "fieldLabels": [
+        "Da",
+        "Firma",
+        "Velocità del Verme"
+      ],
+      "days": [
+        {
+          "day": 2,
+          "alertLine": "Arrivano casse, e ci sono Vermi sul muro!",
+          "introLines": [
+            "Controlla la firma e chi l'ha mandata davvero.",
+            "Le riparazioni vere si montano subito, prima che i Vermi raggiungano una crepa."
+          ],
+          "successLine": "bu1lders con un uno e una firma non valida? Quell'aggiornamento era falso. Quelli veri sono entrati in fretta!",
+          "snatchLine": "Un aggiornamento falso ha aperto una crepa, e il Verme è entrato…",
+          "backupLine": "Io riparo il muro. Solo pezzi firmati!",
+          "waitingLine": "Eccoti! I Vermi sono già a metà muro!",
+          "complaintLine": "Era una cassa vera e firmata dai costruttori!",
+          "complaintFailLine": "Troppe riparazioni vere lasciate fuori, e il muro è crollato.",
+          "fieldCard": {
+            "term": "Aggiornamenti falsi",
+            "text": "Un aggiornamento è sicuro solo se la firma è valida e viene dal vero produttore. Monta presto quelli veri.",
+            "cisco": "Cisco Secure Endpoint",
+            "concept": "Firma del codice, supply chain, patching",
+            "role": "Ingegnere della sicurezza degli endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "intro": [
+    "Ogni messaggio che mandi passa da Byte World, una piccola città di Byte dentro la tua rete.",
+    "Gli sconosciuti si intrufolano, così i Byte hanno chiamato un visitatore col kit Cisco vuoto: tu, Pax.",
+    "Gigi: Muoviti con WASD o le frecce, poi premi Invio a una stazione. Segui i cerchi rossi!"
+  ],
+  "dayEnd": [
+    {
+      "day": 1,
+      "speaker": "gigi",
+      "title": "Missione 1 completata",
+      "line": "Il perimetro esterno regge. Prossima tappa: l'anello interno."
+    },
+    {
+      "day": 2,
+      "speaker": "patch",
+      "title": "Missione 2 completata",
+      "line": "Abbiamo trovato lo scanner. Ora ricostruiamo, e stavolta a corsie."
+    }
+  ],
+  "dayStart": [
+    {
+      "day": 1,
+      "speaker": "gigi",
+      "title": "Missione 1: Il perimetro esterno",
+      "line": "Barche di phishing e sconosciuti al cancello, tutto insieme."
+    },
+    {
+      "day": 2,
+      "speaker": "gigi",
+      "title": "Missione 2: L'anello interno",
+      "line": "Qualcosa sta tentando il caveau e l'officina."
+    },
+    {
+      "day": 3,
+      "speaker": "patch",
+      "title": "Missione 3: Il nuovo progetto",
+      "line": "Ricostruiamo la rete a corsie."
+    }
+  ],
+  "collapse": "Non è rimasto nessun Byte a lavorare, e gli attaccanti hanno preso il controllo.",
+  "peace": "L'abbiamo costruita noi, e costruita bene. Tutti al lavoro!",
+  "build": {
+    "speaker": "patch",
+    "intro": [
+      "Hanno imparato tutti i nostri trucchi.",
+      "Oggi ricostruiamo noi la rete della città, e stavolta la facciamo bene."
+    ],
+    "failNoPath": "Quella casa non ha un cavo verso il router. Il messaggio si è perso per strada!",
+    "failWrongHouse": "Quel messaggio è finito nella casa sbagliata.",
+    "failLeak": "Un attaccante è passato da una porta lasciata aperta. Sistemiamo le regole!",
+    "failBlocked": "Ehi, era un amico!",
+    "success": "Ogni messaggio è arrivato dove doveva, e nessuno si è intrufolato!"
+  },
+  "ui": {
+    "gameTitle": "BYTE WORLD",
+    "tagline": "Un piccolo mondo che vive dentro la tua rete",
+    "play": "Gioca",
+    "next": "Avanti",
+    "skip": "Salta",
+    "tryAgain": "Riprova",
+    "pause": "In pausa",
+    "resume": "Riprendi",
+    "restartDay": "Ricomincia la giornata",
+    "backToWorld": "Torna a Byte World",
+    "keepWatching": "Continua a guardare",
+    "sleep": "Dormi",
+    "startDay": "Inizia la giornata",
+    "startAgain": "Ricomincia",
+    "letsBuild": "Costruiamo",
+    "run": "Avvia",
+    "fixBuild": "Sistema la rete",
+    "playAgain": "Gioca ancora",
+    "backups": "Riserve",
+    "complaints": "Reclami",
+    "dayAlertFormat": "Giorno {0}: allarme {1} di {2}",
+    "dayPuzzleFormat": "Giorno {0}: puzzle {1} di {2}",
+    "backupsLeftFormat": "Un Byte di riserva prende il posto. Riserve rimaste: {0}",
+    "snatchedFormat": "{0} è stato rapito!",
+    "runResultFormat": "Consegnati {0} · Bloccati {1} · Sfuggiti {2}",
+    "rotatePhone": "Gira il telefono in orizzontale",
+    "call": "Chiama il team di rete",
+    "priority": "Priorità a Webex",
+    "pin": "Fissa",
+    "report": "Segnala",
+    "quarantine": "Quarantena",
+    "fieldNotesFormat": "Appunti {0}/{1}",
+    "tickerPrefix": "splunk>",
+    "enter": "Invio",
+    "goIn": "Entra",
+    "seeMaterials": "Vedi materiali",
+    "toolkit": "Kit Cisco",
+    "toolkitCountFormat": "Kit Cisco {0}/{1}",
+    "toolkitToastFormat": "{0} aggiunto al tuo kit Cisco",
+    "keyHint": "Invio: entra · M: materiali · Esc: chiudi",
+    "lockFormat": "Si apre dopo la Missione {0}"
+  },
+  "briefs": [
+    {
+      "quest": 1,
+      "lines": [
+        "Benvenuto nel Town Space di Byte World, Pax.",
+        "Barche di phishing al porto e visitatori al cancello, tutto insieme.",
+        "Leggi ogni mittente. Tieni chiuse le porte chiuse."
+      ]
+    },
+    {
+      "quest": 2,
+      "lines": [
+        "Ora l'anello interno: il caveau Duo e l'officina di Patch.",
+        "Attenzione alle notifiche a raffica e agli aggiornamenti falsi.",
+        "Poi raggiungimi all'Osservatorio Splunk."
+      ]
+    },
+    {
+      "quest": 3,
+      "lines": [
+        "Qualcosa è entrato. È ora di ricostruire la rete a corsie.",
+        "Tieni il pod infetto lontano dal caveau."
+      ]
+    },
+    {
+      "quest": 4,
+      "lines": [
+        "È arrivato l'assedio, e la chiamata Webex continua a bloccarsi.",
+        "Se non vediamo dentro i cavi, chiama il team di rete."
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "quest": 1,
+      "question": "Quale dettaglio ha dimostrato che il messaggio della banca era falso?",
+      "options": [
+        "È arrivato di mattina",
+        "Conteneva un link",
+        "Il controllo mittente è fallito e il dominio usava uno zero",
+        "La barca era blu"
+      ],
+      "answer": 2,
+      "explanation": "Domini sosia e un controllo mittente fallito sono i classici segnali di phishing."
+    },
+    {
+      "quest": 1,
+      "question": "Perché restare chiusi a Luca sulla porta 23?",
+      "options": [
+        "Telnet invia tutto senza cifratura, quindi resta chiusa per tutti",
+        "Luca non è sulla lista",
+        "La porta 23 è solo per Gigi",
+        "Era troppo tardi"
+      ],
+      "answer": 0,
+      "explanation": "Una porta chiusa protegge tutta la città. Essere un amico non la rende sicura."
+    },
+    {
+      "quest": 2,
+      "question": "La password era corretta. Perché era comunque un attacco?",
+      "options": [
+        "La password era troppo corta",
+        "Il telefono era spento",
+        "Il caveau era pieno",
+        "Il proprietario non aveva chiesto di entrare, e il secondo fattore l'ha fermato"
+      ],
+      "answer": 3,
+      "explanation": "Con l'MFA, una password rubata da sola non basta."
+    },
+    {
+      "quest": 2,
+      "question": "Cosa ha mostrato la ricerca Splunk?",
+      "options": [
+        "Troppe foto inviate",
+        "Un indirizzo che scansiona la porta 8080 di continuo: ricognizione",
+        "Uno switch rotto",
+        "Una chiamata Webex lenta"
+      ],
+      "answer": 1,
+      "explanation": "Cercare in tutti i log insieme mostra schemi che nessuna casa vede da sola."
+    },
+    {
+      "quest": 3,
+      "question": "Il pod 12 è infetto. Cosa gli impedisce di raggiungere il caveau?",
+      "options": [
+        "Una password più forte",
+        "Spegnere il Wi-Fi",
+        "I pod sono su corsie dello switch separate",
+        "Un router più veloce"
+      ],
+      "answer": 2,
+      "explanation": "La segmentazione tiene un'infezione dentro la sua corsia."
+    },
+    {
+      "quest": 3,
+      "question": "Cosa succede al traffico che non corrisponde a nessuna regola?",
+      "options": [
+        "Viene scartato: il deny implicito",
+        "Viene fatto entrare",
+        "Aspetta in coda",
+        "Va al caveau"
+      ],
+      "answer": 0,
+      "explanation": "Un firewall lascia passare solo ciò che una regola permette; tutto il resto viene scartato."
+    },
+    {
+      "quest": 4,
+      "question": "Come ha aiutato ThousandEyes?",
+      "options": [
+        "Ha alzato il volume della chiamata",
+        "Ha bloccato le barche di phishing",
+        "Ha aggiunto una seconda password",
+        "Ha mostrato quale collegamento perdeva pacchetti, così abbiamo risolto la causa"
+      ],
+      "answer": 3,
+      "explanation": "Vedere perdita e latenza per ogni collegamento trasforma i tentativi in una soluzione."
+    },
+    {
+      "quest": 4,
+      "question": "Perché dare priorità alla chiamata Webex?",
+      "options": [
+        "Il video in tempo reale si rompe con perdita e jitter, quindi passa per primo",
+        "È il traffico più vecchio",
+        "Le chiamate costano meno da inviare",
+        "Rallenta gli attaccanti"
+      ],
+      "answer": 0,
+      "explanation": "La qualità del servizio fa passare per primo il traffico urgente."
+    }
+  ],
+  "props": [
+    {
+      "id": "door23",
+      "name": "La porta 23 arrugginita",
+      "place": "Il cancello di Gigi",
+      "concept": "Cifratura",
+      "text": "La porta 23 è Telnet: tutto passa in chiaro, anche le password. Le porte moderne cifrano.",
+      "tryLabel": "Sbircia il testo in chiaro"
+    },
+    {
+      "id": "bridges",
+      "name": "I ponti delle condutture",
+      "place": "Lo scalo degli switch",
+      "concept": "Segmentazione",
+      "text": "Ogni ponte è una corsia. Il traffico resta sul suo ponte, a meno che una regola non lo faccia passare.",
+      "tryLabel": "Manda un pacchetto dall'altra parte"
+    }
+  ],
+  "learnerCard": {
+    "title": "Scheda di apprendimento: Byte World",
+    "outcomes": [
+      "Riconoscere il phishing da mittente, Rispondi a, controllo mittente e link",
+      "Consentire il traffico per lista e porta, e tenere chiuso Telnet (23)",
+      "Spiegare perché una password corretta non basta, e riconoscere la push fatigue",
+      "Rifiutare gli aggiornamenti non firmati e aggiornare prima ciò che conta",
+      "Costruire una ricerca Splunk di base e trovare una scansione nei log",
+      "Dividere una rete in corsie così un'infezione resta isolata",
+      "Ordinare le regole del firewall per il minimo privilegio, con il deny per ultimo",
+      "Trovare la causa di una chiamata disturbata da perdita, latenza e jitter",
+      "Mettere in ordine le prove di un incidente, dalla scansione all'inondazione"
+    ],
+    "cta": "Continua con Cisco Networking Academy: Introduction to Cybersecurity",
+    "url": "https://www.netacad.com"
+  },
+  "incident": {
+    "prompt": "Metti le prove in ordine, dal primo sondaggio all'inondazione.",
+    "cards": [
+      "Una scansione bussa a ogni porta",
+      "Le barche di phishing arrivano al porto",
+      "Le richieste push inondano il caveau",
+      "203.0.113.7 sonda la porta 8080",
+      "L'inondazione colpisce ogni porta"
+    ]
+  }
+}

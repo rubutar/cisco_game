@@ -1,0 +1,445 @@
+{
+  "puzzles": [
+    {
+      "id": 1,
+      "name": "Corsie",
+      "goal": "Metti i pod in due corsie così il pod 12 non raggiunge il caveau",
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
+      "slots": [
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 300,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 150,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 100,
+          "y": 110,
+          "fixed": "house",
+          "address": 10,
+          "service": "vault"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "vault"
+        },
+        {
+          "id": "h12",
+          "x": 300,
+          "y": 70,
+          "fixed": "house",
+          "address": 12,
+          "service": "media"
+        },
+        {
+          "id": "h14",
+          "x": 330,
+          "y": 226,
+          "fixed": "house",
+          "address": 14,
+          "service": "media"
+        }
+      ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 2
+        }
+      ],
+      "traffic": [
+        {
+          "id": "q3a-1",
+          "to": 10,
+          "port": 0,
+          "friend": true,
+          "kind": "safe",
+          "label": "Backup del caveau al pod 10"
+        },
+        {
+          "id": "q3a-2",
+          "to": 11,
+          "port": 0,
+          "friend": true,
+          "kind": "safe",
+          "label": "Sincronizzazione del caveau al pod 11"
+        },
+        {
+          "id": "q3a-3",
+          "to": 12,
+          "port": 0,
+          "friend": true,
+          "kind": "safe",
+          "label": "Video al pod 12"
+        },
+        {
+          "id": "q3a-4",
+          "to": 14,
+          "port": 0,
+          "friend": true,
+          "kind": "safe",
+          "label": "Musica al pod 14"
+        }
+      ],
+      "lanes": [
+        {
+          "id": "media",
+          "slots": [
+            "s1",
+            "h12",
+            "h14"
+          ]
+        },
+        {
+          "id": "vault",
+          "slots": [
+            "s2",
+            "h10",
+            "h11"
+          ]
+        }
+      ],
+      "testPacket": {
+        "from": "h12",
+        "to": "h10"
+      },
+      "reveal": {
+        "byte": "patch",
+        "term": "Segmentazione",
+        "text": "Gli switch Cisco Catalyst mettono ogni gruppo nella sua corsia, una VLAN, così un pod infetto resta isolato."
+      },
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      }
+    },
+    {
+      "id": 2,
+      "name": "Porte e regole",
+      "goal": "Ordina le regole: minimo privilegio, e blocca l'indirizzo fissato",
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
+      "slots": [
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 300,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 150,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 100,
+          "y": 110,
+          "fixed": "house",
+          "address": 10,
+          "service": "vault"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "vault"
+        },
+        {
+          "id": "h12",
+          "x": 300,
+          "y": 70,
+          "fixed": "house",
+          "address": 12,
+          "service": "media"
+        },
+        {
+          "id": "h14",
+          "x": 330,
+          "y": 226,
+          "fixed": "house",
+          "address": 14,
+          "service": "media"
+        }
+      ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 2
+        }
+      ],
+      "doors": [
+        {
+          "port": 80
+        },
+        {
+          "port": 443
+        },
+        {
+          "port": 8080
+        },
+        {
+          "port": 23
+        }
+      ],
+      "ruleOptions": [
+        "everyone",
+        "friends",
+        "closed"
+      ],
+      "traffic": [
+        {
+          "id": "q3b-1",
+          "to": 10,
+          "port": 443,
+          "from": "luca",
+          "friend": true,
+          "kind": "safe",
+          "label": "Il messaggio di Luca"
+        },
+        {
+          "id": "q3b-2",
+          "to": 12,
+          "port": 8080,
+          "from": "marco",
+          "friend": true,
+          "kind": "safe",
+          "label": "L'invito a giocare di Marco"
+        },
+        {
+          "id": "q3b-3",
+          "to": 11,
+          "port": 80,
+          "from": "town",
+          "friend": false,
+          "kind": "safe",
+          "label": "Bollettino della città"
+        },
+        {
+          "id": "q3b-4",
+          "to": 0,
+          "port": 8080,
+          "from": "203.0.113.7",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Sondaggio da 203.0.113.7"
+        },
+        {
+          "id": "q3b-5",
+          "to": 0,
+          "port": 23,
+          "from": "unknown",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Toc toc, porta 23"
+        }
+      ],
+      "rules": [
+        {
+          "match": "src=203.0.113.7",
+          "action": "drop"
+        },
+        {
+          "match": "door=23",
+          "action": "drop"
+        },
+        {
+          "match": "door=443 friends",
+          "action": "allow"
+        },
+        {
+          "match": "door=8080 friends",
+          "action": "allow"
+        },
+        {
+          "match": "door=80",
+          "action": "allow"
+        }
+      ],
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      },
+      "reveal": {
+        "byte": "gigi",
+        "term": "Minimo privilegio",
+        "text": "Cisco Secure Firewall controlla le regole in ordine e scarta ciò che nessuna regola permette. Apri solo ciò che serve."
+      }
+    },
+    {
+      "id": 3,
+      "name": "L'assedio",
+      "goal": "Tieni pulita la chiamata Webex mentre l'inondazione colpisce ogni porta",
+      "router": {
+        "slot": "r",
+        "sockets": 2
+      },
+      "slots": [
+        {
+          "id": "r",
+          "x": 226,
+          "y": 132,
+          "fixed": "router"
+        },
+        {
+          "id": "s1",
+          "x": 300,
+          "y": 150
+        },
+        {
+          "id": "s2",
+          "x": 150,
+          "y": 150
+        },
+        {
+          "id": "h10",
+          "x": 100,
+          "y": 110,
+          "fixed": "house",
+          "address": 10,
+          "service": "vault"
+        },
+        {
+          "id": "h11",
+          "x": 150,
+          "y": 44,
+          "fixed": "house",
+          "address": 11,
+          "service": "vault"
+        },
+        {
+          "id": "h12",
+          "x": 300,
+          "y": 70,
+          "fixed": "house",
+          "address": 12,
+          "service": "media"
+        },
+        {
+          "id": "h14",
+          "x": 330,
+          "y": 226,
+          "fixed": "house",
+          "address": 14,
+          "service": "media"
+        }
+      ],
+      "tray": [
+        {
+          "piece": "switch",
+          "count": 2
+        }
+      ],
+      "doors": [
+        {
+          "port": 80
+        },
+        {
+          "port": 443
+        },
+        {
+          "port": 8080
+        },
+        {
+          "port": 23
+        }
+      ],
+      "ruleOptions": [
+        "everyone",
+        "friends",
+        "closed"
+      ],
+      "traffic": [
+        {
+          "id": "q4-1",
+          "to": 14,
+          "port": 443,
+          "from": "webex",
+          "friend": true,
+          "kind": "safe",
+          "label": "Chiamata Webex dal pod 14"
+        },
+        {
+          "id": "q4-2",
+          "to": 0,
+          "port": 80,
+          "from": "flood",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Inondazione sulla porta 80"
+        },
+        {
+          "id": "q4-3",
+          "to": 0,
+          "port": 443,
+          "from": "flood",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Inondazione sulla porta 443"
+        },
+        {
+          "id": "q4-4",
+          "to": 0,
+          "port": 8080,
+          "from": "flood",
+          "friend": false,
+          "kind": "attack",
+          "attacker": "ram",
+          "label": "Inondazione sulla porta 8080"
+        }
+      ],
+      "siege": {
+        "enabled": true,
+        "callFrom": "h14",
+        "floodDoors": [
+          80,
+          443,
+          8080,
+          23
+        ],
+        "blindSeconds": 15,
+        "rootCauseLink": "r-s1",
+        "priorityToggle": true
+      },
+      "pass": {
+        "maxLeaks": 0,
+        "maxWrongBlocks": 3
+      },
+      "reveal": {
+        "byte": "gigi",
+        "term": "Visibilità del percorso",
+        "text": "Cisco ThousandEyes mostra perdita, latenza e jitter per collegamento, così risolvi la causa, non il sintomo."
+      }
+    }
+  ]
+}

@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8392313897223383342}
   - component: {fileID: 4426906717095153113}
   - component: {fileID: 4363022413912550818}
+  - component: {fileID: 2523391601717146537}
   - component: {fileID: 7591388395973765753}
   m_Layer: 0
   m_Name: GameRoot
@@ -111,6 +112,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 967a56ca63e6b43adb11573539a19918, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ByteWorld.AudioDirector
+--- !u!114 &2523391601717146537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514426719549392348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61422e8477c194d438e1ea7af25a7795, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ByteWorld.SettingsMenu
 --- !u!114 &7591388395973765753
 MonoBehaviour:
   m_ObjectHideFlags: 0
