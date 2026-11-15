@@ -1,7 +1,8 @@
 // Person A (at Rudi's request), on GameRoot.prefab so it's on every scene. The settings button: a signal-blue
 // tile with a pixel gear in the top-right corner of every screen from the title on (UIRootBuilder leaves room
-// for it). It opens a small settings card: the language, as two flags (Italian, English) with the current one
-// ringed in yellow, and ×. No words needed, so no new text. Time stops while the card is open.
+// for it). It opens a small settings card: sound on/off (a speaker tile, waves or a pink cross), the language as
+// two flags (Italian, English) with the current one ringed in yellow, and ×. No words needed, so no new text.
+// The game (and its sound) pauses while the card is open.
 // It hides while a full-height side panel (materials) or the Splunk Trace is open: those have their own × there.
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +17,7 @@ namespace ByteWorld
         GameObject button;
         GameObject overlay;
         Image itRing, enRing;
+        Image speakerIcon;
         bool pausedTime;
 
         void Awake()
@@ -65,7 +67,7 @@ namespace ByteWorld
             UiKit.Image(overlay, dim, true); // blocks taps on the game underneath
 
             var card = UiKit.Rect("Card", overlayRect);
-            UiKit.Place(card, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(640, 400));
+            UiKit.Place(card, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(640, 560));
             UiKit.Image(card.gameObject, Palette.ByteCream, true);
             UiKit.Border(card.gameObject, UiStyle.CardBorder, (Color)Palette.Ink);
 
@@ -82,9 +84,20 @@ namespace ByteWorld
             closeLabel.font = UiStyle.Font(UiFont.Mono);
             close.onClick.AddListener(Close);
 
-            itRing = Flag(card, Language.Italian, new Vector2(-130, -40));
-            enRing = Flag(card, Language.English, new Vector2(130, -40));
+            // Sound: one tile that toggles, like the pause button's style.
+            var speaker = UiKit.Rect("Speaker", card);
+            UiKit.Place(speaker, new Vector2(0.5f, 0.5f), new Vector2(0, 60), new Vector2(140, 120));
+            var speakerTile = UiKit.Image(speaker.gameObject, Palette.SignalBlue, true);
+            UiKit.Border(speaker.gameObject, 4, (Color)Palette.Ink);
+            var speakerButton = speaker.gameObject.AddComponent<Button>();
+            speakerButton.targetGraphic = speakerTile;
+            speakerButton.onClick.AddListener(ToggleSound);
+            speakerIcon = Icon(speaker, "UI/speaker_on", 96, 96);
+
+            itRing = Flag(card, Language.Italian, new Vector2(-130, -140));
+            enRing = Flag(card, Language.English, new Vector2(130, -140));
             ShowLanguage();
+            ShowSound();
         }
 
         /// <summary>A flag button; returns its yellow selection ring.</summary>
@@ -102,7 +115,7 @@ namespace ByteWorld
             return ringImage;
         }
 
-        static void Icon(RectTransform parent, string sprite, float width, float height)
+        static Image Icon(RectTransform parent, string sprite, float width, float height)
         {
             var icon = UiKit.Rect("Icon", parent);
             icon.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
@@ -110,6 +123,22 @@ namespace ByteWorld
             var image = UiKit.Image(icon.gameObject, Color.white);
             image.sprite = UiKit.Sprite(sprite);
             image.preserveAspect = true;
+            return image;
+        }
+
+        void ToggleSound()
+        {
+            var audio = AudioDirector.Instance;
+            if (audio == null) return;
+            audio.SetMuted(!audio.Muted);
+            ShowSound();
+        }
+
+        void ShowSound()
+        {
+            if (speakerIcon == null) return;
+            var muted = AudioDirector.Instance != null && AudioDirector.Instance.Muted;
+            speakerIcon.sprite = UiKit.Sprite(muted ? "UI/speaker_off" : "UI/speaker_on");
         }
 
         void ShowLanguage()
@@ -130,6 +159,7 @@ namespace ByteWorld
         void Open()
         {
             ShowLanguage();
+            ShowSound();
             overlay.SetActive(true);
             // Freeze the game unless something (the pause menu) already did.
             pausedTime = Time.timeScale > 0f;

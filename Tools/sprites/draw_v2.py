@@ -220,6 +220,29 @@ def gear():
     c.ell(8, 8, 1.6, 1.6, ".")
     return c
 save("gear", "UI", gear())
+
+
+# Settings speaker (UI, 16 x 16): cream speaker with an ink outline; waves for on, a pink cross for off
+def speaker(on):
+    c = C(16, 16)
+    c.rect(1, 6, 3, 4, "4")                                          # the box
+    for i, x in enumerate(range(4, 8)):                              # the cone, widening to the right
+        c.rect(x, 5 - i, 1, 6 + 2 * i, "4")
+    g = [list(r) for r in c.outlined()]
+    if on:
+        for x, y in ((10, 6), (10, 7), (10, 8), (10, 9), (12, 4), (13, 5), (13, 6), (13, 7), (13, 8), (13, 9), (13, 10), (12, 11)):
+            g[y][x] = "4"                                            # two sound waves, no outline
+    else:
+        for i in range(5):                                           # a 2-pixel pink cross
+            for x, y in ((9 + i, 5 + i), (13 - i, 5 + i)):
+                g[y][x] = "5"
+                if x + 1 < 16: g[y][x + 1] = "5"
+    return ["".join(r) for r in g]
+
+
+for name, on in (("speaker_on", True), ("speaker_off", False)):
+    with open(os.path.join(GRIDS, name + ".txt"), "w") as f:
+        f.write("# folder: UI\n# moods: normal\n" + "\n".join(speaker(on)) + "\n")
 save("flag_it", "UI", flag_it())
 save("flag_en", "UI", flag_en())
-print("bytes, attackers, badges, gear, flags written")
+print("bytes, attackers, badges, gear, speaker, flags written")
