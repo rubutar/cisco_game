@@ -1453,7 +1453,7 @@ namespace ByteWorld.EditorTools
             ConfigureRow(rightLayout, 64, TextAnchor.MiddleRight);
             right.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            BuildMeter(right, "Backups", out var backupsLabel, out var backupPips);
+            // No backups meter: the team chose to keep the top bar to the day, complaints and the toolkit.
             var complaints = BuildMeter(right, "Complaints", out var complaintsLabel, out var complaintPips);
             // Room for the Cisco toolkit button (built with the toolkit, pinned to the top-right corner).
             var toolkitSpace = NewRect("ToolkitSpace", right);
@@ -1464,8 +1464,6 @@ namespace ByteWorld.EditorTools
             so.FindProperty("dayLabel").objectReferenceValue = dayLabel;
             so.FindProperty("goalText").objectReferenceValue = goal;
             so.FindProperty("goalBanner").objectReferenceValue = banner.gameObject;
-            so.FindProperty("backupsLabel").objectReferenceValue = backupsLabel;
-            so.FindProperty("backupPips").objectReferenceValue = backupPips;
             so.FindProperty("complaintsGroup").objectReferenceValue = complaints.gameObject;
             so.FindProperty("complaintsLabel").objectReferenceValue = complaintsLabel;
             so.FindProperty("complaintPips").objectReferenceValue = complaintPips;

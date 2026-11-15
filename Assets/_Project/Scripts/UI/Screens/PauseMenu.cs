@@ -2,7 +2,7 @@
 // the menu sends UiAction.Pause / UiAction.Resume (GameManager stops and restarts time) and
 // RestartDayRequested (GameManager restarts the day with three backups).
 // A sound button in the menu mutes or unmutes all music and sound (AudioListener.volume, so the audio code
-// doesn't need to know). Its icon is a speaker with sound waves, or a cross while muted: no words needed.
+// doesn't need to know). Its icon is a pixel speaker with sound waves, or a red cross while muted: no words needed.
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,9 +20,6 @@ namespace ByteWorld
         [SerializeField] TMP_Text restartLabel;
 
         static bool muted;
-        Image[] soundBars;
-        GameObject soundCross;
-        TMP_Text soundWaves;
 
         void Awake()
         {
@@ -74,6 +71,42 @@ namespace ByteWorld
 
         // ---------- Sound ----------
 
+        // Pixel-art speaker icons, 16 x 12: S = speaker, W = sound waves, X = the mute cross.
+        static readonly string[] SpeakerOn =
+        {
+            "......S.........",
+            ".....SS.....W...",
+            "....SSS..W...W..",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "SSSSSSS...W...W.",
+            "....SSS..W...W..",
+            ".....SS.....W...",
+            "......S.........",
+        };
+
+        static readonly string[] SpeakerOff =
+        {
+            "......S.........",
+            ".....SS.........",
+            "....SSS.........",
+            "SSSSSSS..X...X..",
+            "SSSSSSS...X.X...",
+            "SSSSSSS....X....",
+            "SSSSSSS....X....",
+            "SSSSSSS...X.X...",
+            "SSSSSSS..X...X..",
+            "....SSS.........",
+            ".....SS.........",
+            "......S.........",
+        };
+
+        Image soundIcon;
+        Sprite soundOn, soundOff;
+
         void BuildSoundButton()
         {
             var card = resumeButton.transform.parent;
@@ -83,26 +116,11 @@ namespace ByteWorld
             var icon = UiKit.Rect("Icon", button.transform);
             icon.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             icon.anchorMin = icon.anchorMax = new Vector2(0.5f, 0.5f);
-            icon.sizeDelta = new Vector2(120, 64);
-            // A speaker: a small box and a cone (a turned square half hidden behind the box), then the sound waves.
-            var cone = UiKit.Rect("Cone", icon);
-            cone.anchorMin = cone.anchorMax = new Vector2(0, 0.5f);
-            cone.anchoredPosition = new Vector2(30, 0);
-            cone.sizeDelta = new Vector2(38, 38);
-            cone.localRotation = Quaternion.Euler(0, 0, 45);
-            var box = UiKit.Rect("Box", icon);
-            box.anchorMin = box.anchorMax = new Vector2(0, 0.5f);
-            box.anchoredPosition = new Vector2(16, 0);
-            box.sizeDelta = new Vector2(26, 30);
-            soundBars = new[] { UiKit.Image(cone.gameObject, UiStyle.Accent), UiKit.Image(box.gameObject, UiStyle.Accent) };
-            var waves = UiKit.Text("Waves", icon, UiStyle.Heading, UiStyle.Accent, TextAlignmentOptions.MidlineRight, UiFont.Mono);
-            UiKit.Stretch(waves.rectTransform);
-            waves.text = "))";
-            soundWaves = waves;
-            var cross = UiKit.Text("Cross", icon, UiStyle.Heading, UiStyle.Danger, TextAlignmentOptions.MidlineRight, UiFont.Mono);
-            UiKit.Stretch(cross.rectTransform);
-            cross.text = "✕";
-            soundCross = cross.gameObject;
+            icon.sizeDelta = new Vector2(96, 72); // 16 x 12 pixels at 6x
+            soundIcon = UiKit.Image(icon.gameObject, Color.white);
+            soundIcon.preserveAspect = true;
+            soundOn = PixelIcon(SpeakerOn, UiStyle.Accent, UiStyle.Accent, UiStyle.Danger);
+            soundOff = PixelIcon(SpeakerOff, UiStyle.Locked, UiStyle.Locked, UiStyle.Danger);
             button.onClick.AddListener(() =>
             {
                 muted = !muted;
@@ -111,12 +129,30 @@ namespace ByteWorld
             ShowSound();
         }
 
+        static Sprite PixelIcon(string[] rows, Color speaker, Color waves, Color cross)
+        {
+            int h = rows.Length, w = rows[0].Length;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            for (var y = 0; y < h; y++)
+            for (var x = 0; x < w; x++)
+            {
+                var c = rows[h - 1 - y][x]; // textures start at the bottom row
+                tex.SetPixel(x, y, c switch
+                {
+                    'S' => speaker,
+                    'W' => waves,
+                    'X' => cross,
+                    _ => Color.clear
+                });
+            }
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 1);
+        }
+
         void ShowSound()
         {
             AudioListener.volume = muted ? 0f : 1f;
-            foreach (var bar in soundBars) bar.color = muted ? UiStyle.Locked : UiStyle.Accent;
-            soundCross.SetActive(muted);
-            soundWaves.gameObject.SetActive(!muted);
+            soundIcon.sprite = muted ? soundOff : soundOn;
         }
 
         void RestartDay()

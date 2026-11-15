@@ -1,4 +1,4 @@
-// Stream B. The top bar: day and progress label, the backup nest and the complaints meter.
+// Stream B. The top bar: day and progress label, Pax, and the complaints meter (no backups meter: the team dropped it).
 // Listens to GameEvents only; never changes game state.
 using System.Collections.Generic;
 using TMPro;

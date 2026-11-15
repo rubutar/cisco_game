@@ -175,7 +175,8 @@ namespace ByteWorld
             spaceText.text = UiStrings.Ui.gameTitle ?? "";
             foldText.text = open ? "▼" : "▲";
             // Folded, the panel is just its header: as narrow as the space name.
-            var width = open ? Width : LayoutUtility.GetPreferredWidth(header) + 36;
+            // Measured from the texts themselves (the layout may not have run yet): dot 14 + two gaps of 12 + padding 36.
+            var width = open ? Width : spaceText.GetPreferredValues(spaceText.text).x + foldText.GetPreferredValues(foldText.text).x + 14 + 24 + 36;
             panel.sizeDelta = new Vector2(width, panel.sizeDelta.y);
             // Oldest at the top, newest at the bottom, like a chat.
             for (var i = 0; i < rows.Count; i++)
